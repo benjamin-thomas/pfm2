@@ -1,41 +1,147 @@
 import { useState, useEffect } from 'react';
-import type { Status } from '@shared/async';
+import type { Status } from '../shared/async';
+import type { Transaction } from '../shared/transaction';
+import type { AccountBalance } from '../shared/account';
+import { TransactionList } from './components/TransactionList';
+import { BalanceCards } from './components/BalanceCards';
+import TransactionFilters from './components/TransactionFilters';
+import './App.css';
+import './components/Buttons.css';
 
-type HealthData = {
-  status: string;
-  timestamp: number;
+type FinancialData = {
+  transactions: Transaction[];
+  balances: AccountBalance[];
 };
 
 function App() {
-  const [health, setHealth] = useState<Status<HealthData>>({ kind: 'Loading' });
+  const [financialData, setFinancialData] = useState<Status<FinancialData>>({ kind: 'Loading' });
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    return saved ? saved === 'dark' : true;
+  });
 
   useEffect(() => {
-    fetch('/health')
-      .then(res => res.json())
-      .then((data: HealthData) => setHealth({ kind: 'Loaded', ...data }))
-      .catch(err => setHealth({ kind: 'Error', error: err.message }));
+    // Fetch transactions and mock balances
+    Promise.all([
+      fetch('/api/transactions?budgetId=1').then(res => res.json()),
+    ])
+      .then(([transactions]) => {
+        // TODO: fetch real balances from backend
+        const fakeBalances: AccountBalance[] = [
+          {
+            accountId: 2,
+            accountName: 'Checking account',
+            categoryId: 2,
+            categoryName: 'Assets',
+            balance: 154500, // +1545.00 EUR
+          },
+          {
+            accountId: 3,
+            accountName: 'Savings account',
+            categoryId: 2,
+            categoryName: 'Assets',
+            balance: 500000, // +5000.00 EUR
+          },
+          {
+            accountId: 6,
+            accountName: 'Unknown_EXPENSE',
+            categoryId: 4,
+            categoryName: 'Expenses',
+            balance: -102500, // -1025.00 EUR
+          },
+        ];
+
+        setFinancialData({
+          kind: 'Loaded',
+          transactions,
+          balances: fakeBalances,
+        });
+      })
+      .catch(err => setFinancialData({ kind: 'Error', error: err.message }));
   }, []);
 
+  useEffect(() => {
+    // Apply theme to document
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark-theme');
+    } else {
+      document.documentElement.classList.remove('dark-theme');
+    }
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
+
+  const toggleTheme = () => setIsDarkMode(!isDarkMode);
+
   return (
-    <div style={{ padding: '2rem' }}>
+    <div className="container">
       <h1>PFM2 - Personal Finance Manager</h1>
-      <p>
-        Backend health:{' '}
-        {(() => {
-          switch (health.kind) {
-            case 'Loading':
-              return 'Loading...';
-            case 'Loaded':
-              return `${health.status} (${new Date(health.timestamp).toISOString()})`;
-            case 'Error':
-              return `Error: ${health.error}`;
-            default: {
-              const _exhaustive: never = health;
-              return _exhaustive;
-            }
+
+      {/* Dark Mode Toggle */}
+      <button
+        className="theme-toggle"
+        onClick={toggleTheme}
+        title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+      >
+        {isDarkMode ? "🌙" : "☀️"}
+      </button>
+
+      {(() => {
+        switch (financialData.kind) {
+          case 'Loading':
+            return (
+              <div className="section">
+                <div>Loading financial data...</div>
+              </div>
+            );
+
+          case 'Error':
+            return (
+              <div className="section">
+                <div>Error loading financial data: {financialData.error}</div>
+              </div>
+            );
+
+          case 'Loaded':
+            const { balances, transactions } = financialData;
+
+            return (
+              <>
+                <div className="section">
+                  <BalanceCards balances={balances} />
+                </div>
+
+                <div className="section">
+                  <div className="transaction-list">
+                    <div className="transaction-list__header">
+                      <div className="transaction-list__header-title">
+                        <h3>Transactions</h3>
+                        <span className="transaction-count">
+                          {transactions.length} transactions
+                        </span>
+                      </div>
+
+                      <div className="transaction-list__header-buttons">
+                        <button className="button">
+                          💡 Apply All Suggestions
+                        </button>
+                        <button className="button button--primary">
+                          Add Transaction
+                        </button>
+                      </div>
+                    </div>
+                    <TransactionFilters />
+                    <TransactionList transactions={transactions} />
+                  </div>
+                </div>
+              </>
+            );
+
+          default: {
+            const _exhaustive: never = financialData;
+            return _exhaustive;
           }
-        })()}
-      </p>
+        }
+      })()}
     </div>
   );
 }

@@ -1,4 +1,6 @@
 import express from 'express';
+import { createTransactionRepoFakeWithSeed } from './repos/transactionRepoFake';
+import { registerTransactionRoutes } from './routes/transactionRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 8086;
@@ -20,6 +22,9 @@ app.use((req, res, next) => {
   next();
 });
 
+// Initialize repositories
+const transactionRepo = createTransactionRepoFakeWithSeed();
+
 // Routes
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
@@ -28,6 +33,8 @@ app.get('/health', (req, res) => {
 app.get('/hello/:name', (req, res) => {
   res.json({ message: `Hello, ${req.params.name}!` });
 });
+
+registerTransactionRoutes(app, transactionRepo);
 
 // Start server
 app.listen(PORT, () => {

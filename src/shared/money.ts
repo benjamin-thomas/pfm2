@@ -12,3 +12,6 @@ export const formatMoney = (cents: number): string => {
     currency: 'EUR',
   }).format(decimal);
 };
+
+// Re-export datetime helpers for convenience
+export { formatDate } from './datetime';
