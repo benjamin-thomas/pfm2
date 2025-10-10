@@ -1,6 +1,9 @@
 import express from 'express';
-import { createTransactionRepoFakeWithSeed } from './repos/transactionRepoFake';
+import { TransactionRepoFake } from './repos/transaction/fake';
+import { AccountRepoFake, CategoryRepoFake } from './repos/account/fake';
+import { BalanceRepoFake } from './repos/balance/fake';
 import { registerTransactionRoutes } from './routes/transactionRoutes';
+import { registerBalanceRoutes } from './routes/balanceRoutes';
 
 if (!process.env.BE_PORT) throw new Error('Missing mandatory env var: BE_PORT');
 if (!process.env.BE_HOST) throw new Error('Missing mandatory env var: BE_HOST');
@@ -30,7 +33,10 @@ app.use((req, res, next) => {
 });
 
 // Initialize repositories
-const transactionRepo = createTransactionRepoFakeWithSeed();
+const transactionRepo = TransactionRepoFake.initWithSeed();
+const accountRepo = AccountRepoFake.init();
+const categoryRepo = CategoryRepoFake.init();
+const balanceRepo = BalanceRepoFake.init(transactionRepo, accountRepo, categoryRepo);
 
 // Routes
 app.get('/health', (req, res) => {
@@ -42,6 +48,7 @@ app.get('/hello/:name', (req, res) => {
 });
 
 registerTransactionRoutes(app, transactionRepo);
+registerBalanceRoutes(app, balanceRepo);
 
 // Start server
 app.listen(BE_PORT, BE_HOST, () => {

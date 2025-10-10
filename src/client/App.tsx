@@ -21,40 +21,16 @@ function App() {
   });
 
   useEffect(() => {
-    // Fetch transactions and mock balances
+    // Fetch transactions and balances
     Promise.all([
       fetch('/api/transactions?budgetId=1').then(res => res.json()),
+      fetch('/api/balances?budgetId=1').then(res => res.json()),
     ])
-      .then(([transactions]) => {
-        // TODO: fetch real balances from backend
-        const fakeBalances: AccountBalance[] = [
-          {
-            accountId: 2,
-            accountName: 'Checking account',
-            categoryId: 2,
-            categoryName: 'Assets',
-            balance: 154500, // +1545.00 EUR
-          },
-          {
-            accountId: 3,
-            accountName: 'Savings account',
-            categoryId: 2,
-            categoryName: 'Assets',
-            balance: 500000, // +5000.00 EUR
-          },
-          {
-            accountId: 6,
-            accountName: 'Unknown_EXPENSE',
-            categoryId: 4,
-            categoryName: 'Expenses',
-            balance: -102500, // -1025.00 EUR
-          },
-        ];
-
+      .then(([transactions, balances]) => {
         setFinancialData({
           kind: 'Loaded',
           transactions,
-          balances: fakeBalances,
+          balances,
         });
       })
       .catch(err => setFinancialData({ kind: 'Error', error: err.message }));

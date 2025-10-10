@@ -7,7 +7,7 @@ import type {
   TransactionFilters,
   PaginationParams,
   PaginatedResponse,
-} from '../../shared/transaction';
+} from '../../../shared/transaction';
 
 export interface TransactionRepo {
   // Create

@@ -37,7 +37,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ balance }) => {
         {balance.accountName}
       </div>
       <div className={styles.amount}>
-        {formatAmount(balance.accountBalance)}
+        {formatAmount(balance.balance)}
       </div>
     </div>
   );

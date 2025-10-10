@@ -1,5 +1,5 @@
 import type { Router } from 'express';
-import type { TransactionRepo } from '../repos/transactionRepo';
+import type { TransactionRepo } from '../repos/transaction/interface';
 import { z } from 'zod';
 
 const newTransactionSchema = z.object({
