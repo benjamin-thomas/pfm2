@@ -1,6 +1,9 @@
 import type { Router } from 'express';
 import type { TransactionRepo } from '../repos/transaction/interface';
+import * as TransactionQuery from '../cqs/transaction/queries';
+import * as TransactionCommand from '../cqs/transaction/commands';
 import { z } from 'zod';
+import { Option } from '../../shared/utils/option';
 
 const newTransactionSchema = z.object({
   budgetId: z.number(),
@@ -20,13 +23,18 @@ export const registerTransactionRoutes = (router: Router, repo: TransactionRepo)
   // http GET :8086/api/transactions budgetId==1
   router.get('/api/transactions', async (req, res) => {
     try {
-      const budgetId = req.query.budgetId ? parseInt(req.query.budgetId as string, 10) : undefined;
+      const budgetIdStr = req.query.budgetId;
 
-      if (budgetId) {
-        const transactions = await repo.listByBudget(budgetId);
+      if (budgetIdStr) {
+        const budgetId = parseInt(budgetIdStr as string, 10);
+        if (isNaN(budgetId)) {
+          res.status(400).json({ error: 'Invalid budgetId' });
+          return;
+        }
+        const transactions = await TransactionQuery.listByBudget(repo, budgetId);
         res.json(transactions);
       } else {
-        const result = await repo.list();
+        const result = await TransactionQuery.list(repo, Option.none, Option.none);
         res.json(result);
       }
     } catch (error) {
@@ -38,14 +46,22 @@ export const registerTransactionRoutes = (router: Router, repo: TransactionRepo)
   router.get('/api/transactions/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const transaction = await repo.findByIdOrNull(id);
-
-      if (!transaction) {
-        res.status(404).json({ error: 'Transaction not found' });
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'Invalid transaction ID' });
         return;
       }
 
-      res.json(transaction);
+      const result = await TransactionQuery.findById(repo, id);
+
+      Option.match(
+        result,
+        () => {
+          res.status(404).json({ error: 'Transaction not found' });
+        },
+        (transaction) => {
+          res.json(transaction);
+        }
+      );
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
@@ -61,7 +77,9 @@ export const registerTransactionRoutes = (router: Router, repo: TransactionRepo)
         return;
       }
 
-      const transaction = await repo.create(result.data);
+      const newTransaction: NewTransactionInput = result.data;
+
+      const transaction = await TransactionCommand.create(repo, newTransaction);
       res.status(201).json(transaction);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
@@ -72,21 +90,26 @@ export const registerTransactionRoutes = (router: Router, repo: TransactionRepo)
   router.put('/api/transactions/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const result = newTransactionSchema.safeParse(req.body);
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'Invalid transaction ID' });
+        return;
+      }
 
+      const result = newTransactionSchema.safeParse(req.body);
       if (!result.success) {
         res.status(400).json({ error: 'Invalid transaction data', issues: result.error.issues });
         return;
       }
 
-      const transaction = await repo.updateOrThrow(id, result.data);
-      res.json(transaction);
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('not found')) {
-        res.status(404).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      const { affectedRows } = await TransactionCommand.update(repo, id, result.data);
+      if (affectedRows === 0) {
+        res.status(404).json({ error: 'Transaction not found' });
+        return;
       }
+
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -94,9 +117,13 @@ export const registerTransactionRoutes = (router: Router, repo: TransactionRepo)
   router.delete('/api/transactions/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const deleted = await repo.delete(id);
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'Invalid transaction ID' });
+        return;
+      }
 
-      if (!deleted) {
+      const { affectedRows } = await TransactionCommand.remove(repo, id);
+      if (affectedRows === 0) {
         res.status(404).json({ error: 'Transaction not found' });
         return;
       }

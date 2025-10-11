@@ -1,6 +1,6 @@
 // Fake transaction repository for testing - in-memory storage
 
-import type { TransactionRepo } from './interface';
+import type { TransactionRepo, AffectedRows } from './interface';
 import type {
   Transaction,
   NewTransaction,
@@ -9,6 +9,7 @@ import type {
   PaginationParams,
   PaginatedResponse,
 } from '../../../shared/transaction';
+import { Option } from '../../../shared/utils/option';
 
 const init = (): TransactionRepo => {
     let transactions: Transaction[] = [];
@@ -24,50 +25,66 @@ const init = (): TransactionRepo => {
       };
     };
 
-    const applyFilters = (txs: Transaction[], filters?: TransactionFilters): Transaction[] => {
-      if (!filters) return txs;
-
-      return txs.filter((tx) => {
-        if (filters.budgetId && tx.budgetId !== filters.budgetId) return false;
-        if (filters.fromAccountId && tx.fromAccountId !== filters.fromAccountId) return false;
-        if (filters.toAccountId && tx.toAccountId !== filters.toAccountId) return false;
-        if (filters.startDate && tx.date < filters.startDate) return false;
-        if (filters.endDate && tx.date > filters.endDate) return false;
-        if (filters.search) {
-          const searchLower = filters.search.toLowerCase();
-          if (!tx.descr.toLowerCase().includes(searchLower) &&
-            !tx.descrOrig.toLowerCase().includes(searchLower)) {
-            return false;
+    const applyFilters = (txs: Transaction[], filters: Option<TransactionFilters>): Transaction[] => {
+      return Option.match(
+        filters,
+        () => txs, // No filters - return all
+        (f) => txs.filter((tx) => {
+          if (f.budgetId && tx.budgetId !== f.budgetId) return false;
+          if (f.fromAccountId && tx.fromAccountId !== f.fromAccountId) return false;
+          if (f.toAccountId && tx.toAccountId !== f.toAccountId) return false;
+          if (f.startDate && tx.date < f.startDate) return false;
+          if (f.endDate && tx.date > f.endDate) return false;
+          if (f.search) {
+            const searchLower = f.search.toLowerCase();
+            if (!tx.descr.toLowerCase().includes(searchLower) &&
+              !tx.descrOrig.toLowerCase().includes(searchLower)) {
+              return false;
+            }
           }
-        }
-        return true;
-      });
+          return true;
+        })
+      );
     };
 
-    const paginate = <T>(items: T[], params?: PaginationParams): PaginatedResponse<T> => {
-      const page = params?.page || 1;
-      const pageSize = params?.pageSize || 50;
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
+    const paginate = <T>(items: T[], params: Option<PaginationParams>): PaginatedResponse<T> => {
+      return Option.match(
+        params,
+        () => {
+          // No pagination - return first 50
+          return {
+            items: items.slice(0, 50),
+            total: items.length,
+            page: 1,
+            pageSize: 50,
+          };
+        },
+        (p) => {
+          const page = p.page || 1;
+          const pageSize = p.pageSize || 50;
+          const start = (page - 1) * pageSize;
+          const end = start + pageSize;
 
-      if (params?.orderBy) {
-        const key = params.orderBy as keyof T;
-        const dir = params.orderDir || 'asc';
-        items.sort((a, b) => {
-          const aVal = a[key];
-          const bVal = b[key];
-          if (aVal < bVal) return dir === 'asc' ? -1 : 1;
-          if (aVal > bVal) return dir === 'asc' ? 1 : -1;
-          return 0;
-        });
-      }
+          if (p.orderBy) {
+            const key = p.orderBy as keyof T;
+            const dir = p.orderDir || 'asc';
+            items.sort((a, b) => {
+              const aVal = a[key];
+              const bVal = b[key];
+              if (aVal < bVal) return dir === 'asc' ? -1 : 1;
+              if (aVal > bVal) return dir === 'asc' ? 1 : -1;
+              return 0;
+            });
+          }
 
-      return {
-        items: items.slice(start, end),
-        total: items.length,
-        page,
-        pageSize,
-      };
+          return {
+            items: items.slice(start, end),
+            total: items.length,
+            page,
+            pageSize,
+          };
+        }
+      );
     };
 
     return {
@@ -77,13 +94,14 @@ const init = (): TransactionRepo => {
         return newTx;
       },
 
-      findByIdOrNull: async (id: number): Promise<Transaction | null> => {
-        return transactions.find((tx) => tx.transactionId === id) || null;
+      findById: async (id: number): Promise<Option<Transaction>> => {
+        const transaction = transactions.find((tx) => tx.transactionId === id);
+        return transaction ? Option.some(transaction) : Option.none;
       },
 
       list: async (
-        filters?: TransactionFilters,
-        pagination?: PaginationParams
+        filters: Option<TransactionFilters>,
+        pagination: Option<PaginationParams>
       ): Promise<PaginatedResponse<Transaction>> => {
         const filtered = applyFilters(transactions, filters);
         return paginate(filtered, pagination);
@@ -99,11 +117,9 @@ const init = (): TransactionRepo => {
         );
       },
 
-      updateOrThrow: async (id: number, updates: UpdateTransaction): Promise<Transaction> => {
+      update: async (id: number, updates: UpdateTransaction): Promise<AffectedRows> => {
         const index = transactions.findIndex((tx) => tx.transactionId === id);
-        if (index === -1) {
-          throw new Error(`Transaction ${id} not found`);
-        }
+        if (index === -1) return { affectedRows: 0 };
 
         const existing = transactions[index]!;
         const updated: Transaction = {
@@ -113,14 +129,15 @@ const init = (): TransactionRepo => {
           updatedAt: Math.floor(Date.now() / 1000),
         };
         transactions[index] = updated;
-        return updated;
+        return { affectedRows: 1 };
       },
 
-      delete: async (id: number): Promise<boolean> => {
+      remove: async (id: number): Promise<AffectedRows> => {
         const index = transactions.findIndex((tx) => tx.transactionId === id);
-        if (index === -1) return false;
+        if (index === -1) return { affectedRows: 0 };
+
         transactions.splice(index, 1);
-        return true;
+        return { affectedRows: 1 };
       },
 
       createMany: async (newTransactions: NewTransaction[]): Promise<Transaction[]> => {
@@ -129,7 +146,7 @@ const init = (): TransactionRepo => {
         return created;
       },
 
-      deleteMany: async (ids: number[]): Promise<number> => {
+      removeMany: async (ids: number[]): Promise<number> => {
         const idSet = new Set(ids);
         const before = transactions.length;
         transactions = transactions.filter((tx) => !idSet.has(tx.transactionId));

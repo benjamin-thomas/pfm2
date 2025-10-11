@@ -127,7 +127,7 @@ const init = (): Api => {
       update: async (id, transaction: UpdateTransaction) => {
         const index = transactions.findIndex(tx => tx.transactionId === id);
         if (index === -1) {
-          return Result.error(ApiErr.notFound);
+          return Result.err(ApiErr.notFound);
         }
 
         const existing = transactions[index]!;
@@ -144,7 +144,7 @@ const init = (): Api => {
       delete: async (id) => {
         const index = transactions.findIndex(tx => tx.transactionId === id);
         if (index === -1) {
-          return Result.error(ApiErr.notFound);
+          return Result.err(ApiErr.notFound);
         }
         transactions.splice(index, 1);
         return Result.ok(undefined);

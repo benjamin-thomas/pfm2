@@ -16,15 +16,15 @@ export const ApiErr = { badRequest, notFound, serverError } as const;
 
 export interface Api {
   transactions: {
-    list(params: { budgetId: number }): Promise<Result<ApiError, Transaction[]>>;
-    findById(id: number): Promise<Result<ApiError, Option<Transaction>>>;
-    create(transaction: NewTransaction): Promise<Result<ApiError, Transaction>>;
-    update(id: number, transaction: UpdateTransaction): Promise<Result<ApiError, Transaction>>;
+    list(params: { budgetId: number }): Promise<Result<Transaction[], ApiError>>;
+    findById(id: number): Promise<Result<Option<Transaction>, ApiError>>;
+    create(transaction: NewTransaction): Promise<Result<Transaction, ApiError>>;
+    update(id: number, transaction: UpdateTransaction): Promise<Result<Transaction, ApiError>>;
     // Returns Result to handle cases where deletion might be forbidden (e.g., permissions, constraints)
-    delete(id: number): Promise<Result<ApiError, void>>;
+    delete(id: number): Promise<Result<void, ApiError>>;
   };
   balances: {
-    getBalances(params: { budgetId: number }): Promise<Result<ApiError, AccountBalance[]>>;
+    getBalances(params: { budgetId: number }): Promise<Result<AccountBalance[], ApiError>>;
   };
 }
 

@@ -6,6 +6,7 @@ import type { Api } from './api-client/interface';
 import { TransactionList } from './components/TransactionList';
 import { BalanceCards } from './components/BalanceCards';
 import TransactionFilters from './components/TransactionFilters';
+import { Result } from '../shared/utils/result';
 import './App.css';
 import './components/Buttons.css';
 
@@ -32,28 +33,34 @@ function App({ api }: AppProps) {
       api.balances.getBalances({ budgetId: 1 }),
     ])
       .then(([txResult, balResult]) => {
-        // Handle Result types
-        if (txResult.tag === 'error') {
-          const errMsg = txResult.error.tag === 'BadRequest'
-            ? txResult.error.reason
-            : 'Failed to load transactions';
-          setFinancialData({ kind: 'Error', error: errMsg });
-          return;
-        }
-
-        if (balResult.tag === 'error') {
-          const errMsg = balResult.error.tag === 'BadRequest'
-            ? balResult.error.reason
-            : 'Failed to load balances';
-          setFinancialData({ kind: 'Error', error: errMsg });
-          return;
-        }
-
-        setFinancialData({
-          kind: 'Loaded',
-          transactions: txResult.value,
-          balances: balResult.value,
-        });
+        // Handle Result types with Result.match
+        Result.match(
+          txResult,
+          (error) => {
+            const errMsg = error.tag === 'BadRequest'
+              ? error.reason
+              : 'Failed to load transactions';
+            setFinancialData({ kind: 'Error', error: errMsg });
+          },
+          (transactions) => {
+            Result.match(
+              balResult,
+              (error) => {
+                const errMsg = error.tag === 'BadRequest'
+                  ? error.reason
+                  : 'Failed to load balances';
+                setFinancialData({ kind: 'Error', error: errMsg });
+              },
+              (balances) => {
+                setFinancialData({
+                  kind: 'Loaded',
+                  transactions,
+                  balances,
+                });
+              }
+            );
+          }
+        );
       })
       .catch(err => setFinancialData({ kind: 'Error', error: err.message }));
   }, [api]);

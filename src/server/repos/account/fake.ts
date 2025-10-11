@@ -1,9 +1,10 @@
-import type { Account, Category } from '../../../shared/account';
-import type { AccountRepo, CategoryRepo } from './interface';
+import type { Account, Category, NewAccount } from '../../../shared/account';
+import type { AccountRepo, CategoryRepo, AffectedRows } from './interface';
+import { Option } from '../../../shared/utils/option';
 
 const init = (): AccountRepo => {
   // Seed accounts matching the transaction seed data
-  const accounts: Account[] = [
+  let accounts: Account[] = [
     { accountId: 2, categoryId: 2, name: 'Checking account', createdAt: 0, updatedAt: 0 },
     { accountId: 3, categoryId: 2, name: 'Savings account', createdAt: 0, updatedAt: 0 },
     { accountId: 5, categoryId: 3, name: 'Employer', createdAt: 0, updatedAt: 0 },
@@ -11,11 +12,50 @@ const init = (): AccountRepo => {
     { accountId: 7, categoryId: 4, name: 'Groceries', createdAt: 0, updatedAt: 0 },
     { accountId: 9, categoryId: 4, name: 'Transport', createdAt: 0, updatedAt: 0 },
   ];
+  let nextId = 10;
 
   return {
-    listAll: async (): Promise<Account[]> => accounts,
-    findByIdOrNull: async (id: number): Promise<Account | null> => {
-      return accounts.find(a => a.accountId === id) || null;
+    listAll: async (): Promise<Account[]> => {
+      return accounts;
+    },
+
+    findById: async (id: number): Promise<Option<Account>> => {
+      const account = accounts.find(a => a.accountId === id);
+      return account ? Option.some(account) : Option.none;
+    },
+
+    create: async (newAccount: NewAccount): Promise<Account> => {
+      const account: Account = {
+        ...newAccount,
+        accountId: nextId++,
+        createdAt: Math.floor(Date.now() / 1000),
+        updatedAt: Math.floor(Date.now() / 1000),
+      };
+      accounts.push(account);
+      return account;
+    },
+
+    update: async (id: number, updates: NewAccount): Promise<AffectedRows> => {
+      const index = accounts.findIndex(a => a.accountId === id);
+      if (index === -1) return { affectedRows: 0 };
+
+      const existing = accounts[index]!;
+      const updated: Account = {
+        ...updates,
+        accountId: existing.accountId,
+        createdAt: existing.createdAt,
+        updatedAt: Math.floor(Date.now() / 1000),
+      };
+      accounts[index] = updated;
+      return { affectedRows: 1 };
+    },
+
+    remove: async (id: number): Promise<AffectedRows> => {
+      const index = accounts.findIndex(a => a.accountId === id);
+      if (index === -1) return { affectedRows: 0 };
+
+      accounts.splice(index, 1);
+      return { affectedRows: 1 };
     },
   };
 };
@@ -30,9 +70,13 @@ const initCategory = (): CategoryRepo => {
   ];
 
   return {
-    listAll: async (): Promise<Category[]> => categories,
-    findByIdOrNull: async (id: number): Promise<Category | null> => {
-      return categories.find(c => c.categoryId === id) || null;
+    listAll: async (): Promise<Category[]> => {
+      return categories;
+    },
+
+    findById: async (id: number): Promise<Option<Category>> => {
+      const category = categories.find(c => c.categoryId === id);
+      return category ? Option.some(category) : Option.none;
     },
   };
 };

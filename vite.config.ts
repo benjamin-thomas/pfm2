@@ -31,13 +31,16 @@ const makeServer = () => {
 
 export default defineConfig(({ command }) => ({
   plugins: [react()],
-  root: 'src/client',
+  root: 'src',
   server: command === 'serve' ? makeServer() : undefined,
   build: {
-    outDir: '../../dist/client',
+    outDir: '../dist/client',
     emptyOutDir: true,
   },
   test: {
     environment: 'happy-dom',
+    typecheck: {
+      enabled: true,
+    },
   },
 }));

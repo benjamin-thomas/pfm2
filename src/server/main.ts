@@ -4,6 +4,7 @@ import { AccountRepoFake, CategoryRepoFake } from './repos/account/fake';
 import { BalanceRepoFake } from './repos/balance/fake';
 import { registerTransactionRoutes } from './routes/transactionRoutes';
 import { registerBalanceRoutes } from './routes/balanceRoutes';
+import { registerAccountRoutes } from './routes/accountRoutes';
 
 if (!process.env.BE_PORT) throw new Error('Missing mandatory env var: BE_PORT');
 if (!process.env.BE_HOST) throw new Error('Missing mandatory env var: BE_HOST');
@@ -39,7 +40,7 @@ const categoryRepo = CategoryRepoFake.init();
 const balanceRepo = BalanceRepoFake.init(transactionRepo, accountRepo, categoryRepo);
 
 // Routes
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
 });
 
@@ -49,6 +50,7 @@ app.get('/hello/:name', (req, res) => {
 
 registerTransactionRoutes(app, transactionRepo);
 registerBalanceRoutes(app, balanceRepo);
+registerAccountRoutes(app, accountRepo);
 
 // Start server
 app.listen(BE_PORT, BE_HOST, () => {

@@ -16,13 +16,13 @@ const init = (): Api => {
             return Result.ok(data);
           }
           if (res.status === 404)
-            return Result.error(ApiErr.notFound);
+            return Result.err(ApiErr.notFound);
           if (res.status >= 500)
-            return Result.error(ApiErr.serverError);
-          return Result.error(ApiErr.badRequest('Bad request'));
+            return Result.err(ApiErr.serverError);
+          return Result.err(ApiErr.badRequest('Bad request'));
         } catch (error) {
           console.error('API error (transactions.list):', error);
-          return Result.error(ApiErr.serverError);
+          return Result.err(ApiErr.serverError);
         }
       },
 
@@ -36,11 +36,11 @@ const init = (): Api => {
           if (res.status === 404)
             return Result.ok(Option.none);
           if (res.status >= 500)
-            return Result.error(ApiErr.serverError);
-          return Result.error(ApiErr.badRequest('Bad request'));
+            return Result.err(ApiErr.serverError);
+          return Result.err(ApiErr.badRequest('Bad request'));
         } catch (error) {
           console.error('API error (transactions.findById):', error);
-          return Result.error(ApiErr.serverError);
+          return Result.err(ApiErr.serverError);
         }
       },
 
@@ -56,13 +56,13 @@ const init = (): Api => {
             return Result.ok(data);
           }
           if (res.status === 400)
-            return Result.error(ApiErr.badRequest('Invalid transaction data'));
+            return Result.err(ApiErr.badRequest('Invalid transaction data'));
           if (res.status >= 500)
-            return Result.error(ApiErr.serverError);
-          return Result.error(ApiErr.badRequest('Bad request'));
+            return Result.err(ApiErr.serverError);
+          return Result.err(ApiErr.badRequest('Bad request'));
         } catch (error) {
           console.error('API error (transactions.create):', error);
-          return Result.error(ApiErr.serverError);
+          return Result.err(ApiErr.serverError);
         }
       },
 
@@ -78,15 +78,15 @@ const init = (): Api => {
             return Result.ok(data);
           }
           if (res.status === 404)
-            return Result.error(ApiErr.notFound);
+            return Result.err(ApiErr.notFound);
           if (res.status === 400)
-            return Result.error(ApiErr.badRequest('Invalid transaction data'));
+            return Result.err(ApiErr.badRequest('Invalid transaction data'));
           if (res.status >= 500)
-            return Result.error(ApiErr.serverError);
-          return Result.error(ApiErr.badRequest('Bad request'));
+            return Result.err(ApiErr.serverError);
+          return Result.err(ApiErr.badRequest('Bad request'));
         } catch (error) {
           console.error('API error (transactions.update):', error);
-          return Result.error(ApiErr.serverError);
+          return Result.err(ApiErr.serverError);
         }
       },
 
@@ -96,13 +96,13 @@ const init = (): Api => {
           if (res.status === 204)
             return Result.ok(undefined);
           if (res.status === 404)
-            return Result.error(ApiErr.notFound);
+            return Result.err(ApiErr.notFound);
           if (res.status >= 500)
-            return Result.error(ApiErr.serverError);
-          return Result.error(ApiErr.badRequest('Bad request'));
+            return Result.err(ApiErr.serverError);
+          return Result.err(ApiErr.badRequest('Bad request'));
         } catch (error) {
           console.error('API error (transactions.delete):', error);
-          return Result.error(ApiErr.serverError);
+          return Result.err(ApiErr.serverError);
         }
       },
     },
@@ -116,13 +116,13 @@ const init = (): Api => {
             return Result.ok(data);
           }
           if (res.status === 404)
-            return Result.error(ApiErr.notFound);
+            return Result.err(ApiErr.notFound);
           if (res.status >= 500)
-            return Result.error(ApiErr.serverError);
-          return Result.error(ApiErr.badRequest('Bad request'));
+            return Result.err(ApiErr.serverError);
+          return Result.err(ApiErr.badRequest('Bad request'));
         } catch (error) {
           console.error('API error (balances.getBalances):', error);
-          return Result.error(ApiErr.serverError);
+          return Result.err(ApiErr.serverError);
         }
       },
     },

@@ -20,8 +20,10 @@
     "preview": "vite preview",
     "test": "vitest --run",
     "test:watch": "vitest",
+    "test:ui": "vitest --ui",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "cli": "tsx src/cli/main.ts",
+    "repl": "tsx src/cli/repl.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1",
@@ -40,6 +42,7 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.1",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/ui": "^3.2.4",
     "concurrently": "^9.1.2",
     "eslint": "^9.19.0",
     "happy-dom": "^20.0.0",

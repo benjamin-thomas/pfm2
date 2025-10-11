@@ -8,24 +8,27 @@ import type {
   PaginationParams,
   PaginatedResponse,
 } from '../../../shared/transaction';
+import type { Option } from '../../../shared/utils/option';
+
+export type AffectedRows = { affectedRows: number };
 
 export interface TransactionRepo {
   // Create
   create(transaction: NewTransaction): Promise<Transaction>;
 
   // Read
-  findByIdOrNull(id: number): Promise<Transaction | null>;
-  list(filters?: TransactionFilters, pagination?: PaginationParams): Promise<PaginatedResponse<Transaction>>;
+  findById(id: number): Promise<Option<Transaction>>;
+  list(filters: Option<TransactionFilters>, pagination: Option<PaginationParams>): Promise<PaginatedResponse<Transaction>>;
   listByBudget(budgetId: number): Promise<Transaction[]>;
   listByAccount(accountId: number): Promise<Transaction[]>;
 
   // Update
-  updateOrThrow(id: number, updates: UpdateTransaction): Promise<Transaction>;
+  update(id: number, updates: UpdateTransaction): Promise<AffectedRows>;
 
   // Delete
-  delete(id: number): Promise<boolean>;
+  remove(id: number): Promise<AffectedRows>;
 
   // Bulk operations
   createMany(transactions: NewTransaction[]): Promise<Transaction[]>;
-  deleteMany(ids: number[]): Promise<number>; // Returns count deleted
+  removeMany(ids: number[]): Promise<number>; // Returns count deleted
 }
