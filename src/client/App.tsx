@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { Status } from '../shared/async';
 import type { Transaction } from '../shared/transaction';
 import type { AccountBalance } from '../shared/account';
+import type { Api } from './api-client/interface';
 import { TransactionList } from './components/TransactionList';
 import { BalanceCards } from './components/BalanceCards';
 import TransactionFilters from './components/TransactionFilters';
@@ -13,7 +14,11 @@ type FinancialData = {
   balances: AccountBalance[];
 };
 
-function App() {
+type AppProps = {
+  api: Api;
+};
+
+function App({ api }: AppProps) {
   const [financialData, setFinancialData] = useState<Status<FinancialData>>({ kind: 'Loading' });
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
@@ -21,20 +26,37 @@ function App() {
   });
 
   useEffect(() => {
-    // Fetch transactions and balances
+    // Fetch transactions and balances using the API
     Promise.all([
-      fetch('/api/transactions?budgetId=1').then(res => res.json()),
-      fetch('/api/balances?budgetId=1').then(res => res.json()),
+      api.transactions.list({ budgetId: 1 }),
+      api.balances.getBalances({ budgetId: 1 }),
     ])
-      .then(([transactions, balances]) => {
+      .then(([txResult, balResult]) => {
+        // Handle Result types
+        if (txResult.tag === 'error') {
+          const errMsg = txResult.error.tag === 'BadRequest'
+            ? txResult.error.reason
+            : 'Failed to load transactions';
+          setFinancialData({ kind: 'Error', error: errMsg });
+          return;
+        }
+
+        if (balResult.tag === 'error') {
+          const errMsg = balResult.error.tag === 'BadRequest'
+            ? balResult.error.reason
+            : 'Failed to load balances';
+          setFinancialData({ kind: 'Error', error: errMsg });
+          return;
+        }
+
         setFinancialData({
           kind: 'Loaded',
-          transactions,
-          balances,
+          transactions: txResult.value,
+          balances: balResult.value,
         });
       })
       .catch(err => setFinancialData({ kind: 'Error', error: err.message }));
-  }, []);
+  }, [api]);
 
   useEffect(() => {
     // Apply theme to document
@@ -63,21 +85,23 @@ function App() {
 
       {(() => {
         switch (financialData.kind) {
-          case 'Loading':
+          case 'Loading': {
             return (
               <div className="section">
                 <div>Loading financial data...</div>
               </div>
             );
+          }
 
-          case 'Error':
+          case 'Error': {
             return (
               <div className="section">
                 <div>Error loading financial data: {financialData.error}</div>
               </div>
             );
+          }
 
-          case 'Loaded':
+          case 'Loaded': {
             const { balances, transactions } = financialData;
 
             return (
@@ -111,6 +135,7 @@ function App() {
                 </div>
               </>
             );
+          }
 
           default: {
             const _exhaustive: never = financialData;

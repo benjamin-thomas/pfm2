@@ -2,6 +2,9 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 const makeServer = () => {
+  // Skip server config during test runs
+  if (process.env.VITEST) return;
+
   if (!process.env.FE_PORT) throw new Error('Missing mandatory env var: FE_PORT');
   if (!process.env.FE_HOST) throw new Error('Missing mandatory env var: FE_HOST');
   if (!process.env.BE_BASE_URL) throw new Error('Missing mandatory env var: BE_BASE_URL');
@@ -14,7 +17,7 @@ const makeServer = () => {
     host: FE_HOST,
     port: FE_PORT,
     proxy: {
-      '/api': {
+      '/api/': {
         target: BE_BASE_URL,
         changeOrigin: true,
       },
@@ -33,5 +36,8 @@ export default defineConfig(({ command }) => ({
   build: {
     outDir: '../../dist/client',
     emptyOutDir: true,
+  },
+  test: {
+    environment: 'happy-dom',
   },
 }));
