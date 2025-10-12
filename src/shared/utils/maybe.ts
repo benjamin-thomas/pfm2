@@ -1,6 +1,8 @@
 // Maybe type - follows Elm's Maybe API
 // Either Nothing or Just<A>
 
+import { impossibleBranch } from './impossibleBranch';
+
 export type Maybe<A> =
   | { tag: 'Nothing' }
   | { tag: 'Just'; value: A };
@@ -22,10 +24,10 @@ const match = <A, B>(
       return onNothing();
     case 'Just':
       return onJust(maybe.value);
-    default: {
-      const exhaustive: never = maybe;
-      throw new Error(`Impossible: ${exhaustive}`);
-    }
+
+    /* v8 ignore next 2 */
+    default:
+      return impossibleBranch(maybe);
   }
 };
 

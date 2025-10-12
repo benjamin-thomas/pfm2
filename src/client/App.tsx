@@ -7,6 +7,7 @@ import { TransactionList } from './components/TransactionList';
 import { BalanceCards } from './components/BalanceCards';
 import TransactionFilters from './components/TransactionFilters';
 import { Result } from '../shared/utils/result';
+import { impossibleBranch } from '../shared/utils/impossibleBranch';
 import './App.css';
 import './components/Buttons.css';
 
@@ -144,10 +145,9 @@ function App({ api }: AppProps) {
             );
           }
 
-          default: {
-            const exhaustive: never = financialData;
-            throw new Error(`Impossible: ${exhaustive}`);
-          }
+          /* v8 ignore next 2 */
+          default:
+            return impossibleBranch(financialData);
         }
       })()}
     </div>

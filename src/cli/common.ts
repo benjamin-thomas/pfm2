@@ -2,6 +2,7 @@
 import { AccountRepoFake } from '../server/repos/account/fake';
 import { AccountRepoSql } from '../server/repos/account/sql';
 import type { AccountRepo } from '../server/repos/account/interface';
+import { impossibleBranch } from '../shared/utils/impossibleBranch';
 
 // Define list first, then derive type from it using typeof and indexed access
 // REPO_VARIANTS[number] extracts the union type: 'fake' | 'sql'
@@ -20,10 +21,9 @@ export const makeAccountRepoOrThrow = (repoType: REPO_VARIANT): AccountRepo => {
         return AccountRepoFake.init();
       case 'sql':
         return AccountRepoSql.init();
-      default: {
-        const exhaustive: never = repoType;
-        throw new Error(`Impossible: ${exhaustive}`);
-      }
+      /* v8 ignore next 2 */
+      default:
+        return impossibleBranch(repoType);
     }
   })();
 };

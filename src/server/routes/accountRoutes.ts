@@ -5,6 +5,7 @@ import * as AccountCommand from '../cqs/account/commands';
 import { z } from 'zod';
 import { Result } from '../../shared/utils/result';
 import { Maybe } from '../../shared/utils/maybe';
+import { impossibleBranch } from '../../shared/utils/impossibleBranch';
 
 const newAccountSchema = z.object({
   name: z.string().min(1),
@@ -42,10 +43,9 @@ export const registerAccountRoutes = (router: Router, repo: AccountRepo): void =
             case 'AccountHidden':
               res.status(403).json({ error: 'Account is hidden' });
               break;
-            default: {
-              const exhaustive: never = error.tag;
-              res.status(500).json({ error: `Impossible: ${exhaustive}` });
-            }
+            /* v8 ignore next 2 */
+            default:
+              impossibleBranch(error.tag);
           }
         },
         (maybeAccount) => {
@@ -130,10 +130,9 @@ export const registerAccountRoutes = (router: Router, repo: AccountRepo): void =
             case 'AccountLocked':
               res.status(403).json({ error: `Cannot delete locked account: ${error.name}` });
               break;
-            default: {
-              const exhaustive: never = error.tag;
-              throw new Error(`Impossible: ${exhaustive}`);
-            }
+            /* v8 ignore next 2 */
+            default:
+              impossibleBranch(error.tag);
           }
         },
         (affectedRows) => {

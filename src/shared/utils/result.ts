@@ -2,6 +2,8 @@
 // Result<X, A> where X is the error type, A is the success value type
 // Error type comes first (more ergonomic for match - error handler first)
 
+import { impossibleBranch } from './impossibleBranch';
+
 export type Result<X, A> =
   | { tag: 'Ok'; value: A }
   | { tag: 'Err'; error: X };
@@ -23,10 +25,10 @@ const match = <X, A, R>(
       return onErr(result.error);
     case 'Ok':
       return onOk(result.value);
-    default: {
-      const exhaustive: never = result;
-      throw new Error(`Impossible: ${exhaustive}`);
-    }
+
+    /* v8 ignore next 2 */
+    default:
+      return impossibleBranch(result);
   }
 };
 

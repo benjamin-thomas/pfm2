@@ -45,5 +45,9 @@ export default defineConfig(({ command }) => ({
     typecheck: {
       enabled: true,
     },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'lcov'],
+    },
   },
 }));
