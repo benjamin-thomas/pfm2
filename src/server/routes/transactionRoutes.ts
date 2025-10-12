@@ -1,7 +1,6 @@
 import type { Router } from 'express';
-import type { TransactionRepo } from '../repos/transaction/interface';
-import { TransactionQuery } from '../cqs/transaction/queries';
-import { TransactionCommand } from '../cqs/transaction/commands';
+import type { TransactionQuery } from '../cqs/transaction/queries';
+import type { TransactionCommand } from '../cqs/transaction/commands';
 import { z } from 'zod';
 import { Maybe } from '../../shared/utils/maybe';
 
@@ -18,7 +17,7 @@ const newTransactionSchema = z.object({
 
 type NewTransactionInput = z.infer<typeof newTransactionSchema>;
 
-export const registerTransactionRoutes = (router: Router, repo: TransactionRepo): void => {
+export const registerTransactionRoutes = (router: Router, transactionQuery: TransactionQuery, transactionCommand: TransactionCommand): void => {
   // GET /api/transactions?budgetId=1
   // http GET :8086/api/transactions budgetId==1
   router.get('/api/transactions', async (req, res) => {
@@ -31,10 +30,10 @@ export const registerTransactionRoutes = (router: Router, repo: TransactionRepo)
           res.status(400).json({ error: 'Invalid budgetId' });
           return;
         }
-        const transactions = await TransactionQuery.listByBudget(repo, budgetId);
+        const transactions = await transactionQuery.listByBudget(budgetId);
         res.json(transactions);
       } else {
-        const result = await TransactionQuery.list(repo, Maybe.nothing, Maybe.nothing);
+        const result = await transactionQuery.list(Maybe.nothing, Maybe.nothing);
         res.json(result);
       }
     } catch (error) {
@@ -51,7 +50,7 @@ export const registerTransactionRoutes = (router: Router, repo: TransactionRepo)
         return;
       }
 
-      const maybeTransaction = await TransactionQuery.findById(repo, id);
+      const maybeTransaction = await transactionQuery.findById(id);
 
       Maybe.match(
         maybeTransaction,
@@ -79,7 +78,7 @@ export const registerTransactionRoutes = (router: Router, repo: TransactionRepo)
 
       const newTransaction: NewTransactionInput = result.data;
 
-      const transaction = await TransactionCommand.create(repo, newTransaction);
+      const transaction = await transactionCommand.create(newTransaction);
       res.status(201).json(transaction);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
@@ -101,7 +100,7 @@ export const registerTransactionRoutes = (router: Router, repo: TransactionRepo)
         return;
       }
 
-      const { affectedRows } = await TransactionCommand.update(repo, id, result.data);
+      const { affectedRows } = await transactionCommand.update(id, result.data);
       if (affectedRows === 0) {
         res.status(404).json({ error: 'Transaction not found' });
         return;
@@ -122,7 +121,7 @@ export const registerTransactionRoutes = (router: Router, repo: TransactionRepo)
         return;
       }
 
-      const { affectedRows } = await TransactionCommand.delete(repo, id);
+      const { affectedRows } = await transactionCommand.delete(id);
       if (affectedRows === 0) {
         res.status(404).json({ error: 'Transaction not found' });
         return;

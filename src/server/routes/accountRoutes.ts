@@ -1,7 +1,6 @@
 import type { Router } from 'express';
-import type { AccountRepo } from '../repos/account/interface';
-import { AccountQuery } from '../cqs/account/queries';
-import { AccountCommand } from '../cqs/account/commands';
+import type { AccountQuery } from '../cqs/account/queries';
+import type { AccountCommand } from '../cqs/account/commands';
 import { z } from 'zod';
 import { Result } from '../../shared/utils/result';
 import { Maybe } from '../../shared/utils/maybe';
@@ -14,11 +13,11 @@ const newAccountSchema = z.object({
 
 type NewAccountInput = z.infer<typeof newAccountSchema>;
 
-export const registerAccountRoutes = (router: Router, repo: AccountRepo): void => {
+export const registerAccountRoutes = (router: Router, accountQuery: AccountQuery, accountCommand: AccountCommand): void => {
   // GET /api/accounts
   router.get('/api/accounts', async (_req, res) => {
     try {
-      const accounts = await AccountQuery.list(repo);
+      const accounts = await accountQuery.list();
       res.json(accounts);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
@@ -34,7 +33,7 @@ export const registerAccountRoutes = (router: Router, repo: AccountRepo): void =
         return;
       }
 
-      const result = await AccountQuery.findById(repo, id);
+      const result = await accountQuery.findById(id);
 
       Result.match(
         result,
@@ -76,7 +75,7 @@ export const registerAccountRoutes = (router: Router, repo: AccountRepo): void =
       }
 
       const newAccount: NewAccountInput = parseResult.data;
-      const account = await AccountCommand.create(repo, newAccount);
+      const account = await accountCommand.create(newAccount);
       res.status(201).json(account);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
@@ -99,7 +98,7 @@ export const registerAccountRoutes = (router: Router, repo: AccountRepo): void =
       }
 
       const updates: NewAccountInput = parseResult.data;
-      const { affectedRows } = await AccountCommand.update(repo, id, updates);
+      const { affectedRows } = await accountCommand.update(id, updates);
 
       if (affectedRows === 0) {
         res.status(404).json({ error: 'Account not found' });
@@ -121,7 +120,7 @@ export const registerAccountRoutes = (router: Router, repo: AccountRepo): void =
         return;
       }
 
-      const result = await AccountCommand.delete(repo, id);
+      const result = await accountCommand.delete(id);
 
       Result.match(
         result,

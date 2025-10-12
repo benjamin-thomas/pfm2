@@ -2,6 +2,11 @@ import express from 'express';
 import { TransactionRepoFake } from './repos/transaction/fake';
 import { AccountRepoFake, CategoryRepoFake } from './repos/account/fake';
 import { BalanceRepoFake } from './repos/balance/fake';
+import { AccountQuery } from './cqs/account/queries';
+import { AccountCommand } from './cqs/account/commands';
+import { TransactionQuery } from './cqs/transaction/queries';
+import { TransactionCommand } from './cqs/transaction/commands';
+import { BalanceQuery } from './cqs/balance/queries';
 import { registerTransactionRoutes } from './routes/transactionRoutes';
 import { registerBalanceRoutes } from './routes/balanceRoutes';
 import { registerAccountRoutes } from './routes/accountRoutes';
@@ -39,6 +44,13 @@ const accountRepo = AccountRepoFake.init();
 const categoryRepo = CategoryRepoFake.init();
 const balanceRepo = BalanceRepoFake.init(transactionRepo, accountRepo, categoryRepo);
 
+// Initialize CQS handlers
+const accountQuery = AccountQuery.init(accountRepo);
+const accountCommand = AccountCommand.init(accountRepo);
+const transactionQuery = TransactionQuery.init(transactionRepo);
+const transactionCommand = TransactionCommand.init(transactionRepo);
+const balanceQuery = BalanceQuery.init(balanceRepo);
+
 // Routes
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
@@ -48,9 +60,9 @@ app.get('/hello/:name', (req, res) => {
   res.json({ message: `Hello, ${req.params.name}!` });
 });
 
-registerTransactionRoutes(app, transactionRepo);
-registerBalanceRoutes(app, balanceRepo);
-registerAccountRoutes(app, accountRepo);
+registerTransactionRoutes(app, transactionQuery, transactionCommand);
+registerBalanceRoutes(app, balanceQuery);
+registerAccountRoutes(app, accountQuery, accountCommand);
 
 // Start server
 app.listen(BE_PORT, BE_HOST, () => {

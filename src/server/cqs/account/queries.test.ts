@@ -8,7 +8,8 @@ describe('Account Queries', () => {
   describe('list', () => {
     it('returns all accounts', async () => {
       const repo = AccountRepoFake.init();
-      const accounts = await AccountQuery.list(repo);
+      const accountQuery = AccountQuery.init(repo);
+      const accounts = await accountQuery.list();
 
       assert.isAbove(accounts.length, 0);
       assert.property(accounts[0], 'accountId');
@@ -20,7 +21,8 @@ describe('Account Queries', () => {
   describe('findById', () => {
     it('returns account when found', async () => {
       const repo = AccountRepoFake.init();
-      const result = await AccountQuery.findById(repo, 2);
+      const accountQuery = AccountQuery.init(repo);
+      const result = await accountQuery.findById(2);
 
       Result.match(
         result,
@@ -40,7 +42,8 @@ describe('Account Queries', () => {
 
     it('returns none when account not found', async () => {
       const repo = AccountRepoFake.init();
-      const result = await AccountQuery.findById(repo, 999);
+      const accountQuery = AccountQuery.init(repo);
+      const result = await accountQuery.findById(999);
 
       Result.match(
         result,
@@ -56,7 +59,8 @@ describe('Account Queries', () => {
       // Create a hidden account
       const account = await repo.create({ name: 'HIDDEN_Secret', categoryId: 2 });
 
-      const result = await AccountQuery.findById(repo, account.accountId);
+      const accountQuery = AccountQuery.init(repo);
+      const result = await accountQuery.findById(account.accountId);
 
       Result.match(
         result,

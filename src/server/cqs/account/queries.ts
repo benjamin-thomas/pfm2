@@ -4,11 +4,6 @@ import type { AccountRepo } from '../../repos/account/interface';
 import { Maybe } from '../../../shared/utils/maybe';
 import { Result } from '../../../shared/utils/result';
 
-// No business rules, just pass through
-const list = (repo: AccountRepo): Promise<Account[]> => {
-  return repo.listAll();
-};
-
 // Business rule example: Cannot view "hidden" accounts
 // (Hidden = name starts with "HIDDEN_")
 type FindByIdError = { tag: 'AccountHidden'; accountId: number };
@@ -17,25 +12,38 @@ const isHidden = (account: Account): boolean => {
   return account.name.startsWith('HIDDEN_');
 };
 
-const findById = async (
-  repo: AccountRepo,
-  id: number
-): Promise<Result<FindByIdError, Maybe<Account>>> => {
-  const accountOpt = await repo.findById(id);
-
-  if (accountOpt.tag === 'Nothing') {
-    // Not found is not an error - return none wrapped in ok
-    return Result.ok(Maybe.nothing);
-  }
-
-  if (isHidden(accountOpt.value)) {
-    return Result.err({ tag: 'AccountHidden', accountId: id });
-  }
-
-  return Result.ok(accountOpt);
+export type AccountQuery = {
+  list(): Promise<Account[]>;
+  findById(id: number): Promise<Result<FindByIdError, Maybe<Account>>>;
 };
 
-export const AccountQuery = {
-  list,
-  findById
-} as const;
+const init = (repo: AccountRepo): AccountQuery => {
+  const list = (): Promise<Account[]> => {
+    return repo.listAll();
+  };
+
+  const findById = async (
+    id: number
+  ): Promise<Result<FindByIdError, Maybe<Account>>> => {
+    const maybeAccount = await repo.findById(id);
+
+    return Maybe.match(
+      maybeAccount,
+      // Not found is not an error - return none wrapped in ok
+      () => Result.ok(Maybe.nothing),
+      (account) => {
+        if (isHidden(account)) {
+          return Result.err({ tag: 'AccountHidden', accountId: id });
+        }
+        return Result.ok(Maybe.just(account));
+      }
+    );
+  };
+
+  return {
+    list,
+    findById
+  };
+};
+
+export const AccountQuery = { init } as const;

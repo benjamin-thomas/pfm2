@@ -6,11 +6,13 @@ import { Result } from '../../shared/utils/result';
 import { Maybe } from '../../shared/utils/maybe';
 
 export const run = async (repo: AccountRepo, args: string[]) => {
+  const accountQuery = AccountQuery.init(repo);
+  const accountCommand = AccountCommand.init(repo);
   const command = args[0];
 
   switch (command) {
     case 'list': {
-      const accounts = await AccountQuery.list(repo);
+      const accounts = await accountQuery.list();
       console.log('Accounts:');
       accounts.forEach(acc => {
         console.log(`  [${acc.accountId}] ${acc.name} (category: ${acc.categoryId})`);
@@ -31,7 +33,7 @@ export const run = async (repo: AccountRepo, args: string[]) => {
         return;
       }
 
-      const result = await AccountQuery.findById(repo, id);
+      const result = await accountQuery.findById(id);
 
       Result.match(
         result,
@@ -70,7 +72,7 @@ export const run = async (repo: AccountRepo, args: string[]) => {
         return;
       }
 
-      const account = await AccountCommand.create(repo, { name, categoryId });
+      const account = await accountCommand.create({ name, categoryId });
       console.log(`Created account [${account.accountId}]: ${account.name}`);
       break;
     }
@@ -92,7 +94,7 @@ export const run = async (repo: AccountRepo, args: string[]) => {
         return;
       }
 
-      const { affectedRows } = await AccountCommand.update(repo, id, { name, categoryId });
+      const { affectedRows } = await accountCommand.update(id, { name, categoryId });
       if (affectedRows === 0) {
         console.log('Account not found');
       } else {
@@ -114,7 +116,7 @@ export const run = async (repo: AccountRepo, args: string[]) => {
         return;
       }
 
-      const result = await AccountCommand.delete(repo, id);
+      const result = await accountCommand.delete(id);
 
       Result.match(
         result,

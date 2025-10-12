@@ -8,7 +8,8 @@ describe('Account Commands', () => {
   describe('create', () => {
     it('creates a new account', async () => {
       const repo = AccountRepoFake.init();
-      const account = await AccountCommand.create(repo, {
+      const accountCommand = AccountCommand.init(repo);
+      const account = await accountCommand.create({
         name: 'New Account',
         categoryId: 2,
       });
@@ -22,7 +23,8 @@ describe('Account Commands', () => {
   describe('update', () => {
     it('updates an existing account', async () => {
       const repo = AccountRepoFake.init();
-      const { affectedRows } = await AccountCommand.update(repo, 2, {
+      const accountCommand = AccountCommand.init(repo);
+      const { affectedRows } = await accountCommand.update(2, {
         name: 'Updated Name',
         categoryId: 3,
       });
@@ -43,7 +45,8 @@ describe('Account Commands', () => {
 
     it('returns 0 affected rows when account not found', async () => {
       const repo = AccountRepoFake.init();
-      const { affectedRows } = await AccountCommand.update(repo, 999, {
+      const accountCommand = AccountCommand.init(repo);
+      const { affectedRows } = await accountCommand.update(999, {
         name: 'Updated Name',
         categoryId: 3,
       });
@@ -55,7 +58,8 @@ describe('Account Commands', () => {
   describe('delete', () => {
     it('deletes an existing account', async () => {
       const repo = AccountRepoFake.init();
-      const result = await AccountCommand.delete(repo, 2);
+      const accountCommand = AccountCommand.init(repo);
+      const result = await accountCommand.delete(2);
 
       Result.match(
         result,
@@ -66,13 +70,14 @@ describe('Account Commands', () => {
       );
 
       // Verify it's gone
-      const accountOpt = await repo.findById(2);
-      assert.equal(accountOpt.tag, 'Nothing');
+      const maybeAccount = await repo.findById(2);
+      assert.equal(maybeAccount.tag, 'Nothing');
     });
 
     it('returns 0 affected rows when account not found', async () => {
       const repo = AccountRepoFake.init();
-      const result = await AccountCommand.delete(repo, 999);
+      const accountCommand = AccountCommand.init(repo);
+      const result = await accountCommand.delete(999);
 
       Result.match(
         result,
@@ -88,7 +93,8 @@ describe('Account Commands', () => {
       // Create a locked account
       const account = await repo.create({ name: 'SYSTEM_Admin', categoryId: 2 });
 
-      const result = await AccountCommand.delete(repo, account.accountId);
+      const accountCommand = AccountCommand.init(repo);
+      const result = await accountCommand.delete(account.accountId);
 
       Result.match(
         result,
