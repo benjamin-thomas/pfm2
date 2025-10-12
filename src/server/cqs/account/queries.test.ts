@@ -2,7 +2,7 @@ import { describe, it, assert } from 'vitest';
 import { AccountRepoFake } from '../../repos/account/fake';
 import * as AccountQuery from './queries';
 import { Result } from '../../../shared/utils/result';
-import { Option } from '../../../shared/utils/option';
+import { Maybe } from '../../../shared/utils/maybe';
 
 describe('Account Queries', () => {
   describe('list', () => {
@@ -25,9 +25,9 @@ describe('Account Queries', () => {
       Result.match(
         result,
         () => { throw new Error('Expected Ok'); },
-        (optAccount) => {
-          Option.match(
-            optAccount,
+        (maybeAccount) => {
+          Maybe.match(
+            maybeAccount,
             () => { throw new Error('Expected some value'); },
             (account) => {
               assert.equal(account.accountId, 2);
@@ -46,7 +46,7 @@ describe('Account Queries', () => {
         result,
         () => { throw new Error('Expected Ok'); },
         (optAccount) => {
-          assert.equal(optAccount.tag, 'none');
+          assert.equal(optAccount.tag, 'Nothing');
         }
       );
     });

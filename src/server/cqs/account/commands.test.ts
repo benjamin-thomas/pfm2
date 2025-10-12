@@ -2,7 +2,7 @@ import { describe, it, assert } from 'vitest';
 import { AccountRepoFake } from '../../repos/account/fake';
 import * as AccountCommand from './commands';
 import { Result } from '../../../shared/utils/result';
-import { Option } from '../../../shared/utils/option';
+import { Maybe } from '../../../shared/utils/maybe';
 
 describe('Account Commands', () => {
   describe('create', () => {
@@ -30,9 +30,9 @@ describe('Account Commands', () => {
       assert.equal(affectedRows, 1);
 
       // Verify the update
-      const result = await repo.findById(2);
-      Option.match(
-        result,
+      const maybeAccount = await repo.findById(2);
+      Maybe.match(
+        maybeAccount,
         () => { throw new Error('Expected some value'); },
         (account) => {
           assert.equal(account.name, 'Updated Name');
@@ -67,7 +67,7 @@ describe('Account Commands', () => {
 
       // Verify it's gone
       const accountOpt = await repo.findById(2);
-      assert.equal(accountOpt.tag, 'none');
+      assert.equal(accountOpt.tag, 'Nothing');
     });
 
     it('returns 0 affected rows when account not found', async () => {

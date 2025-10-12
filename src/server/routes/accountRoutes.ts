@@ -4,7 +4,7 @@ import * as AccountQuery from '../cqs/account/queries';
 import * as AccountCommand from '../cqs/account/commands';
 import { z } from 'zod';
 import { Result } from '../../shared/utils/result';
-import { Option } from '../../shared/utils/option';
+import { Maybe } from '../../shared/utils/maybe';
 
 const newAccountSchema = z.object({
   name: z.string().min(1),
@@ -43,14 +43,14 @@ export const registerAccountRoutes = (router: Router, repo: AccountRepo): void =
               res.status(403).json({ error: 'Account is hidden' });
               break;
             default: {
-              const _exhaustive: never = error.tag;
-              res.status(500).json({ error: `Unhandled error: ${_exhaustive}` });
+              const exhaustive: never = error.tag;
+              res.status(500).json({ error: `Impossible: ${exhaustive}` });
             }
           }
         },
-        (accountOpt) => {
-          Option.match(
-            accountOpt,
+        (maybeAccount) => {
+          Maybe.match(
+            maybeAccount,
             () => {
               res.status(404).json({ error: 'Account not found' });
             },
@@ -131,8 +131,8 @@ export const registerAccountRoutes = (router: Router, repo: AccountRepo): void =
               res.status(403).json({ error: `Cannot delete locked account: ${error.name}` });
               break;
             default: {
-              const _exhaustive: never = error.tag;
-              res.status(500).json({ error: `Unhandled error: ${_exhaustive}` });
+              const exhaustive: never = error.tag;
+              throw new Error(`Impossible: ${exhaustive}`);
             }
           }
         },

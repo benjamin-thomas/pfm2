@@ -1,15 +1,4 @@
 // Account command handlers - write operations only
-//
-// DESIGN NOTES:
-// - Commands accept typed inputs (validation done at HTTP/CLI layer)
-// - Commands return Result<DomainError, T> ONLY when business rules can fail
-//   - Example: "Cannot delete locked account" -> Result<RemoveError, AffectedRows>
-//   - Counter-example: Simple CRUD with no rules -> Promise<AffectedRows>
-// - Commands throw on unexpected errors (DB down, network failure, bugs)
-// - Not found (affectedRows=0) is NOT an error - it's data-level feedback
-//   - HTTP layer decides: 404 for REST semantics
-//   - CLI layer decides: "Not found" message
-//
 import type { Account, NewAccount } from '../../../shared/account';
 import type { AccountRepo, AffectedRows } from '../../repos/account/interface';
 import { Result } from '../../../shared/utils/result';
@@ -38,10 +27,10 @@ const isLocked = (account: Account): boolean => {
 export const remove = async (
   repo: AccountRepo,
   id: number
-): Promise<Result<AffectedRows, RemoveError>> => {
+): Promise<Result<RemoveError, AffectedRows>> => {
   const accountOpt = await repo.findById(id);
 
-  if (accountOpt.tag === 'none') {
+  if (accountOpt.tag === 'Nothing') {
     // Not found is not an error - just return 0 affected rows
     return Result.ok({ affectedRows: 0 });
   }

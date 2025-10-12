@@ -1,7 +1,7 @@
 import type { Api } from './interface';
 import { ApiErr } from './interface';
 import { Result } from '../../shared/utils/result';
-import { Option } from '../../shared/utils/option';
+import { Maybe } from '../../shared/utils/maybe';
 
 // HTTP API that talks to the backend server
 
@@ -31,10 +31,10 @@ const init = (): Api => {
           const res = await fetch(`/api/transactions/${id}`);
           if (res.status === 200) {
             const data = await res.json();
-            return Result.ok(Option.some(data));
+            return Result.ok(Maybe.just(data));
           }
           if (res.status === 404)
-            return Result.ok(Option.none);
+            return Result.ok(Maybe.nothing);
           if (res.status >= 500)
             return Result.err(ApiErr.serverError);
           return Result.err(ApiErr.badRequest('Bad request'));

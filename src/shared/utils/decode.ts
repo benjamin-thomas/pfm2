@@ -16,7 +16,7 @@ export type DecodeError = {
 export const decode = <T>(
   schema: z.ZodSchema<T>,
   data: unknown
-): ResultType<T, DecodeError> => {
+): ResultType<DecodeError, T> => {
   const result = schema.safeParse(data);
 
   if (!result.success) {

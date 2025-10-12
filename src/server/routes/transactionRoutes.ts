@@ -3,7 +3,7 @@ import type { TransactionRepo } from '../repos/transaction/interface';
 import * as TransactionQuery from '../cqs/transaction/queries';
 import * as TransactionCommand from '../cqs/transaction/commands';
 import { z } from 'zod';
-import { Option } from '../../shared/utils/option';
+import { Maybe } from '../../shared/utils/maybe';
 
 const newTransactionSchema = z.object({
   budgetId: z.number(),
@@ -34,7 +34,7 @@ export const registerTransactionRoutes = (router: Router, repo: TransactionRepo)
         const transactions = await TransactionQuery.listByBudget(repo, budgetId);
         res.json(transactions);
       } else {
-        const result = await TransactionQuery.list(repo, Option.none, Option.none);
+        const result = await TransactionQuery.list(repo, Maybe.nothing, Maybe.nothing);
         res.json(result);
       }
     } catch (error) {
@@ -51,10 +51,10 @@ export const registerTransactionRoutes = (router: Router, repo: TransactionRepo)
         return;
       }
 
-      const result = await TransactionQuery.findById(repo, id);
+      const maybeTransaction = await TransactionQuery.findById(repo, id);
 
-      Option.match(
-        result,
+      Maybe.match(
+        maybeTransaction,
         () => {
           res.status(404).json({ error: 'Transaction not found' });
         },

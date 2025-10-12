@@ -8,7 +8,7 @@ import type {
   PaginationParams,
   PaginatedResponse,
 } from '../../../shared/transaction';
-import type { Option } from '../../../shared/utils/option';
+import type { Maybe } from '../../../shared/utils/maybe';
 
 export type AffectedRows = { affectedRows: number };
 
@@ -17,8 +17,8 @@ export interface TransactionRepo {
   create(transaction: NewTransaction): Promise<Transaction>;
 
   // Read
-  findById(id: number): Promise<Option<Transaction>>;
-  list(filters: Option<TransactionFilters>, pagination: Option<PaginationParams>): Promise<PaginatedResponse<Transaction>>;
+  findById(id: number): Promise<Maybe<Transaction>>;
+  list(filters: Maybe<TransactionFilters>, pagination: Maybe<PaginationParams>): Promise<PaginatedResponse<Transaction>>;
   listByBudget(budgetId: number): Promise<Transaction[]>;
   listByAccount(accountId: number): Promise<Transaction[]>;
 

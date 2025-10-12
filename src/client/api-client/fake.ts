@@ -3,7 +3,7 @@ import { ApiErr } from './interface';
 import type { Transaction, NewTransaction, UpdateTransaction } from '../../shared/transaction';
 import type { AccountBalance } from '../../shared/account';
 import { Result } from '../../shared/utils/result';
-import { Option } from '../../shared/utils/option';
+import { Maybe } from '../../shared/utils/maybe';
 
 // Fake API that maintains coherent state
 // Balances are calculated from transactions, so they stay in sync
@@ -110,7 +110,7 @@ const init = (): Api => {
 
       findById: async (id) => {
         const tx = transactions.find(tx => tx.transactionId === id);
-        return Result.ok(tx ? Option.some(tx) : Option.none);
+        return Result.ok(tx ? Maybe.just(tx) : Maybe.nothing);
       },
 
       create: async (transaction) => {

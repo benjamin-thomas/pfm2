@@ -3,7 +3,7 @@ import type { AccountRepo } from '../../server/repos/account/interface';
 import * as AccountQuery from '../../server/cqs/account/queries';
 import * as AccountCommand from '../../server/cqs/account/commands';
 import { Result } from '../../shared/utils/result';
-import { Option } from '../../shared/utils/option';
+import { Maybe } from '../../shared/utils/maybe';
 
 export const run = async (repo: AccountRepo, args: string[]) => {
   const command = args[0];
@@ -38,16 +38,16 @@ export const run = async (repo: AccountRepo, args: string[]) => {
         (error) => {
           console.error(`Error: ${error.tag}`);
         },
-        (accountOpt) => {
-          Option.match(
-            accountOpt,
+        (maybeAccount) => {
+          Maybe.match(
+            maybeAccount,
             () => {
               console.log('Account not found');
             },
-            (acc) => {
-              console.log(`Account [${acc.accountId}]:`);
-              console.log(`  Name: ${acc.name}`);
-              console.log(`  Category ID: ${acc.categoryId}`);
+            (account) => {
+              console.log(`Account [${account.accountId}]:`);
+              console.log(`  Name: ${account.name}`);
+              console.log(`  Category ID: ${account.categoryId}`);
             }
           );
         }

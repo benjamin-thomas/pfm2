@@ -1,6 +1,6 @@
 import type { Account, Category, NewAccount } from '../../../shared/account';
 import type { AccountRepo, CategoryRepo, AffectedRows } from './interface';
-import { Option } from '../../../shared/utils/option';
+import { Maybe } from '../../../shared/utils/maybe';
 
 const init = (): AccountRepo => {
   // Seed accounts matching the transaction seed data
@@ -19,9 +19,9 @@ const init = (): AccountRepo => {
       return accounts;
     },
 
-    findById: async (id: number): Promise<Option<Account>> => {
+    findById: async (id: number): Promise<Maybe<Account>> => {
       const account = accounts.find(a => a.accountId === id);
-      return account ? Option.some(account) : Option.none;
+      return account ? Maybe.just(account) : Maybe.nothing;
     },
 
     create: async (newAccount: NewAccount): Promise<Account> => {
@@ -74,9 +74,9 @@ const initCategory = (): CategoryRepo => {
       return categories;
     },
 
-    findById: async (id: number): Promise<Option<Category>> => {
+    findById: async (id: number): Promise<Maybe<Category>> => {
       const category = categories.find(c => c.categoryId === id);
-      return category ? Option.some(category) : Option.none;
+      return category ? Maybe.just(category) : Maybe.nothing;
     },
   };
 };

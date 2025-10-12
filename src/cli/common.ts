@@ -21,8 +21,8 @@ export const makeAccountRepoOrThrow = (repoType: REPO_VARIANT): AccountRepo => {
       case 'sql':
         return AccountRepoSql.init();
       default: {
-        const _exhaustive: never = repoType;
-        throw new Error(`Unhandled repo type: ${_exhaustive}`);
+        const exhaustive: never = repoType;
+        throw new Error(`Impossible: ${exhaustive}`);
       }
     }
   })();

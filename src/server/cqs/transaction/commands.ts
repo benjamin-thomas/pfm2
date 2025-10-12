@@ -1,15 +1,4 @@
 // Transaction command handlers - write operations only
-//
-// DESIGN NOTES:
-// - Commands accept typed inputs (validation done at HTTP/CLI layer)
-// - Commands return Result<DomainError, T> ONLY when business rules can fail
-//   - Example: "Cannot delete locked account" -> Result<RemoveError, AffectedRows>
-//   - Counter-example: Simple CRUD with no rules -> Promise<AffectedRows>
-// - Commands throw on unexpected errors (DB down, network failure, bugs)
-// - Not found (affectedRows=0) is NOT an error - it's data-level feedback
-//   - HTTP layer decides: 404 for REST semantics
-//   - CLI layer decides: "Not found" message
-//
 import type { Transaction, NewTransaction, UpdateTransaction } from '../../../shared/transaction';
 import type { TransactionRepo, AffectedRows } from '../../repos/transaction/interface';
 

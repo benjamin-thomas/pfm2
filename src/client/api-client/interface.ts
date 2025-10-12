@@ -1,7 +1,7 @@
 import type { Transaction, NewTransaction, UpdateTransaction } from '../../shared/transaction';
 import type { AccountBalance } from '../../shared/account';
 import type { Result } from '../../shared/utils/result';
-import type { Option } from '../../shared/utils/option';
+import type { Maybe } from '../../shared/utils/maybe';
 
 type ApiError
   = { tag: 'BadRequest', reason: string }
@@ -16,15 +16,15 @@ export const ApiErr = { badRequest, notFound, serverError } as const;
 
 export interface Api {
   transactions: {
-    list(params: { budgetId: number }): Promise<Result<Transaction[], ApiError>>;
-    findById(id: number): Promise<Result<Option<Transaction>, ApiError>>;
-    create(transaction: NewTransaction): Promise<Result<Transaction, ApiError>>;
-    update(id: number, transaction: UpdateTransaction): Promise<Result<Transaction, ApiError>>;
+    list(params: { budgetId: number }): Promise<Result<ApiError, Transaction[]>>;
+    findById(id: number): Promise<Result<ApiError, Maybe<Transaction>>>;
+    create(transaction: NewTransaction): Promise<Result<ApiError, Transaction>>;
+    update(id: number, transaction: UpdateTransaction): Promise<Result<ApiError, Transaction>>;
     // Returns Result to handle cases where deletion might be forbidden (e.g., permissions, constraints)
-    delete(id: number): Promise<Result<void, ApiError>>;
+    delete(id: number): Promise<Result<ApiError, void>>;
   };
   balances: {
-    getBalances(params: { budgetId: number }): Promise<Result<AccountBalance[], ApiError>>;
+    getBalances(params: { budgetId: number }): Promise<Result<ApiError, AccountBalance[]>>;
   };
 }
 

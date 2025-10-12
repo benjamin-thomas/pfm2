@@ -145,8 +145,8 @@ function App({ api }: AppProps) {
           }
 
           default: {
-            const _exhaustive: never = financialData;
-            return _exhaustive;
+            const exhaustive: never = financialData;
+            throw new Error(`Impossible: ${exhaustive}`);
           }
         }
       })()}

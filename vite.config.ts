@@ -36,6 +36,9 @@ export default defineConfig(({ command }) => ({
   build: {
     outDir: '../dist/client',
     emptyOutDir: true,
+    rollupOptions: {
+      input: 'src/client/index.html',
+    },
   },
   test: {
     environment: 'happy-dom',
