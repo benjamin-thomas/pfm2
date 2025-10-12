@@ -1,6 +1,6 @@
 import { describe, it, assert } from 'vitest';
 import { AccountRepoFake } from '../../repos/account/fake';
-import * as AccountCommand from './commands';
+import { AccountCommand } from './commands';
 import { Result } from '../../../shared/utils/result';
 import { Maybe } from '../../../shared/utils/maybe';
 
@@ -52,10 +52,10 @@ describe('Account Commands', () => {
     });
   });
 
-  describe('remove', () => {
-    it('removes an existing account', async () => {
+  describe('delete', () => {
+    it('deletes an existing account', async () => {
       const repo = AccountRepoFake.init();
-      const result = await AccountCommand.remove(repo, 2);
+      const result = await AccountCommand.delete(repo, 2);
 
       Result.match(
         result,
@@ -72,7 +72,7 @@ describe('Account Commands', () => {
 
     it('returns 0 affected rows when account not found', async () => {
       const repo = AccountRepoFake.init();
-      const result = await AccountCommand.remove(repo, 999);
+      const result = await AccountCommand.delete(repo, 999);
 
       Result.match(
         result,
@@ -88,7 +88,7 @@ describe('Account Commands', () => {
       // Create a locked account
       const account = await repo.create({ name: 'SYSTEM_Admin', categoryId: 2 });
 
-      const result = await AccountCommand.remove(repo, account.accountId);
+      const result = await AccountCommand.delete(repo, account.accountId);
 
       Result.match(
         result,

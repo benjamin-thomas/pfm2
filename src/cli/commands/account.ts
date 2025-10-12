@@ -1,7 +1,7 @@
 // Account CLI commands
 import type { AccountRepo } from '../../server/repos/account/interface';
-import * as AccountQuery from '../../server/cqs/account/queries';
-import * as AccountCommand from '../../server/cqs/account/commands';
+import { AccountQuery } from '../../server/cqs/account/queries';
+import { AccountCommand } from '../../server/cqs/account/commands';
 import { Result } from '../../shared/utils/result';
 import { Maybe } from '../../shared/utils/maybe';
 
@@ -101,10 +101,10 @@ export const run = async (repo: AccountRepo, args: string[]) => {
       break;
     }
 
-    case 'remove': {
+    case 'delete': {
       const idStr = args[1];
       if (!idStr) {
-        console.error('Usage: pfm account remove <id>');
+        console.error('Usage: pfm account delete <id>');
         return;
       }
 
@@ -114,7 +114,7 @@ export const run = async (repo: AccountRepo, args: string[]) => {
         return;
       }
 
-      const result = await AccountCommand.remove(repo, id);
+      const result = await AccountCommand.delete(repo, id);
 
       Result.match(
         result,
@@ -139,7 +139,7 @@ export const run = async (repo: AccountRepo, args: string[]) => {
       console.log('  find <id>                     - Find account by ID');
       console.log('  create <name> <categoryId>    - Create new account');
       console.log('  update <id> <name> <categoryId> - Update account');
-      console.log('  remove <id>                   - Remove account');
+      console.log('  delete <id>                   - Remove account');
       return;
   }
 };

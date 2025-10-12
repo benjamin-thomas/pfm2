@@ -1,6 +1,6 @@
 import { describe, it, assert } from 'vitest';
 import { AccountRepoFake } from '../../repos/account/fake';
-import * as AccountQuery from './queries';
+import { AccountQuery } from './queries';
 import { Result } from '../../../shared/utils/result';
 import { Maybe } from '../../../shared/utils/maybe';
 

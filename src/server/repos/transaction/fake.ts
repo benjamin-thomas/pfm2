@@ -132,7 +132,7 @@ const init = (): TransactionRepo => {
       return { affectedRows: 1 };
     },
 
-    remove: async (id: number): Promise<AffectedRows> => {
+    delete: async (id: number): Promise<AffectedRows> => {
       const index = transactions.findIndex((tx) => tx.transactionId === id);
       if (index === -1) return { affectedRows: 0 };
 
@@ -146,7 +146,7 @@ const init = (): TransactionRepo => {
       return created;
     },
 
-    removeMany: async (ids: number[]): Promise<number> => {
+    deleteMany: async (ids: number[]): Promise<number> => {
       const idSet = new Set(ids);
       const before = transactions.length;
       transactions = transactions.filter((tx) => !idSet.has(tx.transactionId));

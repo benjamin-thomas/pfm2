@@ -1,7 +1,7 @@
 import type { Router } from 'express';
 import type { AccountRepo } from '../repos/account/interface';
-import * as AccountQuery from '../cqs/account/queries';
-import * as AccountCommand from '../cqs/account/commands';
+import { AccountQuery } from '../cqs/account/queries';
+import { AccountCommand } from '../cqs/account/commands';
 import { z } from 'zod';
 import { Result } from '../../shared/utils/result';
 import { Maybe } from '../../shared/utils/maybe';
@@ -121,7 +121,7 @@ export const registerAccountRoutes = (router: Router, repo: AccountRepo): void =
         return;
       }
 
-      const result = await AccountCommand.remove(repo, id);
+      const result = await AccountCommand.delete(repo, id);
 
       Result.match(
         result,

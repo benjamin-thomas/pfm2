@@ -26,9 +26,9 @@ export interface TransactionRepo {
   update(id: number, updates: UpdateTransaction): Promise<AffectedRows>;
 
   // Delete
-  remove(id: number): Promise<AffectedRows>;
+  delete(id: number): Promise<AffectedRows>;
 
   // Bulk operations
   createMany(transactions: NewTransaction[]): Promise<Transaction[]>;
-  removeMany(ids: number[]): Promise<number>; // Returns count deleted
+  deleteMany(ids: number[]): Promise<number>; // Returns count deleted
 }

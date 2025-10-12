@@ -5,7 +5,7 @@ import { Maybe } from '../../../shared/utils/maybe';
 import { Result } from '../../../shared/utils/result';
 
 // No business rules, just pass through
-export const list = (repo: AccountRepo): Promise<Account[]> => {
+const list = (repo: AccountRepo): Promise<Account[]> => {
   return repo.listAll();
 };
 
@@ -17,7 +17,7 @@ const isHidden = (account: Account): boolean => {
   return account.name.startsWith('HIDDEN_');
 };
 
-export const findById = async (
+const findById = async (
   repo: AccountRepo,
   id: number
 ): Promise<Result<FindByIdError, Maybe<Account>>> => {
@@ -34,3 +34,8 @@ export const findById = async (
 
   return Result.ok(accountOpt);
 };
+
+export const AccountQuery = {
+  list,
+  findById
+} as const;

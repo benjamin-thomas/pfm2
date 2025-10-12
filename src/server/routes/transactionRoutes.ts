@@ -1,7 +1,7 @@
 import type { Router } from 'express';
 import type { TransactionRepo } from '../repos/transaction/interface';
-import * as TransactionQuery from '../cqs/transaction/queries';
-import * as TransactionCommand from '../cqs/transaction/commands';
+import { TransactionQuery } from '../cqs/transaction/queries';
+import { TransactionCommand } from '../cqs/transaction/commands';
 import { z } from 'zod';
 import { Maybe } from '../../shared/utils/maybe';
 
@@ -122,7 +122,7 @@ export const registerTransactionRoutes = (router: Router, repo: TransactionRepo)
         return;
       }
 
-      const { affectedRows } = await TransactionCommand.remove(repo, id);
+      const { affectedRows } = await TransactionCommand.delete(repo, id);
       if (affectedRows === 0) {
         res.status(404).json({ error: 'Transaction not found' });
         return;

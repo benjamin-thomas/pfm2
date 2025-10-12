@@ -1,7 +1,7 @@
 import type { Router } from 'express';
 import { z } from 'zod';
 import type { BalanceRepo } from '../repos/balance/interface';
-import * as BalanceQuery from '../cqs/balance/queries';
+import { BalanceQuery } from '../cqs/balance/queries';
 
 const balanceQuerySchema = z.object({
   budgetId: z.string().transform(val => parseInt(val, 10)),

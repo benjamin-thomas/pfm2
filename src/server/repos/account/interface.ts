@@ -8,7 +8,7 @@ export interface AccountRepo {
   findById(id: number): Promise<Maybe<Account>>;
   create(account: NewAccount): Promise<Account>;
   update(id: number, account: NewAccount): Promise<AffectedRows>;
-  remove(id: number): Promise<AffectedRows>;
+  delete(id: number): Promise<AffectedRows>;
 }
 
 export interface CategoryRepo {

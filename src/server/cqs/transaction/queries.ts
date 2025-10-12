@@ -4,7 +4,7 @@ import type { TransactionRepo } from '../../repos/transaction/interface';
 import type { Maybe } from '../../../shared/utils/maybe';
 
 // No business rules - just pass through
-export const list = (
+const list = (
   repo: TransactionRepo,
   filters: Maybe<TransactionFilters>,
   pagination: Maybe<PaginationParams>
@@ -12,16 +12,22 @@ export const list = (
   return repo.list(filters, pagination);
 };
 
-export const listByBudget = (
+const listByBudget = (
   repo: TransactionRepo,
   budgetId: number
 ): Promise<Transaction[]> => {
   return repo.listByBudget(budgetId);
 };
 
-export const findById = (
+const findById = (
   repo: TransactionRepo,
   id: number
 ): Promise<Maybe<Transaction>> => {
   return repo.findById(id);
 };
+
+export const TransactionQuery = {
+  list,
+  listByBudget,
+  findById
+} as const;

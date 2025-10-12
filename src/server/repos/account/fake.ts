@@ -50,7 +50,7 @@ const init = (): AccountRepo => {
       return { affectedRows: 1 };
     },
 
-    remove: async (id: number): Promise<AffectedRows> => {
+    delete: async (id: number): Promise<AffectedRows> => {
       const index = accounts.findIndex(a => a.accountId === id);
       if (index === -1) return { affectedRows: 0 };
 

@@ -3,14 +3,14 @@ import type { Transaction, NewTransaction, UpdateTransaction } from '../../../sh
 import type { TransactionRepo, AffectedRows } from '../../repos/transaction/interface';
 
 // No business rules yet, so no Result needed
-export const create = (
+const create = (
   repo: TransactionRepo,
   data: NewTransaction
 ): Promise<Transaction> => {
   return repo.create(data);
 };
 
-export const update = (
+const update = (
   repo: TransactionRepo,
   id: number,
   data: UpdateTransaction
@@ -18,16 +18,23 @@ export const update = (
   return repo.update(id, data);
 };
 
-export const remove = (
+const delete_ = (
   repo: TransactionRepo,
   id: number
 ): Promise<AffectedRows> => {
-  return repo.remove(id);
+  return repo.delete(id);
 };
 
-export const createMany = (
+const createMany = (
   repo: TransactionRepo,
   transactions: NewTransaction[]
 ): Promise<Transaction[]> => {
   return repo.createMany(transactions);
 };
+
+export const TransactionCommand = {
+  create,
+  update,
+  delete: delete_,
+  createMany
+} as const;

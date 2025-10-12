@@ -4,11 +4,11 @@ import type { AccountRepo, AffectedRows } from '../../repos/account/interface';
 import { Result } from '../../../shared/utils/result';
 
 // No business rules yet, so no Result needed
-export const create = (repo: AccountRepo, data: NewAccount): Promise<Account> => {
+const create = (repo: AccountRepo, data: NewAccount): Promise<Account> => {
   return repo.create(data);
 };
 
-export const update = (
+const update = (
   repo: AccountRepo,
   id: number,
   data: NewAccount
@@ -16,7 +16,7 @@ export const update = (
   return repo.update(id, data);
 };
 
-// Business rule example: Cannot remove "locked" accounts
+// Business rule example: Cannot delete "locked" accounts
 // (Locked = name starts with "SYSTEM_")
 type RemoveError = { tag: 'AccountLocked'; accountId: number; name: string };
 
@@ -24,7 +24,7 @@ const isLocked = (account: Account): boolean => {
   return account.name.startsWith('SYSTEM_');
 };
 
-export const remove = async (
+const delete_ = async (
   repo: AccountRepo,
   id: number
 ): Promise<Result<RemoveError, AffectedRows>> => {
@@ -43,6 +43,12 @@ export const remove = async (
     });
   }
 
-  const affectedRows = await repo.remove(id);
+  const affectedRows = await repo.delete(id);
   return Result.ok(affectedRows);
 };
+
+export const AccountCommand = {
+  create,
+  update,
+  delete: delete_
+} as const;
