@@ -5,6 +5,10 @@ const makeServer = () => {
   // Skip server config during test runs
   if (process.env.VITEST) return;
 
+  // knip finds dead code
+  if (process.env.npm_lifecycle_script === "knip") return; // npx knip
+  if (process.env.npm_lifecycle_script?.startsWith("knip")) return; // npm run build:strict
+
   if (!process.env.FE_PORT) throw new Error('Missing mandatory env var: FE_PORT');
   if (!process.env.FE_HOST) throw new Error('Missing mandatory env var: FE_HOST');
   if (!process.env.BE_BASE_URL) throw new Error('Missing mandatory env var: BE_BASE_URL');

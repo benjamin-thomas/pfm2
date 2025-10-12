@@ -1,0 +1,10 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/client/main.tsx!"
+  ],
+  "ignoreDependencies": [
+    "better-sqlite3",
+    "@types/better-sqlite3"
+  ]
+}
