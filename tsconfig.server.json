@@ -11,7 +11,8 @@
     "allowSyntheticDefaultImports": true,
 
     /* Output */
-    "outDir": "./dist/server",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "noEmit": false,
 
     /* Linting */

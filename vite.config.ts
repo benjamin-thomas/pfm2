@@ -16,6 +16,7 @@ const makeServer = () => {
   return {
     host: FE_HOST,
     port: FE_PORT,
+    strictPort: true,
     proxy: {
       '/api/': {
         target: BE_BASE_URL,
@@ -31,23 +32,21 @@ const makeServer = () => {
 
 export default defineConfig(({ command }) => ({
   plugins: [react()],
-  root: 'src',
+  root: 'src/client',
   server: command === 'serve' ? makeServer() : undefined,
   build: {
-    outDir: '../dist/client',
+    outDir: '../../dist/client',
     emptyOutDir: true,
-    rollupOptions: {
-      input: 'src/client/index.html',
-    },
   },
   test: {
+    root: 'src',
     environment: 'happy-dom',
     typecheck: {
       enabled: true,
     },
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'html', 'lcov'],
+      reporter: ['html', 'lcov'],
     },
   },
 }));
