@@ -18,7 +18,8 @@ export const registerBalanceRoutes = (router: Router, balanceQuery: BalanceQuery
       const balances = await balanceQuery.getBalances(result.data.budgetId);
       res.json(balances);
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      console.error('Error in GET /api/balances:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   });
 };

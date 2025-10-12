@@ -37,7 +37,8 @@ export const registerTransactionRoutes = (router: Router, transactionQuery: Tran
         res.json(result);
       }
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      console.error('Error in GET /api/transactions:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   });
 
@@ -62,7 +63,8 @@ export const registerTransactionRoutes = (router: Router, transactionQuery: Tran
         }
       );
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      console.error('Error in GET /api/transactions/:id:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   });
 
@@ -81,7 +83,8 @@ export const registerTransactionRoutes = (router: Router, transactionQuery: Tran
       const transaction = await transactionCommand.create(newTransaction);
       res.status(201).json(transaction);
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      console.error('Error in POST /api/transactions:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   });
 
@@ -108,7 +111,8 @@ export const registerTransactionRoutes = (router: Router, transactionQuery: Tran
 
       res.status(204).send();
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      console.error('Error in PUT /api/transactions/:id:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   });
 
@@ -129,7 +133,8 @@ export const registerTransactionRoutes = (router: Router, transactionQuery: Tran
 
       res.status(204).send();
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      console.error('Error in DELETE /api/transactions/:id:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   });
 };

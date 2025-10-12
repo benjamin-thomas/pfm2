@@ -20,7 +20,8 @@ export const registerAccountRoutes = (router: Router, accountQuery: AccountQuery
       const accounts = await accountQuery.list();
       res.json(accounts);
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      console.error('Error in GET /api/accounts:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   });
 
@@ -60,7 +61,8 @@ export const registerAccountRoutes = (router: Router, accountQuery: AccountQuery
         }
       );
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      console.error('Error in GET /api/accounts/:id:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   });
 
@@ -78,7 +80,8 @@ export const registerAccountRoutes = (router: Router, accountQuery: AccountQuery
       const account = await accountCommand.create(newAccount);
       res.status(201).json(account);
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      console.error('Error in POST /api/accounts:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   });
 
@@ -107,7 +110,8 @@ export const registerAccountRoutes = (router: Router, accountQuery: AccountQuery
 
       res.status(204).send();
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      console.error('Error in PUT /api/accounts/:id:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   });
 
@@ -143,7 +147,8 @@ export const registerAccountRoutes = (router: Router, accountQuery: AccountQuery
         }
       );
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      console.error('Error in DELETE /api/accounts/:id:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   });
 };
