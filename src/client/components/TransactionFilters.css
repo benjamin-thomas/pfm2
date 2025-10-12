@@ -58,6 +58,12 @@
     font-weight: 500;
 }
 
+/* Checkbox labels should be horizontal */
+.transaction-search__field label:has(input[type="checkbox"]) {
+    flex-direction: row;
+    align-items: center;
+}
+
 .transaction-search__input {
     padding: 8px 10px;
     border: 1px solid var(--color-border);
