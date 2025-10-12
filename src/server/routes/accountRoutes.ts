@@ -1,17 +1,18 @@
 import type { Router } from 'express';
 import type { AccountQuery } from '../cqs/account/queries';
 import type { AccountCommand } from '../cqs/account/commands';
-import { z } from 'zod';
+import { fields, string, number, format, type Infer } from 'tiny-decoders';
+import { Decoder } from '../../shared/utils/decoder';
 import { Result } from '../../shared/utils/result';
 import { Maybe } from '../../shared/utils/maybe';
 import { impossibleBranch } from '../../shared/utils/impossibleBranch';
 
-const newAccountSchema = z.object({
-  name: z.string().min(1),
-  categoryId: z.number(),
+const newAccountCodec = fields({
+  name: string,
+  categoryId: number,
 });
 
-type NewAccountInput = z.infer<typeof newAccountSchema>;
+type NewAccountInput = Infer<typeof newAccountCodec>;
 
 export const registerAccountRoutes = (router: Router, accountQuery: AccountQuery, accountCommand: AccountCommand): void => {
   // GET /api/accounts
@@ -69,16 +70,18 @@ export const registerAccountRoutes = (router: Router, accountQuery: AccountQuery
   // POST /api/accounts
   router.post('/api/accounts', async (req, res) => {
     try {
-      const parseResult = newAccountSchema.safeParse(req.body);
+      const result = newAccountCodec.decoder(req.body);
 
-      if (!parseResult.success) {
-        res.status(400).json({ error: 'Invalid account data', issues: parseResult.error.issues });
-        return;
-      }
-
-      const newAccount: NewAccountInput = parseResult.data;
-      const account = await accountCommand.create(newAccount);
-      res.status(201).json(account);
+      Decoder.match(
+        result,
+        (error) => {
+          res.status(400).json({ error: 'Invalid account data', details: format(error) });
+        },
+        async (newAccount) => {
+          const account = await accountCommand.create(newAccount);
+          res.status(201).json(account);
+        }
+      );
     } catch (error) {
       console.error('Error in POST /api/accounts:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -94,21 +97,24 @@ export const registerAccountRoutes = (router: Router, accountQuery: AccountQuery
         return;
       }
 
-      const parseResult = newAccountSchema.safeParse(req.body);
-      if (!parseResult.success) {
-        res.status(400).json({ error: 'Invalid account data', issues: parseResult.error.issues });
-        return;
-      }
+      const result = newAccountCodec.decoder(req.body);
 
-      const updates: NewAccountInput = parseResult.data;
-      const { affectedRows } = await accountCommand.update(id, updates);
+      Decoder.match(
+        result,
+        (error) => {
+          res.status(400).json({ error: 'Invalid account data', details: format(error) });
+        },
+        async (updates) => {
+          const { affectedRows } = await accountCommand.update(id, updates);
 
-      if (affectedRows === 0) {
-        res.status(404).json({ error: 'Account not found' });
-        return;
-      }
+          if (affectedRows === 0) {
+            res.status(404).json({ error: 'Account not found' });
+            return;
+          }
 
-      res.status(204).send();
+          res.status(204).send();
+        }
+      );
     } catch (error) {
       console.error('Error in PUT /api/accounts/:id:', error);
       res.status(500).json({ error: 'Internal server error' });

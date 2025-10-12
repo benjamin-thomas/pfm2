@@ -1,21 +1,22 @@
 import type { Router } from 'express';
 import type { TransactionQuery } from '../cqs/transaction/queries';
 import type { TransactionCommand } from '../cqs/transaction/commands';
-import { z } from 'zod';
+import { fields, number, string, nullOr, format, type Infer } from 'tiny-decoders';
+import { Decoder } from '../../shared/utils/decoder';
 import { Maybe } from '../../shared/utils/maybe';
 
-const newTransactionSchema = z.object({
-  budgetId: z.number(),
-  fromAccountId: z.number(),
-  toAccountId: z.number(),
-  uniqueFitId: z.string().nullable(),
-  date: z.number(),
-  descrOrig: z.string(),
-  descr: z.string(),
-  cents: z.number(),
+const newTransactionCodec = fields({
+  budgetId: number,
+  fromAccountId: number,
+  toAccountId: number,
+  uniqueFitId: nullOr(string),
+  date: number,
+  descrOrig: string,
+  descr: string,
+  cents: number,
 });
 
-type NewTransactionInput = z.infer<typeof newTransactionSchema>;
+type NewTransactionInput = Infer<typeof newTransactionCodec>;
 
 export const registerTransactionRoutes = (router: Router, transactionQuery: TransactionQuery, transactionCommand: TransactionCommand): void => {
   // GET /api/transactions?budgetId=1
@@ -71,17 +72,18 @@ export const registerTransactionRoutes = (router: Router, transactionQuery: Tran
   // POST /api/transactions
   router.post('/api/transactions', async (req, res) => {
     try {
-      const result = newTransactionSchema.safeParse(req.body);
+      const result = newTransactionCodec.decoder(req.body);
 
-      if (!result.success) {
-        res.status(400).json({ error: 'Invalid transaction data', issues: result.error.issues });
-        return;
-      }
-
-      const newTransaction: NewTransactionInput = result.data;
-
-      const transaction = await transactionCommand.create(newTransaction);
-      res.status(201).json(transaction);
+      Decoder.match(
+        result,
+        (error) => {
+          res.status(400).json({ error: 'Invalid transaction data', details: format(error) });
+        },
+        async (newTransaction) => {
+          const transaction = await transactionCommand.create(newTransaction);
+          res.status(201).json(transaction);
+        }
+      );
     } catch (error) {
       console.error('Error in POST /api/transactions:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -97,19 +99,23 @@ export const registerTransactionRoutes = (router: Router, transactionQuery: Tran
         return;
       }
 
-      const result = newTransactionSchema.safeParse(req.body);
-      if (!result.success) {
-        res.status(400).json({ error: 'Invalid transaction data', issues: result.error.issues });
-        return;
-      }
+      const result = newTransactionCodec.decoder(req.body);
 
-      const { affectedRows } = await transactionCommand.update(id, result.data);
-      if (affectedRows === 0) {
-        res.status(404).json({ error: 'Transaction not found' });
-        return;
-      }
+      Decoder.match(
+        result,
+        (error) => {
+          res.status(400).json({ error: 'Invalid transaction data', details: format(error) });
+        },
+        async (updates) => {
+          const { affectedRows } = await transactionCommand.update(id, updates);
+          if (affectedRows === 0) {
+            res.status(404).json({ error: 'Transaction not found' });
+            return;
+          }
 
-      res.status(204).send();
+          res.status(204).send();
+        }
+      );
     } catch (error) {
       console.error('Error in PUT /api/transactions/:id:', error);
       res.status(500).json({ error: 'Internal server error' });
