@@ -1,9 +1,8 @@
-// Account CLI commands
-import type { AccountRepo } from '../../server/repos/account/interface';
-import { AccountQuery } from '../../server/cqs/account/queries';
 import { AccountCommand } from '../../server/cqs/account/commands';
-import { Result } from '../../shared/utils/result';
+import { AccountQuery } from '../../server/cqs/account/queries';
+import type { AccountRepo } from '../../server/repos/account/interface';
 import { Maybe } from '../../shared/utils/maybe';
+import { Result } from '../../shared/utils/result';
 
 export const run = async (repo: AccountRepo, args: string[]) => {
   const accountQuery = AccountQuery.init(repo);
@@ -28,7 +27,7 @@ export const run = async (repo: AccountRepo, args: string[]) => {
       }
 
       const id = parseInt(idStr, 10);
-      if (isNaN(id)) {
+      if (Number.isNaN(id)) {
         console.error('Error: id must be a number');
         return;
       }
@@ -67,7 +66,7 @@ export const run = async (repo: AccountRepo, args: string[]) => {
       }
 
       const categoryId = parseInt(categoryIdStr, 10);
-      if (isNaN(categoryId)) {
+      if (Number.isNaN(categoryId)) {
         console.error('Error: categoryId must be a number');
         return;
       }
@@ -89,7 +88,7 @@ export const run = async (repo: AccountRepo, args: string[]) => {
 
       const id = parseInt(idStr, 10);
       const categoryId = parseInt(categoryIdStr, 10);
-      if (isNaN(id) || isNaN(categoryId)) {
+      if (Number.isNaN(id) || Number.isNaN(categoryId)) {
         console.error('Error: id and categoryId must be numbers');
         return;
       }
@@ -111,7 +110,7 @@ export const run = async (repo: AccountRepo, args: string[]) => {
       }
 
       const id = parseInt(idStr, 10);
-      if (isNaN(id)) {
+      if (Number.isNaN(id)) {
         console.error('Error: id must be a number');
         return;
       }

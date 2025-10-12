@@ -1,7 +1,7 @@
 // Common CLI utilities
 import { AccountRepoFake } from '../server/repos/account/fake';
-import { AccountRepoSql } from '../server/repos/account/sql';
 import type { AccountRepo } from '../server/repos/account/interface';
+import { AccountRepoSql } from '../server/repos/account/sql';
 import { impossibleBranch } from '../shared/utils/impossibleBranch';
 
 // Define list first, then derive type from it using typeof and indexed access

@@ -1,12 +1,12 @@
 // Transaction repository interface - behavioral contract
 
 import type {
-  Transaction,
   NewTransaction,
-  UpdateTransaction,
-  TransactionFilters,
-  PaginationParams,
   PaginatedResponse,
+  PaginationParams,
+  Transaction,
+  TransactionFilters,
+  UpdateTransaction,
 } from '../../../shared/transaction';
 import type { Maybe } from '../../../shared/utils/maybe';
 

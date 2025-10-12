@@ -1,10 +1,18 @@
 import type { Router } from 'express';
-import { fields, number, format } from 'tiny-decoders';
+import { fields, format, map, string } from 'tiny-decoders';
 import { Decoder } from '../../shared/utils/decoder';
 import type { BalanceQuery } from '../cqs/balance/queries';
 
-const balanceQueryCodec = fields({
-  budgetId: number,
+
+const balanceQueryCodec = map(fields({
+  budgetId: string,
+}), {
+  decoder: (value: { budgetId: string }) => ({
+    budgetId: parseInt(value.budgetId, 10),
+  }),
+  encoder: (value: { budgetId: number }) => ({
+    budgetId: String(value.budgetId),
+  }),
 });
 
 export const registerBalanceRoutes = (router: Router, balanceQuery: BalanceQuery): void => {
@@ -12,10 +20,11 @@ export const registerBalanceRoutes = (router: Router, balanceQuery: BalanceQuery
     try {
       const result = balanceQueryCodec.decoder(req.query);
 
-      Decoder.match(
+      await Decoder.match(
         result,
         (error) => {
           res.status(400).json({ error: 'Invalid query params', details: format(error) });
+          return Promise.resolve();
         },
         async (query) => {
           const balances = await balanceQuery.getBalances(query.budgetId);

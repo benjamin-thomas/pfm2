@@ -1,7 +1,7 @@
 import type { AccountBalance } from '../../../shared/account';
-import type { BalanceRepo } from './interface';
-import type { TransactionRepo } from '../transaction/interface';
 import type { AccountRepo, CategoryRepo } from '../account/interface';
+import type { TransactionRepo } from '../transaction/interface';
+import type { BalanceRepo } from './interface';
 
 // Fake implementation that mimics the SQL balance calculation logic:
 // Balance = COALESCE(added, 0) - COALESCE(removed, 0)

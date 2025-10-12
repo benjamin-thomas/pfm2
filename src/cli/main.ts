@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // CLI entry point
 import * as accountCommands from './commands/account';
-import { makeAccountRepoOrThrow, isValidRepoVariant, REPO_VARIANTS } from './common';
+import { isValidRepoVariant, makeAccountRepoOrThrow, REPO_VARIANTS } from './common';
 
 const main = async () => {
   const repoType = process.env.REPO;

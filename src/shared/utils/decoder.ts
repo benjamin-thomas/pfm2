@@ -1,4 +1,4 @@
-import type { DecoderResult, DecoderError } from 'tiny-decoders';
+import type { DecoderError, DecoderResult } from 'tiny-decoders';
 
 /**
  * Pattern matching for decoder results

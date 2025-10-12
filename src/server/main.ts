@@ -1,15 +1,15 @@
 import express from 'express';
-import { TransactionRepoFake } from './repos/transaction/fake';
+import { AccountCommand } from './cqs/account/commands';
+import { AccountQuery } from './cqs/account/queries';
+import { BalanceQuery } from './cqs/balance/queries';
+import { TransactionCommand } from './cqs/transaction/commands';
+import { TransactionQuery } from './cqs/transaction/queries';
 import { AccountRepoFake, CategoryRepoFake } from './repos/account/fake';
 import { BalanceRepoFake } from './repos/balance/fake';
-import { AccountQuery } from './cqs/account/queries';
-import { AccountCommand } from './cqs/account/commands';
-import { TransactionQuery } from './cqs/transaction/queries';
-import { TransactionCommand } from './cqs/transaction/commands';
-import { BalanceQuery } from './cqs/balance/queries';
-import { registerTransactionRoutes } from './routes/transactionRoutes';
-import { registerBalanceRoutes } from './routes/balanceRoutes';
+import { TransactionRepoFake } from './repos/transaction/fake';
 import { registerAccountRoutes } from './routes/accountRoutes';
+import { registerBalanceRoutes } from './routes/balanceRoutes';
+import { registerTransactionRoutes } from './routes/transactionRoutes';
 
 if (!process.env.BE_PORT) throw new Error('Missing mandatory env var: BE_PORT');
 if (!process.env.BE_HOST) throw new Error('Missing mandatory env var: BE_HOST');

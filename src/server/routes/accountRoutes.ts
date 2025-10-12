@@ -1,11 +1,11 @@
 import type { Router } from 'express';
-import type { AccountQuery } from '../cqs/account/queries';
-import type { AccountCommand } from '../cqs/account/commands';
-import { fields, string, number, format, type Infer } from 'tiny-decoders';
+import { fields, format, type Infer, number, string } from 'tiny-decoders';
 import { Decoder } from '../../shared/utils/decoder';
-import { Result } from '../../shared/utils/result';
-import { Maybe } from '../../shared/utils/maybe';
 import { impossibleBranch } from '../../shared/utils/impossibleBranch';
+import { Maybe } from '../../shared/utils/maybe';
+import { Result } from '../../shared/utils/result';
+import type { AccountCommand } from '../cqs/account/commands';
+import type { AccountQuery } from '../cqs/account/queries';
 
 const newAccountCodec = fields({
   name: string,
@@ -30,7 +30,7 @@ export const registerAccountRoutes = (router: Router, accountQuery: AccountQuery
   router.get('/api/accounts/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      if (isNaN(id)) {
+      if (Number.isNaN(id)) {
         res.status(400).json({ error: 'Invalid account ID' });
         return;
       }
@@ -72,12 +72,13 @@ export const registerAccountRoutes = (router: Router, accountQuery: AccountQuery
     try {
       const result = newAccountCodec.decoder(req.body);
 
-      Decoder.match(
+      await Decoder.match(
         result,
         (error) => {
           res.status(400).json({ error: 'Invalid account data', details: format(error) });
+          return Promise.resolve();
         },
-        async (newAccount) => {
+        async (newAccount: NewAccountInput) => {
           const account = await accountCommand.create(newAccount);
           res.status(201).json(account);
         }
@@ -92,19 +93,20 @@ export const registerAccountRoutes = (router: Router, accountQuery: AccountQuery
   router.put('/api/accounts/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      if (isNaN(id)) {
+      if (Number.isNaN(id)) {
         res.status(400).json({ error: 'Invalid account ID' });
         return;
       }
 
       const result = newAccountCodec.decoder(req.body);
 
-      Decoder.match(
+      await Decoder.match(
         result,
         (error) => {
           res.status(400).json({ error: 'Invalid account data', details: format(error) });
+          return Promise.resolve();
         },
-        async (updates) => {
+        async (updates: NewAccountInput) => {
           const { affectedRows } = await accountCommand.update(id, updates);
 
           if (affectedRows === 0) {
@@ -125,7 +127,7 @@ export const registerAccountRoutes = (router: Router, accountQuery: AccountQuery
   router.delete('/api/accounts/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      if (isNaN(id)) {
+      if (Number.isNaN(id)) {
         res.status(400).json({ error: 'Invalid account ID' });
         return;
       }

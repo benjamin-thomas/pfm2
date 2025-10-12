@@ -1,11 +1,11 @@
 #!/usr/bin/env node
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 // Interactive REPL for CLI commands
-import * as readline from 'readline';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+import * as readline from 'node:readline';
 import * as accountCommands from './commands/account';
-import { makeAccountRepoOrThrow, isValidRepoVariant, REPO_VARIANTS } from './common';
+import { isValidRepoVariant, makeAccountRepoOrThrow, REPO_VARIANTS } from './common';
 
 const repoType = process.env.REPO;
 if (!isValidRepoVariant(repoType)) {
@@ -28,12 +28,15 @@ const rl = readline.createInterface({
   prompt: 'pfm> ',
 });
 
-// Load history from file
+// Manage command history ourselves
 const historyFile = path.join(os.homedir(), '.pfm_history');
+const commandHistory: string[] = [];
+
+// Load history from file
 try {
-  const history = fs.readFileSync(historyFile, 'utf-8').split('\n').filter(Boolean);
-  (rl as any).history = history;
-} catch (err) {
+  const savedHistory = fs.readFileSync(historyFile, 'utf-8').split('\n').filter(Boolean);
+  commandHistory.push(...savedHistory);
+} catch (_err) {
   // No history file yet, that's ok
 }
 
@@ -108,6 +111,9 @@ console.log("Type 'help' for commands, 'exit' to quit\n");
 rl.prompt();
 
 rl.on('line', async (line) => {
+  if (line.trim()) {
+    commandHistory.push(line);
+  }
   try {
     await processCommand(line);
   } catch (err) {
@@ -117,9 +123,9 @@ rl.on('line', async (line) => {
 });
 
 rl.on('close', () => {
-  // Save history to file
+  // Save history to file (keep last 100 commands)
   try {
-    const history = (rl as any).history.slice(0, 100).join('\n');
+    const history = commandHistory.slice(-100).join('\n');
     fs.writeFileSync(historyFile, history);
   } catch (err) {
     console.error('Error saving history:', err);

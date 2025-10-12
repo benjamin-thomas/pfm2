@@ -1,9 +1,9 @@
+import type { AccountBalance } from '../../shared/account';
+import type { NewTransaction, Transaction, UpdateTransaction } from '../../shared/transaction';
+import { Maybe } from '../../shared/utils/maybe';
+import { Result } from '../../shared/utils/result';
 import type { Api } from './interface';
 import { ApiErr } from './interface';
-import type { Transaction, NewTransaction, UpdateTransaction } from '../../shared/transaction';
-import type { AccountBalance } from '../../shared/account';
-import { Result } from '../../shared/utils/result';
-import { Maybe } from '../../shared/utils/maybe';
 
 // Fake API that maintains coherent state
 // Balances are calculated from transactions, so they stay in sync
@@ -103,17 +103,17 @@ const init = (): Api => {
 
   return {
     transactions: {
-      list: async ({ budgetId }) => {
+      list: ({ budgetId }) => {
         const filtered = transactions.filter(tx => tx.budgetId === budgetId);
-        return Result.ok(filtered);
+        return Promise.resolve(Result.ok(filtered));
       },
 
-      findById: async (id) => {
+      findById: (id) => {
         const tx = transactions.find(tx => tx.transactionId === id);
-        return Result.ok(tx ? Maybe.just(tx) : Maybe.nothing);
+        return Promise.resolve(Result.ok(tx ? Maybe.just(tx) : Maybe.nothing));
       },
 
-      create: async (transaction) => {
+      create: (transaction) => {
         const newTx: Transaction = {
           ...transaction,
           transactionId: nextId++,
@@ -121,16 +121,18 @@ const init = (): Api => {
           updatedAt: Math.floor(Date.now() / 1000),
         };
         transactions.push(newTx);
-        return Result.ok(newTx);
+        return Promise.resolve(Result.ok(newTx));
       },
 
-      update: async (id, transaction: UpdateTransaction) => {
+      update: (id, transaction: UpdateTransaction) => {
         const index = transactions.findIndex(tx => tx.transactionId === id);
         if (index === -1) {
-          return Result.err(ApiErr.notFound);
+          return Promise.resolve(Result.err(ApiErr.notFound));
         }
 
-        const existing = transactions[index]!;
+        const existing = transactions[index];
+        
+
         const updated: Transaction = {
           ...transaction,
           transactionId: existing.transactionId,
@@ -138,24 +140,24 @@ const init = (): Api => {
           updatedAt: Math.floor(Date.now() / 1000),
         };
         transactions[index] = updated;
-        return Result.ok(updated);
+        return Promise.resolve(Result.ok(updated));
       },
 
-      delete: async (id) => {
+      delete: (id) => {
         const index = transactions.findIndex(tx => tx.transactionId === id);
         if (index === -1) {
-          return Result.err(ApiErr.notFound);
+          return Promise.resolve(Result.err(ApiErr.notFound));
         }
         transactions.splice(index, 1);
-        return Result.ok(undefined);
+        return Promise.resolve(Result.ok(undefined));
       },
     },
 
     balances: {
-      getBalances: async ({ budgetId }) => {
+      getBalances: ({ budgetId }) => {
         const budgetTransactions = transactions.filter(tx => tx.budgetId === budgetId);
         const balances = calculateBalances(budgetTransactions);
-        return Result.ok(balances);
+        return Promise.resolve(Result.ok(balances));
       },
     },
   };

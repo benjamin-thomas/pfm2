@@ -1,9 +1,9 @@
 import type { Router } from 'express';
-import type { TransactionQuery } from '../cqs/transaction/queries';
-import type { TransactionCommand } from '../cqs/transaction/commands';
-import { fields, number, string, nullOr, format, type Infer } from 'tiny-decoders';
+import { fields, format, type Infer, nullOr, number, string } from 'tiny-decoders';
 import { Decoder } from '../../shared/utils/decoder';
 import { Maybe } from '../../shared/utils/maybe';
+import type { TransactionCommand } from '../cqs/transaction/commands';
+import type { TransactionQuery } from '../cqs/transaction/queries';
 
 const newTransactionCodec = fields({
   budgetId: number,
@@ -27,7 +27,7 @@ export const registerTransactionRoutes = (router: Router, transactionQuery: Tran
 
       if (budgetIdStr) {
         const budgetId = parseInt(budgetIdStr as string, 10);
-        if (isNaN(budgetId)) {
+        if (Number.isNaN(budgetId)) {
           res.status(400).json({ error: 'Invalid budgetId' });
           return;
         }
@@ -47,7 +47,7 @@ export const registerTransactionRoutes = (router: Router, transactionQuery: Tran
   router.get('/api/transactions/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      if (isNaN(id)) {
+      if (Number.isNaN(id)) {
         res.status(400).json({ error: 'Invalid transaction ID' });
         return;
       }
@@ -74,12 +74,13 @@ export const registerTransactionRoutes = (router: Router, transactionQuery: Tran
     try {
       const result = newTransactionCodec.decoder(req.body);
 
-      Decoder.match(
+      await Decoder.match(
         result,
         (error) => {
           res.status(400).json({ error: 'Invalid transaction data', details: format(error) });
+          return Promise.resolve();
         },
-        async (newTransaction) => {
+        async (newTransaction: NewTransactionInput) => {
           const transaction = await transactionCommand.create(newTransaction);
           res.status(201).json(transaction);
         }
@@ -94,17 +95,18 @@ export const registerTransactionRoutes = (router: Router, transactionQuery: Tran
   router.put('/api/transactions/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      if (isNaN(id)) {
+      if (Number.isNaN(id)) {
         res.status(400).json({ error: 'Invalid transaction ID' });
         return;
       }
 
       const result = newTransactionCodec.decoder(req.body);
 
-      Decoder.match(
+      await Decoder.match(
         result,
         (error) => {
           res.status(400).json({ error: 'Invalid transaction data', details: format(error) });
+          return Promise.resolve();
         },
         async (updates) => {
           const { affectedRows } = await transactionCommand.update(id, updates);
@@ -126,7 +128,7 @@ export const registerTransactionRoutes = (router: Router, transactionQuery: Tran
   router.delete('/api/transactions/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      if (isNaN(id)) {
+      if (Number.isNaN(id)) {
         res.status(400).json({ error: 'Invalid transaction ID' });
         return;
       }

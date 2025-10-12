@@ -27,5 +27,5 @@
       "@shared/*": ["./src/shared/*"]
     }
   },
-  "include": ["src/server", "src/shared"]
+  "include": ["src/server", "src/shared", "src/cli"]
 }

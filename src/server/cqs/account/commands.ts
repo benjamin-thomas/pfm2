@@ -1,8 +1,8 @@
 // Account command handlers - write operations only
 import type { Account, NewAccount } from '../../../shared/account';
-import type { AccountRepo, AffectedRows } from '../../repos/account/interface';
-import { Result } from '../../../shared/utils/result';
 import { Maybe } from '../../../shared/utils/maybe';
+import { Result } from '../../../shared/utils/result';
+import type { AccountRepo, AffectedRows } from '../../repos/account/interface';
 
 // Business rule example: Cannot delete "locked" accounts
 // (Locked = name starts with "SYSTEM_")

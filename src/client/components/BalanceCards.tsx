@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import type { AccountBalance } from '../../shared/account';
 import { BalanceCard } from './BalanceCard';
 import './BalanceCards.css';

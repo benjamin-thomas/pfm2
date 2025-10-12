@@ -1,15 +1,15 @@
 // Fake transaction repository for testing - in-memory storage
 
-import type { TransactionRepo, AffectedRows } from './interface';
 import type {
-  Transaction,
   NewTransaction,
-  UpdateTransaction,
-  TransactionFilters,
-  PaginationParams,
   PaginatedResponse,
+  PaginationParams,
+  Transaction,
+  TransactionFilters,
+  UpdateTransaction,
 } from '../../../shared/transaction';
 import { Maybe } from '../../../shared/utils/maybe';
+import type { AffectedRows, TransactionRepo } from './interface';
 
 const init = (): TransactionRepo => {
   let transactions: Transaction[] = [];
@@ -88,40 +88,40 @@ const init = (): TransactionRepo => {
   };
 
   return {
-    create: async (transaction: NewTransaction): Promise<Transaction> => {
+    create: (transaction: NewTransaction): Promise<Transaction> => {
       const newTx = createTransaction(transaction);
       transactions.push(newTx);
-      return newTx;
+      return Promise.resolve(newTx);
     },
 
-    findById: async (id: number): Promise<Maybe<Transaction>> => {
+    findById: (id: number): Promise<Maybe<Transaction>> => {
       const transaction = transactions.find((tx) => tx.transactionId === id);
-      return transaction ? Maybe.just(transaction) : Maybe.nothing;
+      return Promise.resolve(transaction ? Maybe.just(transaction) : Maybe.nothing);
     },
 
-    list: async (
+    list: (
       filters: Maybe<TransactionFilters>,
       pagination: Maybe<PaginationParams>
     ): Promise<PaginatedResponse<Transaction>> => {
       const filtered = applyFilters(transactions, filters);
-      return paginate(filtered, pagination);
+      return Promise.resolve(paginate(filtered, pagination));
     },
 
-    listByBudget: async (budgetId: number): Promise<Transaction[]> => {
-      return transactions.filter((tx) => tx.budgetId === budgetId);
+    listByBudget: (budgetId: number): Promise<Transaction[]> => {
+      return Promise.resolve(transactions.filter((tx) => tx.budgetId === budgetId));
     },
 
-    listByAccount: async (accountId: number): Promise<Transaction[]> => {
-      return transactions.filter(
+    listByAccount: (accountId: number): Promise<Transaction[]> => {
+      return Promise.resolve(transactions.filter(
         (tx) => tx.fromAccountId === accountId || tx.toAccountId === accountId
-      );
+      ));
     },
 
-    update: async (id: number, updates: UpdateTransaction): Promise<AffectedRows> => {
+    update: (id: number, updates: UpdateTransaction): Promise<AffectedRows> => {
       const index = transactions.findIndex((tx) => tx.transactionId === id);
-      if (index === -1) return { affectedRows: 0 };
+      if (index === -1) return Promise.resolve({ affectedRows: 0 });
 
-      const existing = transactions[index]!;
+      const existing = transactions[index];
       const updated: Transaction = {
         ...updates,
         transactionId: existing.transactionId,
@@ -129,28 +129,28 @@ const init = (): TransactionRepo => {
         updatedAt: Math.floor(Date.now() / 1000),
       };
       transactions[index] = updated;
-      return { affectedRows: 1 };
+      return Promise.resolve({ affectedRows: 1 });
     },
 
-    delete: async (id: number): Promise<AffectedRows> => {
+    delete: (id: number): Promise<AffectedRows> => {
       const index = transactions.findIndex((tx) => tx.transactionId === id);
-      if (index === -1) return { affectedRows: 0 };
+      if (index === -1) return Promise.resolve({ affectedRows: 0 });
 
       transactions.splice(index, 1);
-      return { affectedRows: 1 };
+      return Promise.resolve({ affectedRows: 1 });
     },
 
-    createMany: async (newTransactions: NewTransaction[]): Promise<Transaction[]> => {
+    createMany: (newTransactions: NewTransaction[]): Promise<Transaction[]> => {
       const created = newTransactions.map((tx) => createTransaction(tx));
       transactions.push(...created);
-      return created;
+      return Promise.resolve(created);
     },
 
-    deleteMany: async (ids: number[]): Promise<number> => {
+    deleteMany: (ids: number[]): Promise<number> => {
       const idSet = new Set(ids);
       const before = transactions.length;
       transactions = transactions.filter((tx) => !idSet.has(tx.transactionId));
-      return before - transactions.length;
+      return Promise.resolve(before - transactions.length);
     },
   };
 };

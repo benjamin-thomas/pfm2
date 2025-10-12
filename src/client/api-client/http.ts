@@ -1,7 +1,7 @@
+import { Maybe } from '../../shared/utils/maybe';
+import { Result } from '../../shared/utils/result';
 import type { Api } from './interface';
 import { ApiErr } from './interface';
-import { Result } from '../../shared/utils/result';
-import { Maybe } from '../../shared/utils/maybe';
 
 // HTTP API that talks to the backend server
 

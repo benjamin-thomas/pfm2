@@ -1,7 +1,7 @@
 // Transaction query handlers - read operations only
-import type { Transaction, TransactionFilters, PaginationParams, PaginatedResponse } from '../../../shared/transaction';
-import type { TransactionRepo } from '../../repos/transaction/interface';
+import type { PaginatedResponse, PaginationParams, Transaction, TransactionFilters } from '../../../shared/transaction';
 import type { Maybe } from '../../../shared/utils/maybe';
+import type { TransactionRepo } from '../../repos/transaction/interface';
 
 export type TransactionQuery = {
   list(filters: Maybe<TransactionFilters>, pagination: Maybe<PaginationParams>): Promise<PaginatedResponse<Transaction>>;

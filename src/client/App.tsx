@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import type { AccountBalance } from '../shared/account';
 import type { Status } from '../shared/async';
 import type { Transaction } from '../shared/transaction';
-import type { AccountBalance } from '../shared/account';
+import { impossibleBranch } from '../shared/utils/impossibleBranch';
+import { Result } from '../shared/utils/result';
 import type { Api } from './api-client/interface';
-import { TransactionList } from './components/TransactionList';
 import { BalanceCards } from './components/BalanceCards';
 import TransactionFilters from './components/TransactionFilters';
-import { Result } from '../shared/utils/result';
-import { impossibleBranch } from '../shared/utils/impossibleBranch';
+import { TransactionList } from './components/TransactionList';
 import './App.css';
 import './components/Buttons.css';
 
@@ -84,6 +84,7 @@ function App({ api }: AppProps) {
 
       {/* Dark Mode Toggle */}
       <button
+        type="button"
         className="theme-toggle"
         onClick={toggleTheme}
         title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
@@ -129,10 +130,10 @@ function App({ api }: AppProps) {
                       </div>
 
                       <div className="transaction-list__header-buttons">
-                        <button className="button">
+                        <button type="button" className="button">
                           💡 Apply All Suggestions
                         </button>
-                        <button className="button button--primary">
+                        <button type="button" className="button button--primary">
                           Add Transaction
                         </button>
                       </div>

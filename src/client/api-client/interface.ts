@@ -1,7 +1,7 @@
-import type { Transaction, NewTransaction, UpdateTransaction } from '../../shared/transaction';
 import type { AccountBalance } from '../../shared/account';
-import type { Result } from '../../shared/utils/result';
+import type { NewTransaction, Transaction, UpdateTransaction } from '../../shared/transaction';
 import type { Maybe } from '../../shared/utils/maybe';
+import type { Result } from '../../shared/utils/result';
 
 type ApiError
   = { tag: 'BadRequest', reason: string }

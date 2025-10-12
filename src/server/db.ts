@@ -1,6 +1,6 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import Database from 'better-sqlite3';
-import * as fs from 'fs';
-import * as path from 'path';
 
 export const initDb = (dbPath: string = ':memory:'): Database.Database => {
   const db = new Database(dbPath);

@@ -1,8 +1,8 @@
 // Account query handlers - read operations only
 import type { Account } from '../../../shared/account';
-import type { AccountRepo } from '../../repos/account/interface';
 import { Maybe } from '../../../shared/utils/maybe';
 import { Result } from '../../../shared/utils/result';
+import type { AccountRepo } from '../../repos/account/interface';
 
 // Business rule example: Cannot view "hidden" accounts
 // (Hidden = name starts with "HIDDEN_")

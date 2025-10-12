@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, assert } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
+import { assert, describe, it } from 'vitest';
 import App from './App';
 import { ApiFake } from './api-client/fake';
 

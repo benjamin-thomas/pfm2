@@ -1,5 +1,5 @@
+import { formatDate, formatMoney } from '../../shared/money';
 import type { Transaction } from '../../shared/transaction';
-import { formatMoney, formatDate } from '../../shared/money';
 import './TransactionList.css';
 
 type TransactionListProps = {
@@ -29,8 +29,7 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
   }
 
   return (
-    <>
-      <ul className="transaction-list__items">
+    <ul className="transaction-list__items">
         {transactions.map((transaction) => {
           const isPositive = transaction.fromAccountId === 5; // Employer = income
           const amountClass = isPositive
@@ -76,13 +75,13 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
                     </span>
                   </div>
                   <div className="suggestion-actions">
-                    <button className="suggestion-btn suggestion-btn-apply">
+                    <button type="button" className="suggestion-btn suggestion-btn-apply">
                       Apply
                     </button>
-                    <button className="suggestion-btn suggestion-btn-ignore">
+                    <button type="button" className="suggestion-btn suggestion-btn-ignore">
                       Ignore
                     </button>
-                    <button className="suggestion-btn suggestion-btn-ai">
+                    <button type="button" className="suggestion-btn suggestion-btn-ai">
                       Ask AI ✨
                     </button>
                   </div>
@@ -92,6 +91,5 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
           );
         })}
       </ul>
-    </>
   );
 };

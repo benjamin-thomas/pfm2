@@ -1,8 +1,8 @@
-import { describe, it, assert } from 'vitest';
+import { assert, describe, it } from 'vitest';
+import { Maybe } from '../../../shared/utils/maybe';
+import { Result } from '../../../shared/utils/result';
 import { AccountRepoFake } from '../../repos/account/fake';
 import { AccountCommand } from './commands';
-import { Result } from '../../../shared/utils/result';
-import { Maybe } from '../../../shared/utils/maybe';
 
 describe('Account Commands', () => {
   describe('create', () => {
