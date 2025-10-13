@@ -30,8 +30,8 @@ function App({ api }: AppProps) {
   useEffect(() => {
     // Fetch transactions and balances using the API
     Promise.all([
-      api.transactions.list({ budgetId: 1 }),
-      api.balances.getBalances({ budgetId: 1 }),
+      api.transactions.list({ searchTerm: '' }),
+      api.balances.getBalances(),
     ])
       .then(([txResult, balResult]) => {
         // Handle Result types with Result.match

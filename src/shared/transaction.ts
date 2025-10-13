@@ -2,12 +2,9 @@
 
 export type Transaction = {
   transactionId: number;
-  budgetId: number;
   fromAccountId: number;
   toAccountId: number;
-  uniqueFitId: string | null;
   date: number; // Unix timestamp
-  descrOrig: string;
   descr: string;
   cents: number;
   createdAt: number;
@@ -29,7 +26,6 @@ export type TransactionView = Transaction & {
 
 // Query filters
 export type TransactionFilters = {
-  budgetId?: number;
   fromAccountId?: number;
   toAccountId?: number;
   startDate?: number;

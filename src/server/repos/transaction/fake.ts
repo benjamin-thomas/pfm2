@@ -30,15 +30,13 @@ const init = (): TransactionRepo => {
       filters,
       () => txs, // No filters - return all
       (f) => txs.filter((tx) => {
-        if (f.budgetId && tx.budgetId !== f.budgetId) return false;
         if (f.fromAccountId && tx.fromAccountId !== f.fromAccountId) return false;
         if (f.toAccountId && tx.toAccountId !== f.toAccountId) return false;
         if (f.startDate && tx.date < f.startDate) return false;
         if (f.endDate && tx.date > f.endDate) return false;
         if (f.search) {
           const searchLower = f.search.toLowerCase();
-          if (!tx.descr.toLowerCase().includes(searchLower) &&
-            !tx.descrOrig.toLowerCase().includes(searchLower)) {
+          if (!tx.descr.toLowerCase().includes(searchLower)) {
             return false;
           }
         }
@@ -107,10 +105,6 @@ const init = (): TransactionRepo => {
       return Promise.resolve(paginate(filtered, pagination));
     },
 
-    listByBudget: (budgetId: number): Promise<Transaction[]> => {
-      return Promise.resolve(transactions.filter((tx) => tx.budgetId === budgetId));
-    },
-
     listByAccount: (accountId: number): Promise<Transaction[]> => {
       return Promise.resolve(transactions.filter(
         (tx) => tx.fromAccountId === accountId || tx.toAccountId === accountId
@@ -161,44 +155,32 @@ const initWithSeed = (): TransactionRepo => {
 
   const seedData: NewTransaction[] = [
     {
-      budgetId: 1,
       fromAccountId: 5, // Employer
       toAccountId: 2, // Checking account
       date: Math.floor(new Date('2024-09-30').getTime() / 1000),
-      descrOrig: 'Monthly Income',
       descr: 'Monthly Income',
       cents: 100000, // +1000.00 EUR
-      uniqueFitId: 'TXN001',
     },
     {
-      budgetId: 1,
       fromAccountId: 2, // Checking account
       toAccountId: 6, // Unknown_EXPENSE
       date: Math.floor(new Date('2024-09-25').getTime() / 1000),
-      descrOrig: 'Rent Payment',
       descr: 'Rent Payment',
       cents: 50000, // -500.00 EUR
-      uniqueFitId: 'TXN002',
     },
     {
-      budgetId: 1,
       fromAccountId: 2, // Checking account
       toAccountId: 7, // Groceries
       date: Math.floor(new Date('2024-09-20').getTime() / 1000),
-      descrOrig: 'Grocery Store',
       descr: 'Grocery Store',
       cents: 3400, // -34.00 EUR
-      uniqueFitId: 'TXN003',
     },
     {
-      budgetId: 1,
       fromAccountId: 2, // Checking account
       toAccountId: 9, // Transport
       date: Math.floor(new Date('2024-09-18').getTime() / 1000),
-      descrOrig: 'Gas Station',
       descr: 'Gas Station',
       cents: 2500, // -25.00 EUR
-      uniqueFitId: 'TXN004',
     },
   ];
 

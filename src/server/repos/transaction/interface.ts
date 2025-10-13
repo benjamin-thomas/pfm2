@@ -19,7 +19,6 @@ export interface TransactionRepo {
   // Read
   findById(id: number): Promise<Maybe<Transaction>>;
   list(filters: Maybe<TransactionFilters>, pagination: Maybe<PaginationParams>): Promise<PaginatedResponse<Transaction>>;
-  listByBudget(budgetId: number): Promise<Transaction[]>;
   listByAccount(accountId: number): Promise<Transaction[]>;
 
   // Update

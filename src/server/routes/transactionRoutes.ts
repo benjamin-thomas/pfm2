@@ -1,17 +1,14 @@
 import type { Router } from 'express';
-import { fields, format, type Infer, nullOr, number, string } from 'tiny-decoders';
+import { fields, format, type Infer, number, string } from 'tiny-decoders';
 import { Decoder } from '../../shared/utils/decoder';
 import { Maybe } from '../../shared/utils/maybe';
 import type { TransactionCommand } from '../cqs/transaction/commands';
 import type { TransactionQuery } from '../cqs/transaction/queries';
 
 const newTransactionCodec = fields({
-  budgetId: number,
   fromAccountId: number,
   toAccountId: number,
-  uniqueFitId: nullOr(string),
   date: number,
-  descrOrig: string,
   descr: string,
   cents: number,
 });
@@ -19,24 +16,12 @@ const newTransactionCodec = fields({
 type NewTransactionInput = Infer<typeof newTransactionCodec>;
 
 export const registerTransactionRoutes = (router: Router, transactionQuery: TransactionQuery, transactionCommand: TransactionCommand): void => {
-  // GET /api/transactions?budgetId=1
-  // http GET :8086/api/transactions budgetId==1
-  router.get('/api/transactions', async (req, res) => {
+  // GET /api/transactions?search=term
+  // http GET :8086/api/transactions search==grocery
+  router.get('/api/transactions', async (_req, res) => {
     try {
-      const budgetIdStr = req.query.budgetId;
-
-      if (budgetIdStr) {
-        const budgetId = parseInt(budgetIdStr as string, 10);
-        if (Number.isNaN(budgetId)) {
-          res.status(400).json({ error: 'Invalid budgetId' });
-          return;
-        }
-        const transactions = await transactionQuery.listByBudget(budgetId);
-        res.json(transactions);
-      } else {
-        const result = await transactionQuery.list(Maybe.nothing, Maybe.nothing);
-        res.json(result);
-      }
+      const result = await transactionQuery.list(Maybe.nothing, Maybe.nothing);
+      res.json(result);
     } catch (error) {
       console.error('Error in GET /api/transactions:', error);
       res.status(500).json({ error: 'Internal server error' });

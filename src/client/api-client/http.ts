@@ -8,9 +8,9 @@ import { ApiErr } from './interface';
 const init = (): Api => {
   return {
     transactions: {
-      list: async ({ budgetId }) => {
+      list: async ({ searchTerm }) => {
         try {
-          const res = await fetch(`/api/transactions?budgetId=${budgetId}`);
+          const res = await fetch(`/api/transactions?search=${searchTerm}`);
           if (res.status === 200) {
             const data = await res.json();
             return Result.ok(data);
@@ -108,9 +108,9 @@ const init = (): Api => {
     },
 
     balances: {
-      getBalances: async ({ budgetId }) => {
+      getBalances: async () => {
         try {
-          const res = await fetch(`/api/balances?budgetId=${budgetId}`);
+          const res = await fetch('/api/balances');
           if (res.status === 200) {
             const data = await res.json();
             return Result.ok(data);

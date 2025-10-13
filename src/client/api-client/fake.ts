@@ -1,4 +1,5 @@
 import type { AccountBalance } from '../../shared/account';
+import { FakeAccount, FakeCategory } from '../../shared/fake-data';
 import type { NewTransaction, Transaction, UpdateTransaction } from '../../shared/transaction';
 import { Maybe } from '../../shared/utils/maybe';
 import { Result } from '../../shared/utils/result';
@@ -8,55 +9,11 @@ import { ApiErr } from './interface';
 // Fake API that maintains coherent state
 // Balances are calculated from transactions, so they stay in sync
 
-const init = (): Api => {
+const init = (seedData: NewTransaction[]): Api => {
   let transactions: Transaction[] = [];
   let nextId = 1;
 
-  // Seed data
-  const seedData: NewTransaction[] = [
-    {
-      budgetId: 1,
-      fromAccountId: 5, // Employer
-      toAccountId: 2, // Checking account
-      date: Math.floor(new Date('2024-09-30').getTime() / 1000),
-      descrOrig: 'Monthly Income',
-      descr: 'Monthly Income',
-      cents: 100000, // +1000.00 EUR
-      uniqueFitId: 'TXN001',
-    },
-    {
-      budgetId: 1,
-      fromAccountId: 2, // Checking account
-      toAccountId: 6, // Unknown_EXPENSE
-      date: Math.floor(new Date('2024-09-25').getTime() / 1000),
-      descrOrig: 'Rent Payment',
-      descr: 'Rent Payment',
-      cents: 50000, // -500.00 EUR
-      uniqueFitId: 'TXN002',
-    },
-    {
-      budgetId: 1,
-      fromAccountId: 2, // Checking account
-      toAccountId: 7, // Groceries
-      date: Math.floor(new Date('2024-09-20').getTime() / 1000),
-      descrOrig: 'Grocery Store',
-      descr: 'Grocery Store',
-      cents: 3400, // -34.00 EUR
-      uniqueFitId: 'TXN003',
-    },
-    {
-      budgetId: 1,
-      fromAccountId: 2, // Checking account
-      toAccountId: 9, // Transport
-      date: Math.floor(new Date('2024-09-18').getTime() / 1000),
-      descrOrig: 'Gas Station',
-      descr: 'Gas Station',
-      cents: 2500, // -25.00 EUR
-      uniqueFitId: 'TXN004',
-    },
-  ];
-
-  // Initialize with seed data
+  // Initialize with provided seed data
   transactions = seedData.map(tx => ({
     ...tx,
     transactionId: nextId++,
@@ -64,8 +21,18 @@ const init = (): Api => {
     updatedAt: Math.floor(Date.now() / 1000),
   }));
 
-  // Helper to calculate balances from transactions
-  const calculateBalances = (txs: Transaction[]): AccountBalance[] => {
+  // Helper to compute balances from transactions
+  const computeBalances = (txs: Transaction[]): AccountBalance[] => {
+    const checkingAccount = FakeAccount.checking;
+    const employerAccount = FakeAccount.employer;
+    const unknownExpenseAccount = FakeAccount.unknownExpense;
+    const groceriesAccount = FakeAccount.groceries;
+    const transportAccount = FakeAccount.transport;
+
+    const assetsCategory = FakeCategory.assets;
+    const incomeCategory = FakeCategory.income;
+    const expensesCategory = FakeCategory.expenses;
+
     const balanceMap = new Map<number, { added: number; removed: number }>();
 
     for (const tx of txs) {
@@ -80,11 +47,11 @@ const init = (): Api => {
 
     // Account metadata (would come from account repo in real impl)
     const accounts = [
-      { accountId: 2, name: 'Checking account', categoryId: 2, categoryName: 'Assets' },
-      { accountId: 5, name: 'Employer', categoryId: 3, categoryName: 'Income' },
-      { accountId: 6, name: 'Unknown_EXPENSE', categoryId: 4, categoryName: 'Expenses' },
-      { accountId: 7, name: 'Groceries', categoryId: 4, categoryName: 'Expenses' },
-      { accountId: 9, name: 'Transport', categoryId: 4, categoryName: 'Expenses' },
+      { accountId: checkingAccount.id, name: checkingAccount.name, categoryId: assetsCategory.id, categoryName: assetsCategory.name },
+      { accountId: employerAccount.id, name: employerAccount.name, categoryId: incomeCategory.id, categoryName: incomeCategory.name },
+      { accountId: unknownExpenseAccount.id, name: unknownExpenseAccount.name, categoryId: expensesCategory.id, categoryName: expensesCategory.name },
+      { accountId: groceriesAccount.id, name: groceriesAccount.name, categoryId: expensesCategory.id, categoryName: expensesCategory.name },
+      { accountId: transportAccount.id, name: transportAccount.name, categoryId: expensesCategory.id, categoryName: expensesCategory.name },
     ];
 
     return accounts
@@ -103,8 +70,11 @@ const init = (): Api => {
 
   return {
     transactions: {
-      list: ({ budgetId }) => {
-        const filtered = transactions.filter(tx => tx.budgetId === budgetId);
+      list: ({ searchTerm }) => {
+        const trimmed = searchTerm.trim().toLowerCase();
+        const filtered = trimmed
+          ? transactions.filter(tx => tx.descr.toLowerCase().includes(trimmed))
+          : transactions;
         return Promise.resolve(Result.ok(filtered));
       },
 
@@ -131,7 +101,7 @@ const init = (): Api => {
         }
 
         const existing = transactions[index];
-        
+
 
         const updated: Transaction = {
           ...transaction,
@@ -154,9 +124,8 @@ const init = (): Api => {
     },
 
     balances: {
-      getBalances: ({ budgetId }) => {
-        const budgetTransactions = transactions.filter(tx => tx.budgetId === budgetId);
-        const balances = calculateBalances(budgetTransactions);
+      getBalances: () => {
+        const balances = computeBalances(transactions);
         return Promise.resolve(Result.ok(balances));
       },
     },

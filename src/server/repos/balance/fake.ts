@@ -1,4 +1,5 @@
 import type { AccountBalance } from '../../../shared/account';
+import { Maybe } from '../../../shared/utils/maybe';
 import type { AccountRepo, CategoryRepo } from '../account/interface';
 import type { TransactionRepo } from '../transaction/interface';
 import type { BalanceRepo } from './interface';
@@ -15,12 +16,14 @@ const init = (
   categoryRepo: CategoryRepo
 ): BalanceRepo => {
     return {
-      getBalances: async (budgetId: number): Promise<AccountBalance[]> => {
-        const [transactions, accounts, categories] = await Promise.all([
-          transactionRepo.listByBudget(budgetId),
+      getBalances: async (): Promise<AccountBalance[]> => {
+        const [transactionResult, accounts, categories] = await Promise.all([
+          transactionRepo.list(Maybe.nothing, Maybe.nothing),
           accountRepo.listAll(),
           categoryRepo.listAll(),
         ]);
+
+        const transactions = transactionResult.items;
 
         // Calculate balance for each account using double-entry logic
         const balanceMap = new Map<number, { added: number; removed: number }>();
@@ -38,10 +41,10 @@ const init = (
         }
 
         // Build AccountBalance objects
-        const categoryMap = new Map(categories.map(c => [c.categoryId, c.name]));
+        const categoryMap = new Map(categories.map((c) => [c.categoryId, c.name]));
 
         return accounts
-          .map(account => {
+          .map((account) => {
             const balances = balanceMap.get(account.accountId) || { added: 0, removed: 0 };
             return {
               accountId: account.accountId,
@@ -51,7 +54,7 @@ const init = (
               balance: balances.added - balances.removed,
             };
           })
-          .filter(ab => ab.balance !== 0); // Only show accounts with non-zero balances
+          .filter((ab) => ab.balance !== 0); // Only show accounts with non-zero balances
       },
     };
   };

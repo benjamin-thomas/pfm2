@@ -16,7 +16,7 @@ export const ApiErr = { badRequest, notFound, serverError } as const;
 
 export interface Api {
   transactions: {
-    list(params: { budgetId: number }): Promise<Result<ApiError, Transaction[]>>;
+    list(params: { searchTerm: string }): Promise<Result<ApiError, Transaction[]>>;
     findById(id: number): Promise<Result<ApiError, Maybe<Transaction>>>;
     create(transaction: NewTransaction): Promise<Result<ApiError, Transaction>>;
     update(id: number, transaction: UpdateTransaction): Promise<Result<ApiError, Transaction>>;
@@ -24,7 +24,7 @@ export interface Api {
     delete(id: number): Promise<Result<ApiError, void>>;
   };
   balances: {
-    getBalances(params: { budgetId: number }): Promise<Result<ApiError, AccountBalance[]>>;
+    getBalances(): Promise<Result<ApiError, AccountBalance[]>>;
   };
 }
 

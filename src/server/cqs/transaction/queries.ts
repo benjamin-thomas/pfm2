@@ -5,7 +5,6 @@ import type { TransactionRepo } from '../../repos/transaction/interface';
 
 export type TransactionQuery = {
   list(filters: Maybe<TransactionFilters>, pagination: Maybe<PaginationParams>): Promise<PaginatedResponse<Transaction>>;
-  listByBudget(budgetId: number): Promise<Transaction[]>;
   findById(id: number): Promise<Maybe<Transaction>>;
 };
 
@@ -17,12 +16,6 @@ const init = (repo: TransactionRepo): TransactionQuery => {
     return repo.list(filters, pagination);
   };
 
-  const listByBudget = (
-    budgetId: number
-  ): Promise<Transaction[]> => {
-    return repo.listByBudget(budgetId);
-  };
-
   const findById = (
     id: number
   ): Promise<Maybe<Transaction>> => {
@@ -31,7 +24,6 @@ const init = (repo: TransactionRepo): TransactionQuery => {
 
   return {
     list,
-    listByBudget,
     findById
   };
 };
