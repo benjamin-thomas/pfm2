@@ -1,6 +1,5 @@
-import { format } from 'tiny-decoders';
-import { transactionCodec, transactionsCodec } from '../../shared/transaction';
-import { Decoder } from '../../shared/utils/decoder';
+import { transactionDecoder, transactionsDecoder } from '../../shared/transaction';
+import { DecoderUtil } from '../../shared/utils/decoder';
 import { Maybe } from '../../shared/utils/maybe';
 import { Result } from '../../shared/utils/result';
 import type { Api } from './interface';
@@ -16,9 +15,9 @@ const init = (): Api => {
           const res = await fetch(`/api/transactions?search=${searchTerm}`);
           if (res.status === 200) {
             const data = await res.json();
-            const decoded = transactionsCodec.decoder(data);
-            return Decoder.toResult(decoded, (error) => {
-              console.error('Decode error (transactions.list):', format(error));
+            const decoded = transactionsDecoder.run(data);
+            return DecoderUtil.toResult(decoded, (error) => {
+              console.error('Decode error (transactions.list):', error);
               return ApiErr.badRequest('Invalid response format');
             });
           }
@@ -38,10 +37,10 @@ const init = (): Api => {
           const res = await fetch(`/api/transactions/${id}`);
           if (res.status === 200) {
             const data = await res.json();
-            const decoded = transactionCodec.decoder(data);
+            const decoded = transactionDecoder.run(data);
             return Result.map(
-              Decoder.toResult(decoded, (error) => {
-                console.error('Decode error (transactions.findById):', format(error));
+              DecoderUtil.toResult(decoded, (error) => {
+                console.error('Decode error (transactions.findById):', error);
                 return ApiErr.badRequest('Invalid response format');
               }),
               (transaction) => Maybe.just(transaction)
@@ -67,9 +66,9 @@ const init = (): Api => {
           });
           if (res.status === 201) {
             const data = await res.json();
-            const decoded = transactionCodec.decoder(data);
-            return Decoder.toResult(decoded, (error) => {
-              console.error('Decode error (transactions.create):', format(error));
+            const decoded = transactionDecoder.run(data);
+            return DecoderUtil.toResult(decoded, (error) => {
+              console.error('Decode error (transactions.create):', error);
               return ApiErr.badRequest('Invalid response format');
             });
           }
@@ -93,9 +92,9 @@ const init = (): Api => {
           });
           if (res.status === 200) {
             const data = await res.json();
-            const decoded = transactionCodec.decoder(data);
-            return Decoder.toResult(decoded, (error) => {
-              console.error('Decode error (transactions.update):', format(error));
+            const decoded = transactionDecoder.run(data);
+            return DecoderUtil.toResult(decoded, (error) => {
+              console.error('Decode error (transactions.update):', error);
               return ApiErr.badRequest('Invalid response format');
             });
           }

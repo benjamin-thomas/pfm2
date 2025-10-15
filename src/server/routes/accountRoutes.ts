@@ -1,18 +1,18 @@
 import type { Router } from 'express';
-import { fields, format, type Infer, number, string } from 'tiny-decoders';
-import { Decoder } from '../../shared/utils/decoder';
+import { Decoder } from 'elm-decoders';
 import { impossibleBranch } from '../../shared/utils/impossibleBranch';
+import { DecoderUtil } from '../../shared/utils/decoder';
 import { Maybe } from '../../shared/utils/maybe';
 import { Result } from '../../shared/utils/result';
 import type { AccountCommand } from '../cqs/account/commands';
 import type { AccountQuery } from '../cqs/account/queries';
 
-const newAccountCodec = fields({
-  name: string,
-  categoryId: number,
+const newAccountDecoder = Decoder.object({
+  name: Decoder.string,
+  categoryId: Decoder.number,
 });
 
-type NewAccountInput = Infer<typeof newAccountCodec>;
+type NewAccountInput = { name: string; categoryId: number };
 
 export const registerAccountRoutes = (router: Router, accountQuery: AccountQuery, accountCommand: AccountCommand): void => {
   // GET /api/accounts
@@ -70,12 +70,12 @@ export const registerAccountRoutes = (router: Router, accountQuery: AccountQuery
   // POST /api/accounts
   router.post('/api/accounts', async (req, res) => {
     try {
-      const result = newAccountCodec.decoder(req.body);
+      const result = newAccountDecoder.run(req.body);
 
-      await Decoder.match(
+      await DecoderUtil.match(
         result,
         (error) => {
-          res.status(400).json({ error: 'Invalid account data', details: format(error) });
+          res.status(400).json({ error: 'Invalid account data', details: error });
           return Promise.resolve();
         },
         async (newAccount: NewAccountInput) => {
@@ -98,12 +98,12 @@ export const registerAccountRoutes = (router: Router, accountQuery: AccountQuery
         return;
       }
 
-      const result = newAccountCodec.decoder(req.body);
+      const result = newAccountDecoder.run(req.body);
 
-      await Decoder.match(
+      await DecoderUtil.match(
         result,
         (error) => {
-          res.status(400).json({ error: 'Invalid account data', details: format(error) });
+          res.status(400).json({ error: 'Invalid account data', details: error });
           return Promise.resolve();
         },
         async (updates: NewAccountInput) => {

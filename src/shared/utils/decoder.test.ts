@@ -1,13 +1,13 @@
-import { type DecoderResult, number } from 'tiny-decoders';
+import { Decoder } from 'elm-decoders';
 import { assert, describe, it } from 'vitest';
-import { Decoder } from './decoder';
+import { DecoderUtil } from './decoder';
 
-describe('Decoder', () => {
+describe('DecoderUtil', () => {
   describe('match', () => {
 
     it('calls onError for DecoderError', () => {
-      const decoded: DecoderResult<number> = number.decoder('WAT');
-      const output = Decoder.match<number, unknown>(
+      const decoded = Decoder.number.run('WAT');
+      const output = DecoderUtil.match<number, unknown>(
         decoded,
         (err) => ({ x: err }),
         (val) => ({ v: val })
@@ -16,18 +16,16 @@ describe('Decoder', () => {
         output,
         {
           "x": {
-            "got": "WAT",
-            "path": [],
-            "tag": "number",
+            "error": "Not a number",
+            "value": "WAT",
           },
         }
-
       );
     });
 
     it('calls onValid for Valid', () => {
-      const decoded = number.decoder(42);
-      const output = Decoder.match<number, unknown>(
+      const decoded = Decoder.number.run(42);
+      const output = DecoderUtil.match<number, unknown>(
         decoded,
         (err) => ({ x: err }),
         (val) => ({ v: val })
@@ -40,19 +38,19 @@ describe('Decoder', () => {
 
   describe('toResult', () => {
     it('converts Valid to Ok', () => {
-      const decoded = number.decoder(42);
-      const result = Decoder.toResult(decoded, (err) => ({ origErr: err, extra: 99 }));
+      const decoded = Decoder.number.run(42);
+      const result = DecoderUtil.toResult(decoded, (err) => ({ origErr: err, extra: 99 }));
       assert.deepStrictEqual(result, { tag: 'Ok', value: 42 });
     });
 
     it('converts DecoderError to Err with transformed error', () => {
-      const decoded = number.decoder('WAT');
-      const result = Decoder.toResult(decoded, (err) => ({ origErr: err, extra: 99 }));
+      const decoded = Decoder.number.run('WAT');
+      const result = DecoderUtil.toResult(decoded, (err) => ({ origErr: err, extra: 99 }));
       assert.deepStrictEqual(result,
         {
           tag: 'Err',
           error: {
-            origErr: { got: 'WAT', path: [], tag: 'number' },
+            origErr: { error: "Not a number", value: "WAT" },
             extra: 99
           }
         });

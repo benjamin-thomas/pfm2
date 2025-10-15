@@ -1,20 +1,26 @@
 import type { Router } from 'express';
-import { fields, format, type Infer, number, string } from 'tiny-decoders';
+import { Decoder } from 'elm-decoders';
 import type { Transaction } from '../../shared/transaction';
-import { Decoder } from '../../shared/utils/decoder';
+import { DecoderUtil } from '../../shared/utils/decoder';
 import { Maybe } from '../../shared/utils/maybe';
 import type { TransactionCommand } from '../cqs/transaction/commands';
 import type { TransactionQuery } from '../cqs/transaction/queries';
 
-const newTransactionCodec = fields({
-  fromAccountId: number,
-  toAccountId: number,
-  date: number,
-  descr: string,
-  cents: number,
+const newTransactionDecoder = Decoder.object({
+  fromAccountId: Decoder.number,
+  toAccountId: Decoder.number,
+  date: Decoder.number,
+  descr: Decoder.string,
+  cents: Decoder.number,
 });
 
-type NewTransactionInput = Infer<typeof newTransactionCodec>;
+type NewTransactionInput = {
+  fromAccountId: number;
+  toAccountId: number;
+  date: number;
+  descr: string;
+  cents: number;
+};
 
 export const registerTransactionRoutes = (router: Router, transactionQuery: TransactionQuery, transactionCommand: TransactionCommand): void => {
   // GET /api/transactions?search=term
@@ -58,12 +64,12 @@ export const registerTransactionRoutes = (router: Router, transactionQuery: Tran
   // POST /api/transactions
   router.post('/api/transactions', async (req, res) => {
     try {
-      const result = newTransactionCodec.decoder(req.body);
+      const result = newTransactionDecoder.run(req.body);
 
-      await Decoder.match(
+      await DecoderUtil.match(
         result,
         (error) => {
-          res.status(400).json({ error: 'Invalid transaction data', details: format(error) });
+          res.status(400).json({ error: 'Invalid transaction data', details: error });
           return Promise.resolve();
         },
         async (newTransaction: NewTransactionInput) => {
@@ -86,12 +92,12 @@ export const registerTransactionRoutes = (router: Router, transactionQuery: Tran
         return;
       }
 
-      const result = newTransactionCodec.decoder(req.body);
+      const result = newTransactionDecoder.run(req.body);
 
-      await Decoder.match(
+      await DecoderUtil.match(
         result,
         (error) => {
-          res.status(400).json({ error: 'Invalid transaction data', details: format(error) });
+          res.status(400).json({ error: 'Invalid transaction data', details: error });
           return Promise.resolve();
         },
         async (updates) => {

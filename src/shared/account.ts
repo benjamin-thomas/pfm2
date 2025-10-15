@@ -1,4 +1,5 @@
 // Account and Category domain types
+import { Decoder } from 'elm-decoders';
 
 export type Category = {
   categoryId: number;
@@ -33,3 +34,14 @@ export type AccountBalance = {
   categoryName: string;
   balance: number; // in cents
 };
+
+// Decoders for runtime validation
+export const accountDecoder: Decoder<Account> = Decoder.object({
+  accountId: Decoder.number,
+  categoryId: Decoder.number,
+  name: Decoder.string,
+  createdAt: Decoder.number,
+  updatedAt: Decoder.number,
+});
+
+export const accountsDecoder: Decoder<Account[]> = Decoder.array(accountDecoder);

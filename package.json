@@ -14,7 +14,8 @@
     "build:server:strict": "tsc -p tsconfig.server.json",
     "build:client": "tsc && vite build",
     "build": "npm run build:server && npm run build:client",
-    "build:strict": "knip && npm run lint && npm run build:server:strict && npm run build:client",
+    "build:strict1": "npm run lint && npm run build:server:strict && npm run build:client",
+    "build:strict2": "knip && npm run build:strict1",
     "tsc": "tsc --build tsconfig.json tsconfig.server.json",
     "tsc:watch": "tsc --build tsconfig.json tsconfig.server.json --watch",
     "preview": "vite preview",
@@ -27,11 +28,11 @@
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1",
+    "elm-decoders": "^6.1.2",
     "express": "^4.21.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-router-dom": "^7.1.3",
-    "tiny-decoders": "^23.0.0"
+    "react-router-dom": "^7.1.3"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.5",

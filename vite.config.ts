@@ -42,6 +42,12 @@ export default defineConfig(({ command }) => ({
     outDir: '../../dist/client',
     emptyOutDir: true,
   },
+  resolve: {
+    alias: {
+      // Fix elm-decoders package misconfiguration
+      'elm-decoders': 'elm-decoders/dist/elm-decoders.esm.js',
+    },
+  },
   test: {
     root: 'src',
     environment: 'happy-dom',
