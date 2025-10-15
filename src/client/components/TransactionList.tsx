@@ -30,66 +30,66 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
 
   return (
     <ul className="transaction-list__items">
-        {transactions.map((transaction) => {
-          const isPositive = transaction.fromAccountId === 5; // Employer = income
-          const amountClass = isPositive
-            ? 'transaction-item__amount--positive'
-            : 'transaction-item__amount--negative';
+      {transactions.map((transaction) => {
+        const isPositive = transaction.fromAccountId === 5; // Employer = income
+        const amountClass = isPositive
+          ? 'transaction-item__amount--positive'
+          : 'transaction-item__amount--negative';
 
-          const showSuggestion = transaction.toAccountId === 6; // Unknown_EXPENSE
+        const showSuggestion = transaction.toAccountId === 6; // Unknown_EXPENSE
 
-          return (
-            <li key={transaction.transactionId} className="transaction-item">
-              <div className="transaction-item__row">
-                <div className="transaction-item__main-content">
-                  <div className="transaction-item__details">
-                    <div className="transaction-item__description">
-                      {transaction.descr}
-                    </div>
-                    <div className="transaction-item__accounts">
-                      {accountNames[transaction.fromAccountId] || `Account ${transaction.fromAccountId}`} → {accountNames[transaction.toAccountId] || `Account ${transaction.toAccountId}`}
-                    </div>
+        return (
+          <li key={transaction.transactionId} className="transaction-item">
+            <div className="transaction-item__row">
+              <div className="transaction-item__main-content">
+                <div className="transaction-item__details">
+                  <div className="transaction-item__description">
+                    {transaction.descr}
                   </div>
-                  <div className="transaction-item__date">
-                    {formatDate(transaction.date)}
+                  <div className="transaction-item__accounts">
+                    {accountNames[transaction.fromAccountId] || `Account ${transaction.fromAccountId}`} → {accountNames[transaction.toAccountId] || `Account ${transaction.toAccountId}`}
                   </div>
                 </div>
-                <div className={`transaction-item__amount ${amountClass}`}>
-                  {isPositive ? '+' : '-'}{formatMoney(transaction.cents)}
-                </div>
-                <div className="transaction-item__balance-column">
-                  <div className="transaction-item__balance-movement">
-                    <span className="balance-before">123.00 €</span>
-                    <span className="arrow-icon">→</span>
-                    <span className="balance-after">124.00 €</span>
-                  </div>
+                <div className="transaction-item__date">
+                  {formatDate(transaction.date)}
                 </div>
               </div>
-
-              {showSuggestion && (
-                <div className="suggestion-container">
-                  <div className="suggestion-text">
-                    <span className="suggestion-icon">💡</span>
-                    <span>
-                      Suggested category: <strong>Groceries</strong>
-                    </span>
-                  </div>
-                  <div className="suggestion-actions">
-                    <button type="button" className="suggestion-btn suggestion-btn-apply">
-                      Apply
-                    </button>
-                    <button type="button" className="suggestion-btn suggestion-btn-ignore">
-                      Ignore
-                    </button>
-                    <button type="button" className="suggestion-btn suggestion-btn-ai">
-                      Ask AI ✨
-                    </button>
-                  </div>
+              <div className={`transaction-item__amount ${amountClass}`}>
+                {isPositive ? '+' : '-'}{formatMoney(transaction.cents)}
+              </div>
+              <div className="transaction-item__balance-column">
+                <div className="transaction-item__balance-movement">
+                  <span className="balance-before">123.00 €</span>
+                  <span className="arrow-icon">→</span>
+                  <span className="balance-after">124.00 €</span>
                 </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+              </div>
+            </div>
+
+            {showSuggestion && (
+              <div className="suggestion-container">
+                <div className="suggestion-text">
+                  <span className="suggestion-icon">💡</span>
+                  <span>
+                    Suggested category: <strong>Groceries</strong>
+                  </span>
+                </div>
+                <div className="suggestion-actions">
+                  <button type="button" className="suggestion-btn suggestion-btn-apply">
+                    Apply
+                  </button>
+                  <button type="button" className="suggestion-btn suggestion-btn-ignore">
+                    Ignore
+                  </button>
+                  <button type="button" className="suggestion-btn suggestion-btn-ai">
+                    Ask AI ✨
+                  </button>
+                </div>
+              </div>
+            )}
+          </li>
+        );
+      })}
+    </ul>
   );
 };

@@ -1,5 +1,6 @@
 import type { Router } from 'express';
 import { fields, format, type Infer, number, string } from 'tiny-decoders';
+import type { Transaction } from '../../shared/transaction';
 import { Decoder } from '../../shared/utils/decoder';
 import { Maybe } from '../../shared/utils/maybe';
 import type { TransactionCommand } from '../cqs/transaction/commands';
@@ -20,7 +21,7 @@ export const registerTransactionRoutes = (router: Router, transactionQuery: Tran
   // http GET :8086/api/transactions search==grocery
   router.get('/api/transactions', async (_req, res) => {
     try {
-      const result = await transactionQuery.list(Maybe.nothing, Maybe.nothing);
+      const result: Transaction[] = await transactionQuery.list(Maybe.nothing);
       res.json(result);
     } catch (error) {
       console.error('Error in GET /api/transactions:', error);

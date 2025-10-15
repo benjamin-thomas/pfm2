@@ -1,4 +1,5 @@
 // Transaction domain types
+import { array, fields, number, string } from 'tiny-decoders';
 
 export type Transaction = {
   transactionId: number;
@@ -33,17 +34,16 @@ export type TransactionFilters = {
   search?: string;
 };
 
-// Pagination
-export type PaginationParams = {
-  page?: number;
-  pageSize?: number;
-  orderBy?: string;
-  orderDir?: 'asc' | 'desc';
-};
+// Codecs for runtime validation
+export const transactionCodec = fields({
+  transactionId: number,
+  fromAccountId: number,
+  toAccountId: number,
+  date: number,
+  descr: string,
+  cents: number,
+  createdAt: number,
+  updatedAt: number,
+});
 
-export type PaginatedResponse<T> = {
-  items: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-};
+export const transactionsCodec = array(transactionCodec);

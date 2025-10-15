@@ -12,9 +12,7 @@ const ok = <A>(value: A): Result<never, A> => ({ tag: 'Ok', value });
 
 const err = <X>(error: X): Result<X, never> => ({ tag: 'Err', error });
 
-// Match/fold over Result - eliminates need for fragile if checks
-// Usage: Result.match(result, onErr, onOk)
-// Error handler first (ergonomic), success handler second
+// Match over a Result, an alternative to if checks
 const match = <X, A, R>(
   result: Result<X, A>,
   onErr: (error: X) => R,
@@ -32,4 +30,28 @@ const match = <X, A, R>(
   }
 };
 
-export const Result = { ok, err, match } as const;
+/**
+ * Transform the success value of a Result, leaving errors untouched.
+ *
+ * ```typescript
+ * const result: Result<ApiError, Transaction> = ...;
+ * const wrapped: Result<ApiError, Maybe<Transaction>> = Result.map(result, tx => Maybe.just(tx));
+ * ```
+ */
+const map = <X, A, B>(
+  result: Result<X, A>,
+  fn: (value: A) => B
+): Result<X, B> => {
+  switch (result.tag) {
+    case 'Err':
+      return result;
+    case 'Ok':
+      return ok(fn(result.value));
+
+    /* v8 ignore next 2 */
+    default:
+      return impossibleBranch(result);
+  }
+};
+
+export const Result = { ok, err, match, map } as const;

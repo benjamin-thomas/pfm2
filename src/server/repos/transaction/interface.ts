@@ -2,8 +2,6 @@
 
 import type {
   NewTransaction,
-  PaginatedResponse,
-  PaginationParams,
   Transaction,
   TransactionFilters,
   UpdateTransaction,
@@ -18,7 +16,7 @@ export interface TransactionRepo {
 
   // Read
   findById(id: number): Promise<Maybe<Transaction>>;
-  list(filters: Maybe<TransactionFilters>, pagination: Maybe<PaginationParams>): Promise<PaginatedResponse<Transaction>>;
+  list(filters: Maybe<TransactionFilters>): Promise<Transaction[]>;
   listByAccount(accountId: number): Promise<Transaction[]>;
 
   // Update

@@ -1,3 +1,6 @@
+import { format } from 'tiny-decoders';
+import { transactionCodec, transactionsCodec } from '../../shared/transaction';
+import { Decoder } from '../../shared/utils/decoder';
 import { Maybe } from '../../shared/utils/maybe';
 import { Result } from '../../shared/utils/result';
 import type { Api } from './interface';
@@ -13,7 +16,11 @@ const init = (): Api => {
           const res = await fetch(`/api/transactions?search=${searchTerm}`);
           if (res.status === 200) {
             const data = await res.json();
-            return Result.ok(data);
+            const decoded = transactionsCodec.decoder(data);
+            return Decoder.toResult(decoded, (error) => {
+              console.error('Decode error (transactions.list):', format(error));
+              return ApiErr.badRequest('Invalid response format');
+            });
           }
           if (res.status === 404)
             return Result.err(ApiErr.notFound);
@@ -31,7 +38,14 @@ const init = (): Api => {
           const res = await fetch(`/api/transactions/${id}`);
           if (res.status === 200) {
             const data = await res.json();
-            return Result.ok(Maybe.just(data));
+            const decoded = transactionCodec.decoder(data);
+            return Result.map(
+              Decoder.toResult(decoded, (error) => {
+                console.error('Decode error (transactions.findById):', format(error));
+                return ApiErr.badRequest('Invalid response format');
+              }),
+              (transaction) => Maybe.just(transaction)
+            );
           }
           if (res.status === 404)
             return Result.ok(Maybe.nothing);
@@ -53,7 +67,11 @@ const init = (): Api => {
           });
           if (res.status === 201) {
             const data = await res.json();
-            return Result.ok(data);
+            const decoded = transactionCodec.decoder(data);
+            return Decoder.toResult(decoded, (error) => {
+              console.error('Decode error (transactions.create):', format(error));
+              return ApiErr.badRequest('Invalid response format');
+            });
           }
           if (res.status === 400)
             return Result.err(ApiErr.badRequest('Invalid transaction data'));
@@ -75,7 +93,11 @@ const init = (): Api => {
           });
           if (res.status === 200) {
             const data = await res.json();
-            return Result.ok(data);
+            const decoded = transactionCodec.decoder(data);
+            return Decoder.toResult(decoded, (error) => {
+              console.error('Decode error (transactions.update):', format(error));
+              return ApiErr.badRequest('Invalid response format');
+            });
           }
           if (res.status === 404)
             return Result.err(ApiErr.notFound);

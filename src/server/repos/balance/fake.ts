@@ -17,13 +17,11 @@ const init = (
 ): BalanceRepo => {
     return {
       getBalances: async (): Promise<AccountBalance[]> => {
-        const [transactionResult, accounts, categories] = await Promise.all([
-          transactionRepo.list(Maybe.nothing, Maybe.nothing),
+        const [transactions, accounts, categories] = await Promise.all([
+          transactionRepo.list(Maybe.nothing),
           accountRepo.listAll(),
           categoryRepo.listAll(),
         ]);
-
-        const transactions = transactionResult.items;
 
         // Calculate balance for each account using double-entry logic
         const balanceMap = new Map<number, { added: number; removed: number }>();

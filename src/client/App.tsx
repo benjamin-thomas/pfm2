@@ -130,9 +130,6 @@ function App({ api }: AppProps) {
                       </div>
 
                       <div className="transaction-list__header-buttons">
-                        <button type="button" className="button">
-                          💡 Apply All Suggestions
-                        </button>
                         <button type="button" className="button button--primary">
                           Add Transaction
                         </button>

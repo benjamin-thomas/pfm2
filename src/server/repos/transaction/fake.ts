@@ -2,8 +2,6 @@
 
 import type {
   NewTransaction,
-  PaginatedResponse,
-  PaginationParams,
   Transaction,
   TransactionFilters,
   UpdateTransaction,
@@ -45,46 +43,6 @@ const init = (): TransactionRepo => {
     );
   };
 
-  const paginate = <T>(items: T[], params: Maybe<PaginationParams>): PaginatedResponse<T> => {
-    return Maybe.match(
-      params,
-      () => {
-        // No pagination - return first 50
-        return {
-          items: items.slice(0, 50),
-          total: items.length,
-          page: 1,
-          pageSize: 50,
-        };
-      },
-      (p) => {
-        const page = p.page || 1;
-        const pageSize = p.pageSize || 50;
-        const start = (page - 1) * pageSize;
-        const end = start + pageSize;
-
-        if (p.orderBy) {
-          const key = p.orderBy as keyof T;
-          const dir = p.orderDir || 'asc';
-          items.sort((a, b) => {
-            const aVal = a[key];
-            const bVal = b[key];
-            if (aVal < bVal) return dir === 'asc' ? -1 : 1;
-            if (aVal > bVal) return dir === 'asc' ? 1 : -1;
-            return 0;
-          });
-        }
-
-        return {
-          items: items.slice(start, end),
-          total: items.length,
-          page,
-          pageSize,
-        };
-      }
-    );
-  };
-
   return {
     create: (transaction: NewTransaction): Promise<Transaction> => {
       const newTx = createTransaction(transaction);
@@ -97,12 +55,9 @@ const init = (): TransactionRepo => {
       return Promise.resolve(transaction ? Maybe.just(transaction) : Maybe.nothing);
     },
 
-    list: (
-      filters: Maybe<TransactionFilters>,
-      pagination: Maybe<PaginationParams>
-    ): Promise<PaginatedResponse<Transaction>> => {
+    list: (filters: Maybe<TransactionFilters>): Promise<Transaction[]> => {
       const filtered = applyFilters(transactions, filters);
-      return Promise.resolve(paginate(filtered, pagination));
+      return Promise.resolve(filtered);
     },
 
     listByAccount: (accountId: number): Promise<Transaction[]> => {
