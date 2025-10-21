@@ -36,8 +36,6 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
           ? 'transaction-item__amount--positive'
           : 'transaction-item__amount--negative';
 
-        const showSuggestion = transaction.toAccountId === 6; // Unknown_EXPENSE
-
         return (
           <li key={transaction.transactionId} className="transaction-item">
             <div className="transaction-item__row">
@@ -65,28 +63,6 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
                 </div>
               </div>
             </div>
-
-            {showSuggestion && (
-              <div className="suggestion-container">
-                <div className="suggestion-text">
-                  <span className="suggestion-icon">💡</span>
-                  <span>
-                    Suggested category: <strong>Groceries</strong>
-                  </span>
-                </div>
-                <div className="suggestion-actions">
-                  <button type="button" className="suggestion-btn suggestion-btn-apply">
-                    Apply
-                  </button>
-                  <button type="button" className="suggestion-btn suggestion-btn-ignore">
-                    Ignore
-                  </button>
-                  <button type="button" className="suggestion-btn suggestion-btn-ai">
-                    Ask AI ✨
-                  </button>
-                </div>
-              </div>
-            )}
           </li>
         );
       })}
