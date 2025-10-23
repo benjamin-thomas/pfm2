@@ -4,9 +4,11 @@ import styles from './BalanceCard.module.css';
 
 type BalanceCardProps = {
   balance: AccountBalance;
+  isSelected: boolean;
+  onClick: () => void;
 };
 
-export const BalanceCard: React.FC<BalanceCardProps> = ({ balance }) => {
+export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, isSelected, onClick }) => {
   const formatAmount = (cents: number): string => {
     const intPart = Math.floor(Math.abs(cents) / 100);
     const decPart = Math.abs(cents) % 100;
@@ -26,9 +28,11 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ balance }) => {
   };
 
   return (
-    <div
-      className={styles.card}
+    <button
+      type="button"
+      className={`${styles.card} ${isSelected ? styles.selected : ''}`}
       style={{ borderLeftColor: getColorAccent(balance.categoryName) }}
+      onClick={onClick}
     >
       <div className={styles.category}>
         {balance.categoryName}
@@ -39,6 +43,6 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ balance }) => {
       <div className={styles.amount}>
         {formatAmount(balance.balance)}
       </div>
-    </div>
+    </button>
   );
 };

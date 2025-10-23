@@ -1,15 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { assert, describe, it } from 'vitest';
-import { FakeAccount, makeDbDate } from '../shared/fake-data';
+import { getAccountByName, makeDbDate } from '../shared/fake-data';
 import App from './App';
 import { ApiFake } from './api-client/fake';
 
 describe('App', () => {
   it('renders transactions from fake API', async () => {
-    const employerAccount = FakeAccount.employer;
-    const checkingAccount = FakeAccount.checking;
-    const groceriesAccount = FakeAccount.groceries;
+    const employerAccount = getAccountByName('Employer ABC');
+    const checkingAccount = getAccountByName('Checking account');
+    const groceriesAccount = getAccountByName('Groceries');
 
     const api = ApiFake.init([
       {

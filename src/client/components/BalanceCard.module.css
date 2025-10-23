@@ -1,11 +1,37 @@
 /* BalanceCard CSS Module */
 
+button.card {
+    /* Reset button styles */
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    width: 100%;
+}
+
 .card {
     background: var(--color-card-bg);
     border-radius: 8px;
     padding: var(--space-lg);
     border-left: 4px solid var(--color-primary);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+    opacity: 0.7;
+}
+
+.card:hover {
+    /* transform: translateY(-2px); */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card.selected {
+    opacity: 1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    outline: 2px solid var(--color-primary);
+    outline-offset: 4px;
 }
 
 .category {

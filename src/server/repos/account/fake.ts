@@ -1,18 +1,18 @@
 import type { Account, Category, NewAccount } from '../../../shared/account';
+import { accountRows, categoryRows } from '../../../shared/fake-data';
 import { Maybe } from '../../../shared/utils/maybe';
 import type { AccountRepo, AffectedRows, CategoryRepo } from './interface';
 
 const init = (): AccountRepo => {
-  // Seed accounts matching the transaction seed data
-  const accounts: Account[] = [
-    { accountId: 2, categoryId: 2, name: 'Checking account', createdAt: 0, updatedAt: 0 },
-    { accountId: 3, categoryId: 2, name: 'Savings account', createdAt: 0, updatedAt: 0 },
-    { accountId: 5, categoryId: 3, name: 'Employer', createdAt: 0, updatedAt: 0 },
-    { accountId: 6, categoryId: 4, name: 'Unknown_EXPENSE', createdAt: 0, updatedAt: 0 },
-    { accountId: 7, categoryId: 4, name: 'Groceries', createdAt: 0, updatedAt: 0 },
-    { accountId: 9, categoryId: 4, name: 'Transport', createdAt: 0, updatedAt: 0 },
-  ];
-  let nextId = 10;
+  // Initialize accounts from shared fake-data rows
+  const accounts: Account[] = accountRows.map(row => ({
+    accountId: row.id,
+    name: row.name,
+    categoryId: row.categoryId,
+    createdAt: 0,
+    updatedAt: 0,
+  }));
+  let nextId = accountRows.length + 1;
 
   return {
     listAll: (): Promise<Account[]> => {
@@ -63,11 +63,13 @@ const init = (): AccountRepo => {
 export const AccountRepoFake = { init } as const;
 
 const initCategory = (): CategoryRepo => {
-  const categories: Category[] = [
-    { categoryId: 2, name: 'Assets', createdAt: 0, updatedAt: 0 },
-    { categoryId: 3, name: 'Income', createdAt: 0, updatedAt: 0 },
-    { categoryId: 4, name: 'Expenses', createdAt: 0, updatedAt: 0 },
-  ];
+  // Initialize categories from shared fake-data rows
+  const categories: Category[] = categoryRows.map(row => ({
+    categoryId: row.id,
+    name: row.name,
+    createdAt: 0,
+    updatedAt: 0,
+  }));
 
   return {
     listAll: (): Promise<Category[]> => {

@@ -1,4 +1,5 @@
-import type { AccountBalance } from '../../shared/account';
+import type { Account, AccountBalance } from '../../shared/account';
+import type { LedgerEntry } from '../../shared/ledger';
 import type { NewTransaction, Transaction, UpdateTransaction } from '../../shared/transaction';
 import type { Maybe } from '../../shared/utils/maybe';
 import type { Result } from '../../shared/utils/result';
@@ -22,6 +23,12 @@ export interface Api {
     update(id: number, transaction: UpdateTransaction): Promise<Result<ApiError, Transaction>>;
     // Returns Result to handle cases where deletion might be forbidden (e.g., permissions, constraints)
     delete(id: number): Promise<Result<ApiError, void>>;
+  };
+  ledger: {
+    getLedgerForAccount(accountId: number): Promise<Result<ApiError, LedgerEntry[]>>;
+  };
+  accounts: {
+    list(): Promise<Result<ApiError, Account[]>>;
   };
   balances: {
     getBalances(): Promise<Result<ApiError, AccountBalance[]>>;

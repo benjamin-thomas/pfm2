@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { FakeAccount, makeDbDate } from '../shared/fake-data';
+import { getAccountByName, makeDbDate } from '../shared/fake-data';
 import App from './App';
 import { ApiFake } from './api-client/fake.ts';
 import { ApiHttp } from './api-client/http.ts';
@@ -11,32 +11,130 @@ const params = new URLSearchParams(window.location.search);
 const api = params.get('api') === 'fake'
   ? ApiFake.init([
     {
-      fromAccountId: FakeAccount.employer.id,
-      toAccountId: FakeAccount.checking.id,
-      date: makeDbDate('2024-09-30'),
-      descr: 'Income',
-      cents: 100000,
+      fromAccountId: getAccountByName('OpeningBalance').id,
+      toAccountId: getAccountByName('Checking account').id,
+      date: makeDbDate('2025-01-01'),
+      descr: 'Opening Balance',
+      cents: 150000,
     },
     {
-      fromAccountId: FakeAccount.checking.id,
-      toAccountId: FakeAccount.unknownExpense.id,
-      date: makeDbDate('2024-09-25'),
-      descr: 'Rent',
-      cents: 50000,
+      fromAccountId: getAccountByName('Checking account').id,
+      toAccountId: getAccountByName('Transport').id,
+      date: makeDbDate('2025-01-02'),
+      descr: 'Metro Monthly Pass',
+      cents: 7500,
     },
     {
-      fromAccountId: FakeAccount.checking.id,
-      toAccountId: FakeAccount.groceries.id,
-      date: makeDbDate('2024-09-20'),
-      descr: 'Grocery Store',
-      cents: 3400,
+      fromAccountId: getAccountByName('Checking account').id,
+      toAccountId: getAccountByName('Groceries').id,
+      date: makeDbDate('2025-01-05'),
+      descr: 'Weekly Groceries - SuperMart',
+      cents: 6247,
     },
     {
-      fromAccountId: FakeAccount.checking.id,
-      toAccountId: FakeAccount.transport.id,
-      date: makeDbDate('2024-09-18'),
-      descr: 'Gas Station',
-      cents: 2500,
+      fromAccountId: getAccountByName('Checking account').id,
+      toAccountId: getAccountByName('Groceries').id,
+      date: makeDbDate('2025-01-08'),
+      descr: 'Fresh Produce Market',
+      cents: 3418,
+    },
+    {
+      fromAccountId: getAccountByName('Checking account').id,
+      toAccountId: getAccountByName('Energy').id,
+      date: makeDbDate('2025-01-10'),
+      descr: 'Electricity Bill',
+      cents: 8543,
+    },
+    {
+      fromAccountId: getAccountByName('Checking account').id,
+      toAccountId: getAccountByName('Groceries').id,
+      date: makeDbDate('2025-01-12'),
+      descr: 'Weekly Groceries - SuperMart',
+      cents: 5832,
+    },
+    {
+      fromAccountId: getAccountByName('Checking account').id,
+      toAccountId: getAccountByName('Communications').id,
+      date: makeDbDate('2025-01-15'),
+      descr: 'Internet & Phone Bill',
+      cents: 6500,
+    },
+    {
+      fromAccountId: getAccountByName('Checking account').id,
+      toAccountId: getAccountByName('Transport').id,
+      date: makeDbDate('2025-01-16'),
+      descr: 'Gas Station Fill-up',
+      cents: 4527,
+    },
+    {
+      fromAccountId: getAccountByName('Checking account').id,
+      toAccountId: getAccountByName('Clothing').id,
+      date: makeDbDate('2025-01-17'),
+      descr: 'Electronics Store - Headphones',
+      cents: 8949,
+    },
+    {
+      fromAccountId: getAccountByName('Checking account').id,
+      toAccountId: getAccountByName('Groceries').id,
+      date: makeDbDate('2025-01-19'),
+      descr: 'Weekly Groceries - SuperMart',
+      cents: 6891,
+    },
+    {
+      fromAccountId: getAccountByName('Checking account').id,
+      toAccountId: getAccountByName('Health').id,
+      date: makeDbDate('2025-01-20'),
+      descr: 'Pharmacy - Prescriptions',
+      cents: 3265,
+    },
+    {
+      fromAccountId: getAccountByName('Clothing').id,
+      toAccountId: getAccountByName('Checking account').id,
+      date: makeDbDate('2025-01-22'),
+      descr: 'Electronics Store - Headphones Refund',
+      cents: 8949,
+    },
+    {
+      fromAccountId: getAccountByName('Checking account').id,
+      toAccountId: getAccountByName('Unknown_EXPENSE').id,
+      date: makeDbDate('2025-01-25'),
+      descr: 'Monthly Rent',
+      cents: 95000,
+    },
+    {
+      fromAccountId: getAccountByName('Checking account').id,
+      toAccountId: getAccountByName('Groceries').id,
+      date: makeDbDate('2025-01-26'),
+      descr: 'Weekly Groceries - SuperMart',
+      cents: 5523,
+    },
+    {
+      fromAccountId: getAccountByName('Checking account').id,
+      toAccountId: getAccountByName('Clothing').id,
+      date: makeDbDate('2025-01-28'),
+      descr: 'Work Clothes',
+      cents: 12345,
+    },
+    {
+      fromAccountId: getAccountByName('Unknown_INCOME').id,
+      toAccountId: getAccountByName('Checking account').id,
+      date: makeDbDate('2025-01-29'),
+      descr: 'Side hustle',
+      cents: 35000,
+    },
+    {
+      fromAccountId: getAccountByName('Employer ABC').id,
+      toAccountId: getAccountByName('Checking account').id,
+      date: makeDbDate('2025-01-31'),
+      descr: 'Monthly Salary',
+      cents: 250000,
+    },
+    {
+      fromAccountId: getAccountByName('Checking account').id,
+      toAccountId: getAccountByName('Leisure').id,
+      date: makeDbDate('2025-01-31'),
+      descr: 'Dinner & Movie',
+      cents: 7582,
     },
   ])
   : ApiHttp.init();

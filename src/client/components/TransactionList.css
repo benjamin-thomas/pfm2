@@ -146,6 +146,11 @@
     color: var(--color-text-tertiary);
 }
 
+.balance-after--negative {
+    color: var(--color-negative);
+    font-weight: 600;
+}
+
 /* Transaction suggestion styles */
 .suggestion-container {
     margin-top: var(--space-sm);

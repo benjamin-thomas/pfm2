@@ -1,5 +1,6 @@
-import type { AccountBalance } from '../../shared/account';
-import { FakeAccount, FakeCategory } from '../../shared/fake-data';
+import type { Account, AccountBalance } from '../../shared/account';
+import { accountRows, categoryRows } from '../../shared/fake-data';
+import type { LedgerEntry } from '../../shared/ledger';
 import type { NewTransaction, Transaction, UpdateTransaction } from '../../shared/transaction';
 import { Maybe } from '../../shared/utils/maybe';
 import { Result } from '../../shared/utils/result';
@@ -23,16 +24,6 @@ const init = (seedData: NewTransaction[]): Api => {
 
   // Helper to compute balances from transactions
   const computeBalances = (txs: Transaction[]): AccountBalance[] => {
-    const checkingAccount = FakeAccount.checking;
-    const employerAccount = FakeAccount.employer;
-    const unknownExpenseAccount = FakeAccount.unknownExpense;
-    const groceriesAccount = FakeAccount.groceries;
-    const transportAccount = FakeAccount.transport;
-
-    const assetsCategory = FakeCategory.assets;
-    const incomeCategory = FakeCategory.income;
-    const expensesCategory = FakeCategory.expenses;
-
     const balanceMap = new Map<number, { added: number; removed: number }>();
 
     for (const tx of txs) {
@@ -45,23 +36,20 @@ const init = (seedData: NewTransaction[]): Api => {
       balanceMap.set(tx.toAccountId, to);
     }
 
-    // Account metadata (would come from account repo in real impl)
-    const accounts = [
-      { accountId: checkingAccount.id, name: checkingAccount.name, categoryId: assetsCategory.id, categoryName: assetsCategory.name },
-      { accountId: employerAccount.id, name: employerAccount.name, categoryId: incomeCategory.id, categoryName: incomeCategory.name },
-      { accountId: unknownExpenseAccount.id, name: unknownExpenseAccount.name, categoryId: expensesCategory.id, categoryName: expensesCategory.name },
-      { accountId: groceriesAccount.id, name: groceriesAccount.name, categoryId: expensesCategory.id, categoryName: expensesCategory.name },
-      { accountId: transportAccount.id, name: transportAccount.name, categoryId: expensesCategory.id, categoryName: expensesCategory.name },
-    ];
-
-    return accounts
+    // Join accountRows with categoryRows (like SQL JOIN)
+    return accountRows
       .map(account => {
-        const balances = balanceMap.get(account.accountId) || { added: 0, removed: 0 };
+        const category = categoryRows.find(cat => cat.id === account.categoryId);
+        if (!category) {
+          throw new Error(`Category not found for account ${account.name}`);
+        }
+
+        const balances = balanceMap.get(account.id) || { added: 0, removed: 0 };
         return {
-          accountId: account.accountId,
+          accountId: account.id,
           accountName: account.name,
-          categoryId: account.categoryId,
-          categoryName: account.categoryName,
+          categoryId: category.id,
+          categoryName: category.name,
           balance: balances.added - balances.removed,
         };
       })
@@ -120,6 +108,57 @@ const init = (seedData: NewTransaction[]): Api => {
         }
         transactions.splice(index, 1);
         return Promise.resolve(Result.ok(undefined));
+      },
+    },
+
+    ledger: {
+      getLedgerForAccount: (selectedAccountId: number) => {
+        // Filter transactions involving the selected account
+        const relevantTransactions = transactions.filter(tx =>
+          tx.fromAccountId === selectedAccountId || tx.toAccountId === selectedAccountId
+        );
+
+        // Sort by date ascending
+        const sorted = [...relevantTransactions].sort((a, b) => a.date - b.date);
+
+        // Transform to ledger entries with flow and running balance
+        let runningBalance = 0;
+        const ledgerEntries: LedgerEntry[] = sorted.map(tx => {
+          // Calculate flow from perspective of selected account
+          const flowCents = tx.cents * (tx.fromAccountId === selectedAccountId ? -1 : 1);
+          const priorBalance = runningBalance;
+          runningBalance += flowCents;
+
+          // Lookup account names from accountRows
+          const fromAccount = accountRows.find(acc => acc.id === tx.fromAccountId);
+          const toAccount = accountRows.find(acc => acc.id === tx.toAccountId);
+
+          return {
+            ...tx,
+            fromAccountName: fromAccount?.name ?? `Account ${tx.fromAccountId}`,
+            toAccountName: toAccount?.name ?? `Account ${tx.toAccountId}`,
+            flowCents,
+            priorBalanceCents: priorBalance,
+            runningBalanceCents: runningBalance,
+          };
+        });
+
+        // Reverse for display (newest first)
+        return Promise.resolve(Result.ok(ledgerEntries.reverse()));
+      },
+    },
+
+    accounts: {
+      list: () => {
+        // Return all accounts from accountRows
+        const accounts: Account[] = accountRows.map(account => ({
+          accountId: account.id,
+          name: account.name,
+          categoryId: account.categoryId,
+          createdAt: 0,
+          updatedAt: 0,
+        }));
+        return Promise.resolve(Result.ok(accounts));
       },
     },
 

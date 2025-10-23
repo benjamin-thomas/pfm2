@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
-import type { AccountBalance } from '../shared/account';
+import { useEffect, useState } from 'react';
+import type { Account, AccountBalance } from '../shared/account';
 import type { Status } from '../shared/async';
-import type { Transaction } from '../shared/transaction';
+import type { LedgerEntry } from '../shared/ledger';
+import { isUnknownAccount } from '../shared/utils/accounts';
 import { impossibleBranch } from '../shared/utils/impossibleBranch';
 import { Result } from '../shared/utils/result';
 import type { Api } from './api-client/interface';
@@ -13,8 +14,9 @@ import './App.css';
 import './components/Buttons.css';
 
 type FinancialData = {
-  transactions: Transaction[];
+  ledgerEntries: LedgerEntry[];
   balances: AccountBalance[];
+  accounts: Account[];
 };
 
 type AppProps = {
@@ -30,6 +32,7 @@ type SearchFilters = {
 
 function App({ api }: AppProps) {
   const [financialData, setFinancialData] = useState<Status<FinancialData>>({ kind: 'Loading' });
+  const [selectedAccountId, setSelectedAccountId] = useState<number>(2); // 0 = unselected
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved ? saved === 'dark' : true;
@@ -42,44 +45,78 @@ function App({ api }: AppProps) {
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+
+
   useEffect(() => {
-    // Fetch transactions and balances using the API
-    Promise.all([
-      api.transactions.list({ searchTerm: '' }),
-      api.balances.getBalances(),
-    ])
-      .then(([txResult, balResult]) => {
-        // Handle Result types with Result.match
+    const fetchFinancialData = (accountId: number, accounts: Account[]) => {
+      Promise.all([
+        api.ledger.getLedgerForAccount(accountId),
+        api.balances.getBalances(),
+      ])
+        .then(([ledgerResult, balResult]) => {
+          Result.match(
+            ledgerResult,
+            (error) => {
+              const errMsg = error.tag === 'BadRequest'
+                ? error.reason
+                : 'Failed to load ledger';
+              setFinancialData({ kind: 'Error', error: errMsg });
+            },
+            (ledgerEntries) => {
+              Result.match(
+                balResult,
+                (error) => {
+                  const errMsg = error.tag === 'BadRequest'
+                    ? error.reason
+                    : 'Failed to load balances';
+                  setFinancialData({ kind: 'Error', error: errMsg });
+                },
+                (balances) => {
+                  setFinancialData({
+                    kind: 'Loaded',
+                    ledgerEntries,
+                    balances,
+                    accounts,
+                  });
+                }
+              );
+            }
+          );
+        })
+        .catch(err => setFinancialData({ kind: 'Error', error: err?.message || 'Unknown error' }));
+    };
+
+
+    // Fetch accounts for validation and UI
+    api.accounts.list()
+      .then(accountsResult => {
         Result.match(
-          txResult,
+          accountsResult,
           (error) => {
             const errMsg = error.tag === 'BadRequest'
               ? error.reason
-              : 'Failed to load transactions';
+              : 'Failed to load accounts';
             setFinancialData({ kind: 'Error', error: errMsg });
           },
-          (transactions) => {
-            Result.match(
-              balResult,
-              (error) => {
-                const errMsg = error.tag === 'BadRequest'
-                  ? error.reason
-                  : 'Failed to load balances';
-                setFinancialData({ kind: 'Error', error: errMsg });
-              },
-              (balances) => {
-                setFinancialData({
-                  kind: 'Loaded',
-                  transactions,
-                  balances,
-                });
-              }
-            );
+          (accounts) => {
+            // Assert: Must have Unknown_EXPENSE and Unknown_INCOME accounts (core app requirements)
+            const unknownExpense = accounts.find(acc => acc.name === 'Unknown_EXPENSE');
+            const unknownIncome = accounts.find(acc => acc.name === 'Unknown_INCOME');
+
+            if (!unknownExpense) {
+              throw new Error('Data integrity error: Unknown_EXPENSE account not found');
+            }
+            if (!unknownIncome) {
+              throw new Error('Data integrity error: Unknown_INCOME account not found');
+            }
+
+            // Fetch ledger and balances for the selected account (not overriding selection)
+            fetchFinancialData(selectedAccountId, accounts);
           }
         );
       })
-      .catch(err => setFinancialData({ kind: 'Error', error: err.message }));
-  }, [api]);
+      .catch(err => setFinancialData({ kind: 'Error', error: err?.message || 'Unknown error' }));
+  }, [api, selectedAccountId]);
 
   useEffect(() => {
     // Apply theme to document
@@ -105,41 +142,29 @@ function App({ api }: AppProps) {
         setFinancialData({ kind: 'Error', error: errMsg });
       },
       () => {
-        // Success - re-fetch transactions and balances
-        Promise.all([
-          api.transactions.list({ searchTerm: '' }),
-          api.balances.getBalances(),
-        ])
-          .then(([txResult, balResult]) => {
+        // Success - re-fetch data
+        // if (selectedAccountId === 0) {
+        //   throw new Error('Programming error: selectedAccountId should never be 0 when adding a transaction');
+        // }
+
+        // Re-fetch accounts in case new accounts were implicitly created
+        api.accounts.list()
+          .then(accountsResult => {
             Result.match(
-              txResult,
+              accountsResult,
               (error) => {
                 const errMsg = error.tag === 'BadRequest'
                   ? error.reason
-                  : 'Failed to load transactions';
+                  : 'Failed to load accounts';
                 setFinancialData({ kind: 'Error', error: errMsg });
               },
-              (transactions) => {
-                Result.match(
-                  balResult,
-                  (error) => {
-                    const errMsg = error.tag === 'BadRequest'
-                      ? error.reason
-                      : 'Failed to load balances';
-                    setFinancialData({ kind: 'Error', error: errMsg });
-                  },
-                  (balances) => {
-                    setFinancialData({
-                      kind: 'Loaded',
-                      transactions,
-                      balances,
-                    });
-                    setIsModalOpen(false);
-                  }
-                );
+              (accounts) => {
+                setSelectedAccountId(accounts[0].accountId);
+                setIsModalOpen(false);
               }
             );
-          });
+          })
+          .catch(err => setFinancialData({ kind: 'Error', error: err?.message || 'Unknown error' }));
       }
     );
   };
@@ -157,14 +182,6 @@ function App({ api }: AppProps) {
       >
         {isDarkMode ? "🌙" : "☀️"}
       </button>
-
-      <AddTransactionModal
-        isOpen={isModalOpen}
-        onClose={
-          // Give "stable ref" to handleClose
-          useCallback(() => setIsModalOpen(false), [])}
-        onSubmit={handleAddTransaction}
-      />
 
       {(() => {
         switch (financialData.kind) {
@@ -185,19 +202,33 @@ function App({ api }: AppProps) {
           }
 
           case 'Loaded': {
-            const { balances, transactions } = financialData;
+            const { balances, ledgerEntries, accounts } = financialData;
 
-            // Filter transactions based on search criteria
-            const filteredTransactions = transactions.filter((tx) => {
+            // Sanity check: must have valid selected account
+            const selectedAccount = accounts.find(a => a.accountId === selectedAccountId);
+            if (!selectedAccount) {
+              throw new Error(`Data integrity error: Selected account ${selectedAccountId} not found`);
+            }
+
+            // Extract unknown accounts (validated at startup)
+            const unknownExpense = accounts.find(acc => acc.name === 'Unknown_EXPENSE');
+            const unknownIncome = accounts.find(acc => acc.name === 'Unknown_INCOME');
+
+            if (!unknownExpense || !unknownIncome) {
+              throw new Error('Data integrity error: Unknown accounts must exist');
+            }
+
+            // Filter ledger entries based on search criteria
+            const filteredLedgerEntries = ledgerEntries.filter((entry) => {
               // Description filter (case-insensitive)
-              if (filters.description && !tx.descr.toLowerCase().includes(filters.description.toLowerCase())) {
+              if (filters.description && !entry.descr.toLowerCase().includes(filters.description.toLowerCase())) {
                 return false;
               }
 
               // Min amount filter (convert cents to euros for comparison)
               if (filters.minAmount) {
                 const minCents = Math.round(parseFloat(filters.minAmount) * 100);
-                if (!Number.isNaN(minCents) && tx.cents < minCents) {
+                if (!Number.isNaN(minCents) && entry.cents < minCents) {
                   return false;
                 }
               }
@@ -205,13 +236,13 @@ function App({ api }: AppProps) {
               // Max amount filter
               if (filters.maxAmount) {
                 const maxCents = Math.round(parseFloat(filters.maxAmount) * 100);
-                if (!Number.isNaN(maxCents) && tx.cents > maxCents) {
+                if (!Number.isNaN(maxCents) && entry.cents > maxCents) {
                   return false;
                 }
               }
 
-              // Unknown expenses filter (toAccountId === 6 means Unknown_EXPENSE)
-              if (filters.unknownExpenses && tx.toAccountId !== 6) {
+              // Unknown expenses filter - check account names instead of IDs
+              if (filters.unknownExpenses && !isUnknownAccount(entry.toAccountName)) {
                 return false;
               }
 
@@ -229,8 +260,23 @@ function App({ api }: AppProps) {
 
             return (
               <>
+                <AddTransactionModal
+                  isOpen={isModalOpen}
+                  onClose={() => setIsModalOpen(false)}
+                  onSubmit={handleAddTransaction}
+                  accounts={accounts}
+                  defaultFromAccountId={selectedAccountId}
+                  defaultToAccountId={unknownExpense.accountId}
+                />
+
                 <div className="section">
-                  <BalanceCards balances={balances} />
+                  <BalanceCards
+                    balances={balances}
+                    selectedAccountId={selectedAccountId}
+                    onSelectAccount={(accountId) => {
+                      setSelectedAccountId(accountId);
+                    }}
+                  />
                 </div>
 
                 <div className="section">
@@ -239,7 +285,7 @@ function App({ api }: AppProps) {
                       <div className="transaction-list__header-title">
                         <h3>Transactions</h3>
                         <span className="transaction-count">
-                          {filteredTransactions.length} of {transactions.length} transactions
+                          {filteredLedgerEntries.length} of {ledgerEntries.length} transactions
                         </span>
                       </div>
 
@@ -264,7 +310,10 @@ function App({ api }: AppProps) {
                       onUnknownExpensesChange={(value) => setFilters({ ...filters, unknownExpenses: value })}
                       onClear={handleClearFilters}
                     />
-                    <TransactionList transactions={filteredTransactions} />
+                    <TransactionList
+                      transactions={filteredLedgerEntries}
+                      selectedAccountName={selectedAccount.name}
+                    />
                   </div>
                 </div>
               </>

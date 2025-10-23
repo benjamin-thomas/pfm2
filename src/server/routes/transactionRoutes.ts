@@ -1,5 +1,5 @@
-import type { Router } from 'express';
 import { Decoder } from 'elm-decoders';
+import type { Router } from 'express';
 import type { Transaction } from '../../shared/transaction';
 import { DecoderUtil } from '../../shared/utils/decoder';
 import { Maybe } from '../../shared/utils/maybe';

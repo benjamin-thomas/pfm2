@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import type { Account } from '../../shared/account';
 import { dateToUnix } from '../../shared/datetime';
 import './AddTransactionModal.css';
 
@@ -6,6 +7,9 @@ type AddTransactionModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (transaction: NewTransactionData) => void;
+  accounts: Account[];
+  defaultFromAccountId: number;
+  defaultToAccountId: number;
 };
 
 export type NewTransactionData = {
@@ -15,21 +19,6 @@ export type NewTransactionData = {
   descr: string;
   cents: number;
 };
-
-// Account options for the dropdowns
-const ACCOUNT_OPTIONS = [
-  { id: 2, name: 'Checking account' },
-  { id: 3, name: 'Savings account' },
-  { id: 5, name: 'Employer' },
-  { id: 6, name: 'Unknown_EXPENSE' },
-  { id: 7, name: 'Groceries' },
-  { id: 8, name: 'Communications' },
-  { id: 9, name: 'Transport' },
-  { id: 10, name: 'Health' },
-  { id: 11, name: 'Energy' },
-  { id: 12, name: 'Clothing' },
-  { id: 13, name: 'Leisure' },
-];
 
 const toDateInputValue = (date: Date): string => {
   const offsetMinutes = date.getTimezoneOffset();
@@ -48,7 +37,7 @@ const parseLocalDate = (value: string): Date | null => {
   return new Date(year, month - 1, day, 0, 0, 0, 0);
 };
 
-export const AddTransactionModal = ({ isOpen, onClose, onSubmit }: AddTransactionModalProps) => {
+export const AddTransactionModal = ({ isOpen, onClose, onSubmit, accounts, defaultFromAccountId, defaultToAccountId }: AddTransactionModalProps) => {
   const descriptionId = useId();
   const fromAccountId = useId();
   const toAccountId = useId();
@@ -59,8 +48,8 @@ export const AddTransactionModal = ({ isOpen, onClose, onSubmit }: AddTransactio
 
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-  const [fromAccount, setFromAccount] = useState('2');
-  const [toAccount, setToAccount] = useState('7');
+  const [fromAccount, setFromAccount] = useState(defaultFromAccountId.toString());
+  const [toAccount, setToAccount] = useState(defaultToAccountId.toString());
   const [date, setDate] = useState(() => toDateInputValue(new Date()));
 
   // Focus description field when modal opens
@@ -72,32 +61,27 @@ export const AddTransactionModal = ({ isOpen, onClose, onSubmit }: AddTransactio
 
   // useCallback gives a "stable ref" to the following useEffect dependency (prevents useless re-renders)
   const handleClose = useCallback(() => {
-    console.log('Handling close...');
     setDescription('');
     setAmount('');
-    setFromAccount('2');
-    setToAccount('7');
+    setFromAccount(defaultFromAccountId.toString());
+    setToAccount(defaultToAccountId.toString());
     setDate(toDateInputValue(new Date()));
     onClose();
-  }, [onClose]);
+  }, [onClose, defaultFromAccountId, defaultToAccountId]);
 
   // Handle Escape key globally
   useEffect(() => {
     if (!isOpen) return;
-    console.log("✅✅ Defining global escape listener...");
 
     const handleEscape = (e: KeyboardEvent) => {
-      console.log("A key was pressed", e.key);
       if (e.key === 'Escape') {
         handleClose();
       }
     };
 
-    console.log('✅ Global Escape listener added');
     document.addEventListener('keydown', handleEscape);
 
     return () => {
-      console.log('❌ Global Escape listener removed');
       document.removeEventListener('keydown', handleEscape);
     };
   }, [isOpen, handleClose]);
@@ -122,12 +106,10 @@ export const AddTransactionModal = ({ isOpen, onClose, onSubmit }: AddTransactio
     // Reset form
     setDescription('');
     setAmount('');
-    setFromAccount('2');
-    setToAccount('7');
+    setFromAccount(defaultFromAccountId.toString());
+    setToAccount(defaultToAccountId.toString());
     setDate(toDateInputValue(new Date()));
   };
-
-
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -168,8 +150,8 @@ export const AddTransactionModal = ({ isOpen, onClose, onSubmit }: AddTransactio
               value={fromAccount}
               onChange={(e) => setFromAccount(e.target.value)}
             >
-              {ACCOUNT_OPTIONS.map((acc) => (
-                <option key={acc.id} value={acc.id}>
+              {accounts.map((acc) => (
+                <option key={acc.accountId} value={acc.accountId}>
                   {acc.name}
                 </option>
               ))}
@@ -183,8 +165,8 @@ export const AddTransactionModal = ({ isOpen, onClose, onSubmit }: AddTransactio
               value={toAccount}
               onChange={(e) => setToAccount(e.target.value)}
             >
-              {ACCOUNT_OPTIONS.map((acc) => (
-                <option key={acc.id} value={acc.id}>
+              {accounts.map((acc) => (
+                <option key={acc.accountId} value={acc.accountId}>
                   {acc.name}
                 </option>
               ))}

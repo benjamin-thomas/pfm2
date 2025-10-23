@@ -147,6 +147,46 @@ const init = (): Api => {
         }
       },
     },
+
+    ledger: {
+      getLedgerForAccount: async (accountId: number) => {
+        try {
+          const res = await fetch(`/api/ledger/${accountId}`);
+          if (res.status === 200) {
+            const data = await res.json();
+            return Result.ok(data);
+          }
+          if (res.status === 404)
+            return Result.err(ApiErr.notFound);
+          if (res.status >= 500)
+            return Result.err(ApiErr.serverError);
+          return Result.err(ApiErr.badRequest('Bad request'));
+        } catch (error) {
+          console.error('API error (ledger.getLedgerForAccount):', error);
+          return Result.err(ApiErr.serverError);
+        }
+      },
+    },
+
+    accounts: {
+      list: async () => {
+        try {
+          const res = await fetch('/api/accounts');
+          if (res.status === 200) {
+            const data = await res.json();
+            return Result.ok(data);
+          }
+          if (res.status === 404)
+            return Result.err(ApiErr.notFound);
+          if (res.status >= 500)
+            return Result.err(ApiErr.serverError);
+          return Result.err(ApiErr.badRequest('Bad request'));
+        } catch (error) {
+          console.error('API error (accounts.list):', error);
+          return Result.err(ApiErr.serverError);
+        }
+      },
+    },
   };
 };
 
