@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Account, AccountBalance } from '../shared/account';
 import type { Status } from '../shared/async';
 import type { LedgerEntry } from '../shared/ledger';
@@ -32,7 +32,13 @@ type SearchFilters = {
 
 function App({ api }: AppProps) {
   const [financialData, setFinancialData] = useState<Status<FinancialData>>({ kind: 'Loading' });
-  const [selectedAccountId, setSelectedAccountId] = useState<number>(2); // 0 = unselected
+
+  // Read selected account from URL query param, default to 0 if not present
+  const params = new URLSearchParams(window.location.search);
+  const accountIdFromUrl = params.get('account');
+  const [selectedAccountId, setSelectedAccountId] = useState<number>(
+    accountIdFromUrl ? parseInt(accountIdFromUrl, 10) : 0
+  );
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved ? saved === 'dark' : true;
@@ -45,7 +51,12 @@ function App({ api }: AppProps) {
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-
+  // Helper to create URL with account query param
+  const newUrlWithAccount = useCallback((accountId: number) => {
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('account', accountId.toString());
+    return newUrl;
+  }, []);
 
   useEffect(() => {
     const fetchFinancialData = (accountId: number, accounts: Account[]) => {
@@ -72,6 +83,13 @@ function App({ api }: AppProps) {
                   setFinancialData({ kind: 'Error', error: errMsg });
                 },
                 (balances) => {
+                  // If no account selected and we have balances, select the first one
+                  if (selectedAccountId === 0 && balances.length > 0) {
+                    const firstAccountId = balances[0].accountId;
+                    setSelectedAccountId(firstAccountId);
+                    window.history.replaceState({}, '', newUrlWithAccount(firstAccountId));
+                  }
+
                   setFinancialData({
                     kind: 'Loaded',
                     ledgerEntries,
@@ -116,7 +134,7 @@ function App({ api }: AppProps) {
         );
       })
       .catch(err => setFinancialData({ kind: 'Error', error: err?.message || 'Unknown error' }));
-  }, [api, selectedAccountId]);
+  }, [api, selectedAccountId, newUrlWithAccount]);
 
   useEffect(() => {
     // Apply theme to document
@@ -275,6 +293,7 @@ function App({ api }: AppProps) {
                     selectedAccountId={selectedAccountId}
                     onSelectAccount={(accountId) => {
                       setSelectedAccountId(accountId);
+                      window.history.pushState({}, '', newUrlWithAccount(accountId));
                     }}
                   />
                 </div>
