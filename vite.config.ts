@@ -1,5 +1,5 @@
-import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import { sharedConfig } from './vite.config.base';
 
 const makeServer = () => {
   // Skip server config during test runs
@@ -35,28 +35,11 @@ const makeServer = () => {
 };
 
 export default defineConfig(({ command }) => ({
-  plugins: [react()],
+  ...sharedConfig,
   root: 'src/client',
   server: command === 'serve' ? makeServer() : undefined,
   build: {
     outDir: '../../dist/client',
     emptyOutDir: true,
-  },
-  resolve: {
-    alias: {
-      // Fix elm-decoders package misconfiguration
-      'elm-decoders': 'elm-decoders/dist/elm-decoders.esm.js',
-    },
-  },
-  test: {
-    root: 'src',
-    environment: 'happy-dom',
-    typecheck: {
-      enabled: true,
-    },
-    coverage: {
-      provider: 'v8',
-      reporter: ['html', 'lcov'],
-    },
   },
 }));

@@ -4,4 +4,4 @@
 /tsconfig.server.tsbuildinfo
 /src/client/node_modules/.vite/
 /src/node_modules/.vite/
-/src/coverage/
+/coverage/

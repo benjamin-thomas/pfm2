@@ -8,6 +8,25 @@ A TypeScript-based personal finance manager using double-entry bookkeeping.
 VITE_API=fake npm run dev
 ```
 
+### Test coverage workflow
+
+A good option to interactively improve coverage is to use WebStorm:
+
+- right-click on project root
+  - left-click on  `More Run/Debug`
+    - left-click on `Run 'All Tests' with Coverage`
+    - refresh gutters by re-running the action of the same name (via Ctrl+Shift+A, not via Shift+F10)
+- open `vitest.config.ts` file
+  - left-click on the play icon for the `test` key
+    - click on `Run 'All Tests' with Coverage`
+    - refresh gutters by re-running the action of the same name (via Ctrl+Shift+A, not via Shift+F10)
+
+Otherwise, just run `npm run test:watch -- --coverage --coverage.cleanOnRerun=false` and observe the HTML output via `live-server ./coverage/`.
+
+Note: `--coverage.cleanOnRerun=false` prevents Vitest from deleting the coverage directory on each run, which keeps live-server connected. This is only useful for the live-server workflow; the default `true` ensures accurate coverage by removing stale files.
+
+A third option could be using vitest's "UI" via `npm run test:ui`, but it seems to be a little buggy currently (looses coverage data), is not friendly to hard refreshes, etc.
+
 ## Architecture
 
 ### Type-Safe Error Handling
