@@ -22,7 +22,12 @@ export const TransactionList = ({ transactions, selectedAccountName }: Transacti
           : 'transaction-item__amount--negative';
 
         return (
-          <li key={entry.transactionId} className="transaction-item">
+          <li
+            key={entry.transactionId}
+            className="transaction-item"
+            data-test--balance-before={entry.priorBalanceCents}
+            data-test--balance-after={entry.runningBalanceCents}
+          >
             <div className="transaction-item__row">
               <div className="transaction-item__main-content">
                 <div className="transaction-item__details">
@@ -37,12 +42,17 @@ export const TransactionList = ({ transactions, selectedAccountName }: Transacti
                   {formatDate(entry.date)}
                 </div>
               </div>
-              <div className={`transaction-item__amount ${amountClass}`}>
+              <div
+                className={`transaction-item__amount ${amountClass}`}
+                data-test--amount={entry.cents}
+              >
                 {isPositive ? '+' : '-'}{formatMoney(entry.cents)}
               </div>
               <div className="transaction-item__balance-column">
                 <div className="transaction-item__balance-movement">
-                  <span className="balance-before">{formatMoney(entry.priorBalanceCents)}</span>
+                  <span className="balance-before">
+                    {formatMoney(entry.priorBalanceCents)}
+                  </span>
                   <span className="arrow-icon">→</span>
                   <span className={`balance-after ${entry.runningBalanceCents < 0 ? 'balance-after--negative' : ''}`}>
                     {formatMoney(entry.runningBalanceCents)}

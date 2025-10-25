@@ -1,5 +1,4 @@
 import type { Account, AccountBalance } from '../../shared/account';
-import { accountRows, categoryRows } from '../../shared/fake-data';
 import type { LedgerEntry } from '../../shared/ledger';
 import type { NewTransaction, Transaction, UpdateTransaction } from '../../shared/transaction';
 import { Maybe } from '../../shared/utils/maybe';
@@ -10,12 +9,30 @@ import { ApiErr } from './interface';
 // Fake API that maintains coherent state
 // Balances are calculated from transactions, so they stay in sync
 
-const init = (seedData: NewTransaction[]): Api => {
+type SeedAccount = {
+  id: number;
+  name: string;
+  categoryId: number;
+};
+
+type SeedCategory = {
+  id: number;
+  name: string;
+};
+
+type SeedData = {
+  accounts: readonly SeedAccount[];
+  categories: readonly SeedCategory[];
+  transactions: readonly NewTransaction[];
+};
+
+const init = (seedData: SeedData): Api => {
+  const { accounts: accountRows, categories: categoryRows, transactions: seedTransactions } = seedData;
   let transactions: Transaction[] = [];
   let nextId = 1;
 
   // Initialize with provided seed data
-  transactions = seedData.map(tx => ({
+  transactions = seedTransactions.map(tx => ({
     ...tx,
     transactionId: nextId++,
     createdAt: Math.floor(Date.now() / 1000),
@@ -72,6 +89,16 @@ const init = (seedData: NewTransaction[]): Api => {
       },
 
       create: (transaction) => {
+        // Validation: Cannot transfer to/from the same account
+        if (transaction.fromAccountId === transaction.toAccountId) {
+          return Promise.resolve(
+            Result.err({
+              tag: 'BadRequest' as const,
+              reason: 'Cannot transfer to the same account',
+            })
+          );
+        }
+
         const newTx: Transaction = {
           ...transaction,
           transactionId: nextId++,
@@ -172,3 +199,4 @@ const init = (seedData: NewTransaction[]): Api => {
 };
 
 export const ApiFake = { init };
+export type { SeedAccount, SeedCategory, SeedData };

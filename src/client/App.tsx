@@ -21,6 +21,8 @@ type FinancialData = {
 
 type AppProps = {
   api: Api;
+  selectedAccountId: number;
+  setSelectedAccountId: (accountId: number) => void;
 };
 
 type SearchFilters = {
@@ -30,15 +32,8 @@ type SearchFilters = {
   unknownExpenses: boolean;
 };
 
-function App({ api }: AppProps) {
+const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
   const [financialData, setFinancialData] = useState<Status<FinancialData>>({ kind: 'Loading' });
-
-  // Read selected account from URL query param, default to 0 if not present
-  const params = new URLSearchParams(window.location.search);
-  const accountIdFromUrl = params.get('account');
-  const [selectedAccountId, setSelectedAccountId] = useState<number>(
-    accountIdFromUrl ? parseInt(accountIdFromUrl, 10) : 0
-  );
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved ? saved === 'dark' : true;
@@ -51,60 +46,51 @@ function App({ api }: AppProps) {
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Helper to create URL with account query param
-  const newUrlWithAccount = useCallback((accountId: number) => {
-    const newUrl = new URL(window.location.href);
-    newUrl.searchParams.set('account', accountId.toString());
-    return newUrl;
-  }, []);
+  const fetchFinancialData = useCallback((accountId: number, accounts: Account[]) => {
+    Promise.all([
+      api.ledger.getLedgerForAccount(accountId),
+      api.balances.getBalances(),
+    ])
+      .then(([ledgerResult, balResult]) => {
+        Result.match(
+          ledgerResult,
+          (error) => {
+            const errMsg = error.tag === 'BadRequest'
+              ? error.reason
+              : 'Failed to load ledger';
+            setFinancialData({ kind: 'Error', error: errMsg });
+          },
+          (ledgerEntries) => {
+            Result.match(
+              balResult,
+              (error) => {
+                const errMsg = error.tag === 'BadRequest'
+                  ? error.reason
+                  : 'Failed to load balances';
+                setFinancialData({ kind: 'Error', error: errMsg });
+              },
+              (balances) => {
+                // TODO: ugly, probably do this once, in AppWithRouter
+                if (selectedAccountId === 0 && balances.length > 0) {
+                  const firstAccountId = balances[0].accountId;
+                  setSelectedAccountId(firstAccountId);
+                }
+
+                setFinancialData({
+                  kind: 'Loaded',
+                  ledgerEntries,
+                  balances,
+                  accounts,
+                });
+              }
+            );
+          }
+        );
+      })
+      .catch(err => setFinancialData({ kind: 'Error', error: err?.message || 'Unknown error' }));
+  }, [selectedAccountId, setSelectedAccountId, api.ledger, api.balances]);
 
   useEffect(() => {
-    const fetchFinancialData = (accountId: number, accounts: Account[]) => {
-      Promise.all([
-        api.ledger.getLedgerForAccount(accountId),
-        api.balances.getBalances(),
-      ])
-        .then(([ledgerResult, balResult]) => {
-          Result.match(
-            ledgerResult,
-            (error) => {
-              const errMsg = error.tag === 'BadRequest'
-                ? error.reason
-                : 'Failed to load ledger';
-              setFinancialData({ kind: 'Error', error: errMsg });
-            },
-            (ledgerEntries) => {
-              Result.match(
-                balResult,
-                (error) => {
-                  const errMsg = error.tag === 'BadRequest'
-                    ? error.reason
-                    : 'Failed to load balances';
-                  setFinancialData({ kind: 'Error', error: errMsg });
-                },
-                (balances) => {
-                  // If no account selected and we have balances, select the first one
-                  if (selectedAccountId === 0 && balances.length > 0) {
-                    const firstAccountId = balances[0].accountId;
-                    setSelectedAccountId(firstAccountId);
-                    window.history.replaceState({}, '', newUrlWithAccount(firstAccountId));
-                  }
-
-                  setFinancialData({
-                    kind: 'Loaded',
-                    ledgerEntries,
-                    balances,
-                    accounts,
-                  });
-                }
-              );
-            }
-          );
-        })
-        .catch(err => setFinancialData({ kind: 'Error', error: err?.message || 'Unknown error' }));
-    };
-
-
     // Fetch accounts for validation and UI
     api.accounts.list()
       .then(accountsResult => {
@@ -134,7 +120,7 @@ function App({ api }: AppProps) {
         );
       })
       .catch(err => setFinancialData({ kind: 'Error', error: err?.message || 'Unknown error' }));
-  }, [api, selectedAccountId, newUrlWithAccount]);
+  }, [api, fetchFinancialData, selectedAccountId]);
 
   useEffect(() => {
     // Apply theme to document
@@ -160,12 +146,7 @@ function App({ api }: AppProps) {
         setFinancialData({ kind: 'Error', error: errMsg });
       },
       () => {
-        // Success - re-fetch data
-        // if (selectedAccountId === 0) {
-        //   throw new Error('Programming error: selectedAccountId should never be 0 when adding a transaction');
-        // }
-
-        // Re-fetch accounts in case new accounts were implicitly created
+        // Reload accounts and financial data after successful transaction creation
         api.accounts.list()
           .then(accountsResult => {
             Result.match(
@@ -177,7 +158,8 @@ function App({ api }: AppProps) {
                 setFinancialData({ kind: 'Error', error: errMsg });
               },
               (accounts) => {
-                setSelectedAccountId(accounts[0].accountId);
+                // Reload financial data with updated transactions
+                fetchFinancialData(selectedAccountId, accounts);
                 setIsModalOpen(false);
               }
             );
@@ -260,11 +242,7 @@ function App({ api }: AppProps) {
               }
 
               // Unknown expenses filter - check account names instead of IDs
-              if (filters.unknownExpenses && !isUnknownAccount(entry.toAccountName)) {
-                return false;
-              }
-
-              return true;
+              return !(filters.unknownExpenses && !isUnknownAccount(entry.toAccountName));
             });
 
             const handleClearFilters = () => {
@@ -291,10 +269,7 @@ function App({ api }: AppProps) {
                   <BalanceCards
                     balances={balances}
                     selectedAccountId={selectedAccountId}
-                    onSelectAccount={(accountId) => {
-                      setSelectedAccountId(accountId);
-                      window.history.pushState({}, '', newUrlWithAccount(accountId));
-                    }}
+                    onSelectAccount={setSelectedAccountId}
                   />
                 </div>
 
@@ -313,6 +288,7 @@ function App({ api }: AppProps) {
                           type="button"
                           className="button button--primary"
                           onClick={() => setIsModalOpen(true)}
+                          data-testid="add-transaction-button"
                         >
                           Add Transaction
                         </button>

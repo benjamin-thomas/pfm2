@@ -48,6 +48,7 @@ export const AddTransactionModal = ({ isOpen, onClose, onSubmit, accounts, defau
 
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
+  const [amountError, setAmountError] = useState('');
   const [fromAccount, setFromAccount] = useState(defaultFromAccountId.toString());
   const [toAccount, setToAccount] = useState(defaultToAccountId.toString());
   const [date, setDate] = useState(() => toDateInputValue(new Date()));
@@ -59,10 +60,28 @@ export const AddTransactionModal = ({ isOpen, onClose, onSubmit, accounts, defau
     }
   }, [isOpen]);
 
+  const makeAmountError = (amountValue: string): string => {
+    if (!amountValue) return '';
+
+    const decimalPlaces = (amountValue.split('.')[1] || '').length;
+    if (decimalPlaces > 2) {
+      return 'Amount can have at most 2 decimal places';
+    }
+
+    return '';
+  };
+
+  const onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setAmount(value);
+    setAmountError(makeAmountError(value));
+  };
+
   // useCallback gives a "stable ref" to the following useEffect dependency (prevents useless re-renders)
   const handleClose = useCallback(() => {
     setDescription('');
     setAmount('');
+    setAmountError('');
     setFromAccount(defaultFromAccountId.toString());
     setToAccount(defaultToAccountId.toString());
     setDate(toDateInputValue(new Date()));
@@ -88,24 +107,27 @@ export const AddTransactionModal = ({ isOpen, onClose, onSubmit, accounts, defau
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const amountInCents = Math.round(parseFloat(amount) * 100);
     const parsedDate = parseLocalDate(date) ?? new Date();
     const dateTimestamp = dateToUnix(parsedDate);
 
-    onSubmit({
+    const transactionData = {
       fromAccountId: parseInt(fromAccount, 10),
       toAccountId: parseInt(toAccount, 10),
       date: dateTimestamp,
       descr: description,
       cents: amountInCents,
-    });
+    };
+
+    onSubmit(transactionData);
 
     // Reset form
     setDescription('');
     setAmount('');
+    setAmountError('');
     setFromAccount(defaultFromAccountId.toString());
     setToAccount(defaultToAccountId.toString());
     setDate(toDateInputValue(new Date()));
@@ -140,6 +162,7 @@ export const AddTransactionModal = ({ isOpen, onClose, onSubmit, accounts, defau
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
+              data-testid="transaction-description"
             />
           </div>
 
@@ -149,12 +172,15 @@ export const AddTransactionModal = ({ isOpen, onClose, onSubmit, accounts, defau
               id={fromAccountId}
               value={fromAccount}
               onChange={(e) => setFromAccount(e.target.value)}
+              data-testid="transaction-from-account"
             >
-              {accounts.map((acc) => (
-                <option key={acc.accountId} value={acc.accountId}>
-                  {acc.name}
-                </option>
-              ))}
+              {accounts
+                .filter((acc) => acc.accountId.toString() !== toAccount)
+                .map((acc) => (
+                  <option key={acc.accountId} value={acc.accountId}>
+                    {acc.name}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -164,12 +190,15 @@ export const AddTransactionModal = ({ isOpen, onClose, onSubmit, accounts, defau
               id={toAccountId}
               value={toAccount}
               onChange={(e) => setToAccount(e.target.value)}
+              data-testid="transaction-to-account"
             >
-              {accounts.map((acc) => (
-                <option key={acc.accountId} value={acc.accountId}>
-                  {acc.name}
-                </option>
-              ))}
+              {accounts
+                .filter((acc) => acc.accountId.toString() !== fromAccount)
+                .map((acc) => (
+                  <option key={acc.accountId} value={acc.accountId}>
+                    {acc.name}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -178,11 +207,13 @@ export const AddTransactionModal = ({ isOpen, onClose, onSubmit, accounts, defau
             <input
               id={amountId}
               type="number"
-              step="0.01"
+              step={0.01}
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={onAmountChange}
               required
+              data-testid="transaction-amount"
             />
+            <div className="field-error">{amountError}</div>
           </div>
 
           <div className="form-field">
@@ -193,14 +224,15 @@ export const AddTransactionModal = ({ isOpen, onClose, onSubmit, accounts, defau
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
+              data-testid="transaction-date"
             />
           </div>
 
           <div className="modal-actions">
-            <button type="button" className="button button--secondary" onClick={handleClose}>
+            <button type="button" className="button button--secondary" onClick={handleClose} data-testid="transaction-cancel">
               Cancel
             </button>
-            <button type="submit" className="button button--primary">
+            <button type="submit" className="button button--primary" disabled={!!amountError} data-testid="transaction-save">
               Save
             </button>
           </div>

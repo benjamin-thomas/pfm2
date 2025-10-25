@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { getAccountByName, makeDbDate } from '../shared/fake-data';
-import App from './App';
+import { BrowserRouter } from 'react-router-dom';
+import { accountRows, categoryRows, getAccountByName, makeDbDate } from '../shared/fake-data';
+import { AppWithRouter } from './AppWithRouter';
 import { ApiFake } from './api-client/fake.ts';
 import { ApiHttp } from './api-client/http.ts';
 import './main.css';
@@ -9,7 +10,10 @@ import './main.css';
 // Choose API implementation based on URL param: ?api=fake
 const params = new URLSearchParams(window.location.search);
 const api = params.get('api') === 'fake'
-  ? ApiFake.init([
+  ? ApiFake.init({
+    accounts: accountRows,
+    categories: categoryRows,
+    transactions: [
     {
       fromAccountId: getAccountByName('OpeningBalance').id,
       toAccountId: getAccountByName('Checking account').id,
@@ -136,7 +140,8 @@ const api = params.get('api') === 'fake'
       descr: 'Dinner & Movie',
       cents: 7582,
     },
-  ])
+  ],
+  })
   : ApiHttp.init();
 
 const rootElement = document.getElementById('root');
@@ -144,6 +149,8 @@ if (!rootElement) throw new Error('Root element not found');
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <App api={api} />
+    <BrowserRouter>
+      <AppWithRouter api={api} />
+    </BrowserRouter>
   </React.StrictMode>
 );

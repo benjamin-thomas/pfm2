@@ -33,6 +33,8 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, isSelected, o
       className={`${styles.card} ${isSelected ? styles.selected : ''}`}
       style={{ borderLeftColor: getColorAccent(balance.categoryName) }}
       onClick={onClick}
+      data-testid={`balance-card-${balance.accountId}`}
+      data-test--balance={balance.balance}
     >
       <div className={styles.category}>
         {balance.categoryName}
