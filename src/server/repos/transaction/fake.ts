@@ -105,8 +105,8 @@ const init = (): TransactionRepo => {
 };
 
 // Factory with seed data
-const initWithSeed = (): TransactionRepo => {
-  const repo = init();
+const initWithSeed = async (): Promise<TransactionRepo> => {
+  const transactionRepo = init();
 
   const seedData: NewTransaction[] = [
     {
@@ -139,10 +139,8 @@ const initWithSeed = (): TransactionRepo => {
     },
   ];
 
-  // Seed synchronously - it's just in-memory
-  Promise.all(seedData.map((tx) => repo.create(tx)));
-
-  return repo;
+  await Promise.all(seedData.map((tx) => transactionRepo.create(tx)));
+  return transactionRepo;
 };
 
 export const TransactionRepoFake = { init, initWithSeed } as const;

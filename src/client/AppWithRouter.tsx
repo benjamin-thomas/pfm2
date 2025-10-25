@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
-import type { Api } from './api-client/interface';
 import App from './App';
+import type { Api } from './api-client/interface';
 
 type AppWithRouterProps = {
   api: Api;

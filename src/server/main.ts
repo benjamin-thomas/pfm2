@@ -39,7 +39,8 @@ app.use((req, res, next) => {
 });
 
 // Initialize repositories
-const transactionRepo = TransactionRepoFake.initWithSeed();
+// TODO: switch to fake/sql repos via env var setting
+const transactionRepo = await TransactionRepoFake.initWithSeed();
 const accountRepo = AccountRepoFake.init();
 const categoryRepo = CategoryRepoFake.init();
 const balanceRepo = BalanceRepoFake.init(transactionRepo, accountRepo, categoryRepo);

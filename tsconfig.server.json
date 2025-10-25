@@ -22,10 +22,7 @@
     "noFallthroughCasesInSwitch": true,
 
     /* Paths */
-    "baseUrl": ".",
-    "paths": {
-      "@shared/*": ["./src/shared/*"]
-    }
+    "baseUrl": "."
   },
   "include": ["src/server", "src/shared", "src/cli"]
 }
