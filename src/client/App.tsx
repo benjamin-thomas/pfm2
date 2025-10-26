@@ -61,12 +61,52 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
 	const lastFocusedElement = useRef<Maybe<HTMLElement>>(Maybe.nothing);
 
 	const restoreFocusedRow: () => void = () => {
-		// Restore on next tick to ensure we restore focus after modale close
+		// Restore on next tick to ensure we restore focus after dialog close
 		setTimeout(() => {
 			Maybe.match(
 				lastFocusedElement.current,
 				() => {},
 				(element) => element.focus(),
+			);
+		}, 0);
+	};
+
+	const restoreFocusAfterDelete: () => void = () => {
+		// After delete, the focused row no longer exists
+		// Try to focus on a nearby row, or fallback to Add Transaction button
+		setTimeout(() => {
+			Maybe.match(
+				lastFocusedElement.current,
+				() => {
+					// No element was focused, focus Add Transaction button
+					const addButton = document.querySelector(
+						'[data-testid="add-transaction-button"]',
+					) as HTMLElement;
+					addButton?.focus();
+				},
+				(deletedElement) => {
+					// Check if element still exists in DOM
+					if (document.contains(deletedElement)) {
+						deletedElement.focus();
+						return;
+					}
+
+					// Element was deleted, try to find next or previous sibling
+					const transactionRows = Array.from(
+						document.querySelectorAll('[data-testid^="transaction-item-"]'),
+					) as HTMLElement[];
+
+					if (transactionRows.length > 0) {
+						// Focus on first available transaction
+						transactionRows[0].focus();
+					} else {
+						// No transactions left, focus Add Transaction button
+						const addButton = document.querySelector(
+							'[data-testid="add-transaction-button"]',
+						) as HTMLElement;
+						addButton?.focus();
+					}
+				},
 			);
 		}, 0);
 	};
@@ -312,7 +352,7 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
 													},
 													() => {
 														setDialogMode(Maybe.nothing);
-														// restoreFocusedRow(); FIXME: think how we could handle that
+														restoreFocusAfterDelete();
 														api.accounts
 															.list()
 															.then((accountsResult) => {

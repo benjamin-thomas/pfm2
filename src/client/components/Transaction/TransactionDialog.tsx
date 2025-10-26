@@ -62,6 +62,7 @@ export const TransactionDialog = ({
 	const dateId = useId();
 
 	const descriptionRef = useRef<HTMLInputElement>(null);
+	const dialogRef = useRef<HTMLDivElement>(null);
 
 	const {
 		title,
@@ -141,6 +142,61 @@ export const TransactionDialog = ({
 		};
 	}, [clickedCancel]);
 
+	// Focus trap: make Tab cycle within dialog
+	useEffect(() => {
+		const handleTab = (e: KeyboardEvent) => {
+			if (e.key !== "Tab") return;
+
+			if (!dialogRef.current) return;
+
+			const focusableSelector =
+				'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+			const focusableElements = Array.from(
+				dialogRef.current.querySelectorAll(focusableSelector),
+			) as HTMLElement[];
+
+			if (focusableElements.length === 0) return;
+
+			const firstElement = focusableElements[0];
+			const lastElement = focusableElements[focusableElements.length - 1];
+			const currentElement = document.activeElement;
+
+			// Check if current focus is within our dialog
+			const currentIndex =
+				currentElement instanceof HTMLElement
+					? focusableElements.indexOf(currentElement)
+					: -1;
+
+			if (currentIndex === -1) {
+				// Focus is outside dialog, bring it back to first element
+				e.preventDefault();
+				firstElement.focus();
+				return;
+			}
+
+			if (e.shiftKey) {
+				// Shift+Tab: move backwards
+				if (currentIndex === 0) {
+					e.preventDefault();
+					lastElement.focus();
+				}
+			} else {
+				// Tab: move forwards
+				if (currentIndex === focusableElements.length - 1) {
+					e.preventDefault();
+					firstElement.focus();
+				}
+			}
+		};
+
+		document.addEventListener("keydown", handleTab);
+
+		return () => {
+			document.removeEventListener("keydown", handleTab);
+		};
+	}, []);
+
 	const clickedSavePre = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
@@ -197,7 +253,7 @@ export const TransactionDialog = ({
 			role="dialog"
 			aria-modal="true"
 		>
-			<div className="modal-content" role="document">
+			<div className="modal-content" role="document" ref={dialogRef}>
 				<div className="modal-header">
 					<h2>{title}</h2>
 				</div>
