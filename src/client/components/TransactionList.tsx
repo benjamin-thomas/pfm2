@@ -26,13 +26,18 @@ export const TransactionList = ({ transactions, selectedAccountName, onTransacti
           <li
             key={entry.transactionId}
             className="transaction-item"
-            data-testid={`transaction-item--${entry.transactionId}`}
-            data-test--descr={entry.descr}
-            data-test--balance-before={entry.priorBalanceCents}
-            data-test--balance-after={entry.runningBalanceCents}
-            onClick={() => onTransactionSelect(entry)}
           >
-            <div className="transaction-item__row">
+            {/* Wrap content in button for accessibility (keyboard navigation with Enter/Space) */}
+            <button
+              type="button"
+              onClick={() => onTransactionSelect(entry)}
+              className="transaction-item__button"
+              data-testid={`transaction-item--${entry.transactionId}`}
+              data-test--descr={entry.descr}
+              data-test--balance-before={entry.priorBalanceCents}
+              data-test--balance-after={entry.runningBalanceCents}
+            >
+              <div className="transaction-item__row">
               <div className="transaction-item__main-content">
                 <div className="transaction-item__details">
                   <div className="transaction-item__description">
@@ -64,6 +69,7 @@ export const TransactionList = ({ transactions, selectedAccountName, onTransacti
                 </div>
               </div>
             </div>
+            </button>
           </li>
         );
       })}

@@ -171,7 +171,7 @@ describe('App', () => {
             // Verify first transaction row (most recent in display = date: 4, Supermarket 2)
             // From Checking perspective: -2500 cents (-25 €)
             const transactionList = screen.getByRole('list');
-            const firstRow = transactionList.querySelector('li:first-child');
+            const firstRow = transactionList.querySelector('li:first-child > button');
             if (!firstRow) throw new Error("firstRow not found");
 
             // Check balance-before (should be 94000: 100000 - 5000 - 1000)
@@ -220,7 +220,7 @@ describe('App', () => {
 
             // Verify first transaction from Groceries perspective (most recent = date: 4, Supermarket 2)
             const transactionList = screen.getByRole('list');
-            const firstRow = transactionList.querySelector('li:first-child');
+            const firstRow = transactionList.querySelector('li:first-child > button');
             if (!firstRow) throw new Error("firstRow not found");
 
             // From Groceries perspective: +2500 cents

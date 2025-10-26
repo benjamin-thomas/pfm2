@@ -1,7 +1,7 @@
 import type { Account, AccountBalance } from '../../shared/account';
 import type { LedgerEntry } from '../../shared/ledger';
 import type { NewTransaction, Transaction, UpdateTransaction } from '../../shared/transaction';
-import { validateTransaction } from '../../shared/transaction-validation';
+import { validateTransaction } from '../../shared/transactionValidation';
 import { Maybe } from '../../shared/utils/maybe';
 import { Result } from '../../shared/utils/result';
 import type { Api } from './interface';
