@@ -1,10 +1,11 @@
 import { useEffect, useId, useRef, useState } from "react";
-import type { Account } from "../../shared/account";
-import { dateToUnix, unixToDate } from "../../shared/datetime";
-import type { LedgerEntry } from "../../shared/ledger";
-import { impossibleBranch } from "../../shared/utils/impossibleBranch";
-import { Maybe } from "../../shared/utils/maybe";
-import "./TransactionModal.css";
+import type { Account } from "../../../shared/account";
+import { dateToUnix, unixToDate } from "../../../shared/datetime";
+import type { LedgerEntry } from "../../../shared/ledger";
+import { impossibleBranch } from "../../../shared/utils/impossibleBranch";
+import { Maybe } from "../../../shared/utils/maybe";
+import { DeleteDialogBody } from "./DeleteDialogBody";
+import "./TransactionDialog.css";
 
 export type TransactionData = {
 	fromAccountId: number;
@@ -14,18 +15,18 @@ export type TransactionData = {
 	cents: number;
 };
 
-export type ModalMode =
+export type DialogMode =
 	| { kind: "add"; defaultFromAccountId: number; defaultToAccountId: number }
 	| { kind: "edit"; transaction: LedgerEntry };
 
-type TransactionModalProps = {
+type TransactionDialogProps = {
 	clickedCancel: () => void;
 	clickedSave: (transaction: TransactionData) => void;
 	clickedDeleteConfirmation: (transactionId: number) => void;
-	saveError: Maybe<string>;
+	apiCallError: Maybe<string>;
 	formChanged: () => void;
 	accounts: Account[];
-	mode: ModalMode;
+	mode: DialogMode;
 };
 
 const toDateInputValue = (date: Date): string => {
@@ -45,15 +46,15 @@ const parseLocalDate = (value: string): Date | null => {
 	return new Date(year, month - 1, day, 0, 0, 0, 0);
 };
 
-export const TransactionModal = ({
+export const TransactionDialog = ({
 	clickedCancel,
 	clickedSave,
 	clickedDeleteConfirmation,
-	saveError,
+	apiCallError,
 	formChanged,
 	accounts,
 	mode,
-}: TransactionModalProps) => {
+}: TransactionDialogProps) => {
 	const descriptionId = useId();
 	const fromAccountId = useId();
 	const toAccountId = useId();
@@ -167,6 +168,27 @@ export const TransactionModal = ({
 		setShowDeleteConfirmation(true);
 	};
 
+	const deleteConfirmationDialogBody = (() => {
+		if (!showDeleteConfirmation) return null;
+
+		switch (mode.kind) {
+			case "add":
+				return null;
+			case "edit":
+				return (
+					<DeleteDialogBody
+						transaction={mode.transaction}
+						description={description}
+						amount={amount}
+						onCancel={() => setShowDeleteConfirmation(false)}
+						onConfirm={clickedDeleteConfirmation}
+					/>
+				);
+			default:
+				return impossibleBranch(mode);
+		}
+	})();
+
 	return (
 		// biome-ignore lint/a11y/useKeyWithClickEvents: Keyboard handled via global Escape listener
 		<div
@@ -181,74 +203,14 @@ export const TransactionModal = ({
 				</div>
 
 				{Maybe.match(
-					saveError,
+					apiCallError,
 					() => null,
 					(msg) => (
 						<div className="form-error-banner">{msg}</div>
 					),
 				)}
 
-				{showDeleteConfirmation ? (
-					<div className="delete-confirmation">
-						<p className="confirmation-question">Delete this transaction?</p>
-						<div className="transaction-recap">
-							<div className="recap-row">
-								<span className="recap-label">Description:</span>
-								<span
-									className="recap-value"
-									data-testid="delete-recap-description"
-								>
-									{description}
-								</span>
-							</div>
-							<div className="recap-row">
-								<span className="recap-label">Amount:</span>
-								<span className="recap-value" data-testid="delete-recap-amount">
-									{(parseFloat(amount) || 0).toFixed(2)}
-								</span>
-							</div>
-						</div>
-						<p className="confirmation-warning">
-							This action cannot be undone.
-						</p>
-						<div className="modal-actions">
-							<div className="modal-actions__left" />
-							<div className="modal-actions__right">
-								<button
-									type="button"
-									className="button button--secondary"
-									onClick={() => setShowDeleteConfirmation(false)}
-									data-testid="delete-cancel"
-								>
-									Cancel
-								</button>
-								<button
-									type="button"
-									className="button button--danger"
-									onClick={() => {
-										switch (mode.kind) {
-											case "add":
-												// We don't display the delete button on the create dialog
-												throw new Error(
-													"Impossible state, should never happen!",
-												);
-											case "edit":
-												clickedDeleteConfirmation(
-													mode.transaction.transactionId,
-												);
-												return;
-											default:
-												return impossibleBranch(mode);
-										}
-									}}
-									data-testid="transaction-delete-confirm"
-								>
-									Confirm Delete
-								</button>
-							</div>
-						</div>
-					</div>
-				) : (
+				{deleteConfirmationDialogBody || (
 					<form onSubmit={clickedSavePre}>
 						<div className="form-field">
 							<label htmlFor={descriptionId}>Description</label>

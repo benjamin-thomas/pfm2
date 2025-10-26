@@ -86,7 +86,7 @@ describe("App", () => {
 		// Should show transaction count
 		screen.getByText(/2 of 2 transactions/);
 
-		// Verify we rendered 3 balance cards
+		// Verify we rendered 5 balance cards (all accounts, including zero balances)
 		const balanceCards = screen.getAllByTestId(/^balance-card-/);
 		expect(balanceCards).toHaveLength(5);
 

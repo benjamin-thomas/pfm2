@@ -11,10 +11,10 @@ import { BalanceCards } from "./components/BalanceCards";
 import TransactionFilters from "./components/TransactionFilters";
 import { TransactionList } from "./components/TransactionList";
 import {
-	type ModalMode,
+	type DialogMode,
 	type TransactionData,
-	TransactionModal,
-} from "./components/TransactionModal";
+	TransactionDialog,
+} from "./components/Transaction/TransactionDialog";
 import "./App.css";
 import "./components/Buttons.css";
 import type { Transaction } from "../shared/transaction.ts";
@@ -52,8 +52,12 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
 		maxAmount: "",
 		unknownExpenses: false,
 	});
-	const [modalMode, setModalMode] = useState<Maybe<ModalMode>>(Maybe.nothing);
-	const [saveError, setSaveError] = useState<Maybe<string>>(Maybe.nothing);
+	const [dialogMode, setDialogMode] = useState<Maybe<DialogMode>>(
+		Maybe.nothing,
+	);
+	const [apiCallError, setApiCallError] = useState<Maybe<string>>(
+		Maybe.nothing,
+	);
 	const lastFocusedElement = useRef<Maybe<HTMLElement>>(Maybe.nothing);
 
 	const restoreFocusedRow: () => void = () => {
@@ -290,7 +294,7 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
 						return (
 							<>
 								{Maybe.match(
-									modalMode,
+									dialogMode,
 									() => null,
 									(mode) => {
 										const clickedDeleteConfirmation = (
@@ -304,10 +308,10 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
 															error.tag === "BadRequest"
 																? error.reason
 																: `Failed to delete: ${error.tag}`;
-														setSaveError(Maybe.just(errMsg));
+														setApiCallError(Maybe.just(errMsg));
 													},
 													() => {
-														setModalMode(Maybe.nothing);
+														setDialogMode(Maybe.nothing);
 														// restoreFocusedRow(); FIXME: think how we could handle that
 														api.accounts
 															.list()
@@ -371,12 +375,12 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
 															error.tag === "BadRequest"
 																? error.reason
 																: `Failed to save: ${error.tag}`;
-														setSaveError(Maybe.just(errMsg));
+														setApiCallError(Maybe.just(errMsg));
 													},
 													() => {
 														// On success, close modal and refetch data
-														setModalMode(Maybe.nothing);
-														setSaveError(Maybe.nothing);
+														setDialogMode(Maybe.nothing);
+														setApiCallError(Maybe.nothing);
 														restoreFocusedRow();
 
 														// Reload accounts and financial data after successful transaction creation
@@ -416,16 +420,16 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
 										};
 
 										return (
-											<TransactionModal
+											<TransactionDialog
 												clickedCancel={() => {
-													setModalMode(Maybe.nothing);
-													setSaveError(Maybe.nothing);
+													setDialogMode(Maybe.nothing);
+													setApiCallError(Maybe.nothing);
 													restoreFocusedRow();
 												}}
 												clickedSave={clickedSave}
 												clickedDeleteConfirmation={clickedDeleteConfirmation}
-												saveError={saveError}
-												formChanged={() => setSaveError(Maybe.nothing)}
+												apiCallError={apiCallError}
+												formChanged={() => setApiCallError(Maybe.nothing)}
 												accounts={accounts}
 												mode={mode}
 											/>
@@ -457,7 +461,7 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
 													type="button"
 													className="button button--primary"
 													onClick={() =>
-														setModalMode(
+														setDialogMode(
 															Maybe.just({
 																kind: "add",
 																defaultFromAccountId: selectedAccountId,
@@ -500,7 +504,9 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
 													activeEl instanceof HTMLElement
 														? Maybe.just(activeEl)
 														: Maybe.nothing;
-												setModalMode(Maybe.just({ kind: "edit", transaction }));
+												setDialogMode(
+													Maybe.just({ kind: "edit", transaction }),
+												);
 											}}
 										/>
 									</div>
