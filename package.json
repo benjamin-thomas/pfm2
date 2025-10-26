@@ -23,7 +23,7 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui --coverage",
     "lint": "biome lint .",
-    "format": "biome format --write src",
+    "format-all": "biome format --write src",
     "cli": "tsx src/cli/main.ts",
     "repl": "tsx src/cli/repl.ts"
   },

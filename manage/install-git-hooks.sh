@@ -14,13 +14,24 @@ cat > "$GIT_HOOKS_DIR/pre-commit" << 'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "Running pre-commit hook: formatting and linting..."
+echo "Running pre-commit hook: formatting and linting staged files..."
 
-# Format all files
-npm run format
+# Get list of staged files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx|js|jsx|css)$' || true)
 
-# Lint all files
-npm run lint
+if [ -z "$STAGED_FILES" ]; then
+    echo "No files to format/lint, skipping."
+    exit 0
+fi
+
+# Format staged files
+echo "$STAGED_FILES" | xargs npx biome format --write
+
+# Re-stage formatted files
+echo "$STAGED_FILES" | xargs git add
+
+# Lint staged files
+echo "$STAGED_FILES" | xargs npx biome lint
 
 if [ $? -ne 0 ]; then
     echo "❌ Lint failed. Please fix issues before committing."
