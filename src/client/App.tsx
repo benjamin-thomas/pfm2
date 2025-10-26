@@ -6,14 +6,14 @@ import { isUnknownAccount } from '../shared/utils/accounts';
 import { impossibleBranch } from '../shared/utils/impossibleBranch';
 import { Maybe } from '../shared/utils/maybe';
 import { Result } from '../shared/utils/result';
-import type {Api, ApiError} from './api-client/interface';
+import type { Api, ApiError } from './api-client/interface';
 import { BalanceCards } from './components/BalanceCards';
 import TransactionFilters from './components/TransactionFilters';
 import { TransactionList } from './components/TransactionList';
-import { TransactionModal, type ModalMode, type TransactionData } from './components/TransactionModal';
+import { type ModalMode, type TransactionData, TransactionModal } from './components/TransactionModal';
 import './App.css';
 import './components/Buttons.css';
-import {Transaction} from "../shared/transaction.ts";
+import type { Transaction } from "../shared/transaction.ts";
 
 type FinancialData = {
   ledgerEntries: LedgerEntry[];

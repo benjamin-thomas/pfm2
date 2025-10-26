@@ -1,10 +1,9 @@
 import type { Account, Category, NewAccount } from '../../../shared/account';
-import { accountRows, categoryRows } from '../../../shared/fake-data';
+import { accountRows, categoryRows } from '../../../shared/fakeData';
 import { Maybe } from '../../../shared/utils/maybe';
 import type { AccountRepo, AffectedRows, CategoryRepo } from './interface';
 
 const init = (): AccountRepo => {
-  // Initialize accounts from shared fake-data rows
   const accounts: Account[] = accountRows.map(row => ({
     accountId: row.id,
     name: row.name,
@@ -63,7 +62,6 @@ const init = (): AccountRepo => {
 export const AccountRepoFake = { init } as const;
 
 const initCategory = (): CategoryRepo => {
-  // Initialize categories from shared fake-data rows
   const categories: Category[] = categoryRows.map(row => ({
     categoryId: row.id,
     name: row.name,

@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { accountRows, categoryRows, getAccountByName, makeDbDate } from '../shared/fake-data';
+import { accountRows, categoryRows, getAccountByName, makeDbDate } from '../shared/fakeData';
 import { AppWithRouter } from './AppWithRouter';
 import { ApiFake } from './api-client/fake.ts';
 import { ApiHttp } from './api-client/http.ts';
