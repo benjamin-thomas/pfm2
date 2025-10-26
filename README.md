@@ -6,7 +6,7 @@ A personal finance manager using double-entry bookkeeping, built with TypeScript
 
 ## In action
 
-https://github.com/user-attachments/assets/7c95d7d7-dc7b-41a8-b19d-d8f508b5b3b6
+[https://github.com/user-attachments/assets/7c95d7d7-dc7b-41a8-b19d-d8f508b5b3b6](https://github.com/user-attachments/assets/7413eea6-860e-43c9-9a58-504376da417a)
 
 ---
 
