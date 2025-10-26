@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Account, AccountBalance } from '../shared/account';
 import type { Status } from '../shared/async';
 import type { LedgerEntry } from '../shared/ledger';
@@ -48,6 +48,18 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
   });
   const [modalMode, setModalMode] = useState<Maybe<ModalMode>>(Maybe.nothing);
   const [saveError, setSaveError] = useState<Maybe<string>>(Maybe.nothing);
+  const lastFocusedElement = useRef<Maybe<HTMLElement>>(Maybe.nothing);
+
+  const restoreFocusedRow: () => void = () => {
+    // Restore on next tick to ensure we restore focus after modale close
+    setTimeout(() => {
+      Maybe.match(
+        lastFocusedElement.current,
+        () => {},
+        (element) => element.focus()
+      );
+    }, 0);
+  };
 
   const fetchFinancialData = useCallback((accountId: number, accounts: Account[]) => {
     Promise.all([
@@ -254,6 +266,7 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
                             // On success, close modal and refetch data
                             setModalMode(Maybe.nothing);
                             setSaveError(Maybe.nothing);
+                            restoreFocusedRow();
 
                             // Reload accounts and financial data after successful transaction creation
                             api.accounts.list()
@@ -283,6 +296,7 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
                         clickedCancel={() => {
                           setModalMode(Maybe.nothing);
                           setSaveError(Maybe.nothing);
+                          restoreFocusedRow();
                         }}
                         clickedSave={clickedSave}
                         saveError={saveError}
@@ -337,7 +351,14 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
                     <TransactionList
                       transactions={filteredLedgerEntries}
                       selectedAccountName={selectedAccount.name}
-                      onTransactionSelect={(transaction) => setModalMode(Maybe.just({ kind: 'edit', transaction }))}
+                      onTransactionSelect={(transaction) => {
+                        // Store currently focused element to restore focus after modal closes
+                        const activeEl = document.activeElement;
+                        lastFocusedElement.current = activeEl instanceof HTMLElement
+                          ? Maybe.just(activeEl)
+                          : Maybe.nothing;
+                        setModalMode(Maybe.just({ kind: 'edit', transaction }));
+                      }}
                     />
                   </div>
                 </div>
