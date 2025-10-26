@@ -1,19 +1,20 @@
-import express from 'express';
-import { AccountCommand } from './cqs/account/commands';
-import { AccountQuery } from './cqs/account/queries';
-import { BalanceQuery } from './cqs/balance/queries';
-import { TransactionCommand } from './cqs/transaction/commands';
-import { TransactionQuery } from './cqs/transaction/queries';
-import { AccountRepoFake, CategoryRepoFake } from './repos/account/fake';
-import { BalanceRepoFake } from './repos/balance/fake';
-import { TransactionRepoFake } from './repos/transaction/fake';
-import { registerAccountRoutes } from './routes/accountRoutes';
-import { registerBalanceRoutes } from './routes/balanceRoutes';
-import { registerTransactionRoutes } from './routes/transactionRoutes';
+import express from "express";
+import { AccountCommand } from "./cqs/account/commands";
+import { AccountQuery } from "./cqs/account/queries";
+import { BalanceQuery } from "./cqs/balance/queries";
+import { TransactionCommand } from "./cqs/transaction/commands";
+import { TransactionQuery } from "./cqs/transaction/queries";
+import { AccountRepoFake, CategoryRepoFake } from "./repos/account/fake";
+import { BalanceRepoFake } from "./repos/balance/fake";
+import { TransactionRepoFake } from "./repos/transaction/fake";
+import { registerAccountRoutes } from "./routes/accountRoutes";
+import { registerBalanceRoutes } from "./routes/balanceRoutes";
+import { registerTransactionRoutes } from "./routes/transactionRoutes";
 
-if (!process.env.BE_PORT) throw new Error('Missing mandatory env var: BE_PORT');
-if (!process.env.BE_HOST) throw new Error('Missing mandatory env var: BE_HOST');
-if (!process.env.FE_BASE_URL) throw new Error('Missing mandatory env var: FE_BASE_URL');
+if (!process.env.BE_PORT) throw new Error("Missing mandatory env var: BE_PORT");
+if (!process.env.BE_HOST) throw new Error("Missing mandatory env var: BE_HOST");
+if (!process.env.FE_BASE_URL)
+	throw new Error("Missing mandatory env var: FE_BASE_URL");
 
 const BE_PORT = parseInt(process.env.BE_PORT, 10);
 const BE_HOST = process.env.BE_HOST;
@@ -27,15 +28,15 @@ app.use(express.urlencoded({ extended: true }));
 
 // CORS - allow frontend
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', FE_BASE_URL);
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+	res.header("Access-Control-Allow-Origin", FE_BASE_URL);
+	res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+	res.header("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(204);
-    return;
-  }
-  next();
+	if (req.method === "OPTIONS") {
+		res.sendStatus(204);
+		return;
+	}
+	next();
 });
 
 // Initialize repositories
@@ -43,7 +44,11 @@ app.use((req, res, next) => {
 const transactionRepo = await TransactionRepoFake.initWithSeed();
 const accountRepo = AccountRepoFake.init();
 const categoryRepo = CategoryRepoFake.init();
-const balanceRepo = BalanceRepoFake.init(transactionRepo, accountRepo, categoryRepo);
+const balanceRepo = BalanceRepoFake.init(
+	transactionRepo,
+	accountRepo,
+	categoryRepo,
+);
 
 // Initialize CQS handlers
 const accountQuery = AccountQuery.init(accountRepo);
@@ -53,12 +58,12 @@ const transactionCommand = TransactionCommand.init(transactionRepo);
 const balanceQuery = BalanceQuery.init(balanceRepo);
 
 // Routes
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: Date.now() });
+app.get("/health", (_req, res) => {
+	res.json({ status: "ok", timestamp: Date.now() });
 });
 
-app.get('/hello/:name', (req, res) => {
-  res.json({ message: `Hello, ${req.params.name}!` });
+app.get("/hello/:name", (req, res) => {
+	res.json({ message: `Hello, ${req.params.name}!` });
 });
 
 registerTransactionRoutes(app, transactionQuery, transactionCommand);
@@ -67,6 +72,6 @@ registerAccountRoutes(app, accountQuery, accountCommand);
 
 // Start server
 app.listen(BE_PORT, BE_HOST, () => {
-  console.log(`🚀 Server running on http://${BE_HOST}:${BE_PORT}`);
-  console.log(`📡 Expecting frontend at: ${FE_BASE_URL}`);
+	console.log(`🚀 Server running on http://${BE_HOST}:${BE_PORT}`);
+	console.log(`📡 Expecting frontend at: ${FE_BASE_URL}`);
 });

@@ -1,276 +1,300 @@
-import { useEffect, useId, useRef, useState } from 'react';
-import type { Account } from '../../shared/account';
-import { dateToUnix, unixToDate } from '../../shared/datetime';
-import type { LedgerEntry } from '../../shared/ledger';
-import { impossibleBranch } from '../../shared/utils/impossibleBranch';
-import { Maybe } from '../../shared/utils/maybe';
-import './TransactionModal.css';
+import { useEffect, useId, useRef, useState } from "react";
+import type { Account } from "../../shared/account";
+import { dateToUnix, unixToDate } from "../../shared/datetime";
+import type { LedgerEntry } from "../../shared/ledger";
+import { impossibleBranch } from "../../shared/utils/impossibleBranch";
+import { Maybe } from "../../shared/utils/maybe";
+import "./TransactionModal.css";
 
 export type TransactionData = {
-  fromAccountId: number;
-  toAccountId: number;
-  date: number;
-  descr: string;
-  cents: number;
+	fromAccountId: number;
+	toAccountId: number;
+	date: number;
+	descr: string;
+	cents: number;
 };
 
 export type ModalMode =
-  | { kind: 'add'; defaultFromAccountId: number; defaultToAccountId: number }
-  | { kind: 'edit'; transaction: LedgerEntry };
+	| { kind: "add"; defaultFromAccountId: number; defaultToAccountId: number }
+	| { kind: "edit"; transaction: LedgerEntry };
 
 type TransactionModalProps = {
-  clickedCancel: () => void;
-  clickedSave: (transaction: TransactionData) => void;
-  saveError: Maybe<string>;
-  formChanged: () => void;
-  accounts: Account[];
-  mode: ModalMode;
+	clickedCancel: () => void;
+	clickedSave: (transaction: TransactionData) => void;
+	saveError: Maybe<string>;
+	formChanged: () => void;
+	accounts: Account[];
+	mode: ModalMode;
 };
 
 const toDateInputValue = (date: Date): string => {
-  const offsetMinutes = date.getTimezoneOffset();
-  const localTime = new Date(date.getTime() - offsetMinutes * 60_000);
-  return localTime.toISOString().split('T')[0];
+	const offsetMinutes = date.getTimezoneOffset();
+	const localTime = new Date(date.getTime() - offsetMinutes * 60_000);
+	return localTime.toISOString().split("T")[0];
 };
 
 const parseLocalDate = (value: string): Date | null => {
-  const [yearStr, monthStr, dayStr] = value.split('-');
-  const year = Number(yearStr);
-  const month = Number(monthStr);
-  const day = Number(dayStr);
-  if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
-    return null;
-  }
-  return new Date(year, month - 1, day, 0, 0, 0, 0);
+	const [yearStr, monthStr, dayStr] = value.split("-");
+	const year = Number(yearStr);
+	const month = Number(monthStr);
+	const day = Number(dayStr);
+	if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
+		return null;
+	}
+	return new Date(year, month - 1, day, 0, 0, 0, 0);
 };
 
-export const TransactionModal = ({ clickedCancel, clickedSave, saveError, formChanged, accounts, mode }: TransactionModalProps) => {
-  const descriptionId = useId();
-  const fromAccountId = useId();
-  const toAccountId = useId();
-  const amountId = useId();
-  const dateId = useId();
+export const TransactionModal = ({
+	clickedCancel,
+	clickedSave,
+	saveError,
+	formChanged,
+	accounts,
+	mode,
+}: TransactionModalProps) => {
+	const descriptionId = useId();
+	const fromAccountId = useId();
+	const toAccountId = useId();
+	const amountId = useId();
+	const dateId = useId();
 
-  const descriptionRef = useRef<HTMLInputElement>(null);
+	const descriptionRef = useRef<HTMLInputElement>(null);
 
-  const { title, initialDescription, initialAmount, initialFromAccount, initialToAccount, initialDate } = (() => {
-    switch (mode.kind) {
-      case 'add':
-        return {
-          title: 'Add Transaction',
-          initialDescription: '',
-          initialAmount: '',
-          initialFromAccount: mode.defaultFromAccountId.toString(),
-          initialToAccount: mode.defaultToAccountId.toString(),
-          initialDate: toDateInputValue(new Date()),
-        };
-      case 'edit':
-        return {
-          title: 'Edit Transaction',
-          initialDescription: mode.transaction.descr,
-          initialAmount: (mode.transaction.cents / 100).toFixed(2),
-          initialFromAccount: mode.transaction.fromAccountId.toString(),
-          initialToAccount: mode.transaction.toAccountId.toString(),
-          initialDate: toDateInputValue(unixToDate(mode.transaction.date)),
-        };
-      default:
-        return impossibleBranch(mode);
-    }
-  })();
+	const {
+		title,
+		initialDescription,
+		initialAmount,
+		initialFromAccount,
+		initialToAccount,
+		initialDate,
+	} = (() => {
+		switch (mode.kind) {
+			case "add":
+				return {
+					title: "Add Transaction",
+					initialDescription: "",
+					initialAmount: "",
+					initialFromAccount: mode.defaultFromAccountId.toString(),
+					initialToAccount: mode.defaultToAccountId.toString(),
+					initialDate: toDateInputValue(new Date()),
+				};
+			case "edit":
+				return {
+					title: "Edit Transaction",
+					initialDescription: mode.transaction.descr,
+					initialAmount: (mode.transaction.cents / 100).toFixed(2),
+					initialFromAccount: mode.transaction.fromAccountId.toString(),
+					initialToAccount: mode.transaction.toAccountId.toString(),
+					initialDate: toDateInputValue(unixToDate(mode.transaction.date)),
+				};
+			default:
+				return impossibleBranch(mode);
+		}
+	})();
 
-  const [description, setDescription] = useState(initialDescription);
-  const [amount, setAmount] = useState(initialAmount);
-  const [amountError, setAmountError] = useState<Maybe<string>>(Maybe.nothing);
-  const [fromAccount, setFromAccount] = useState(initialFromAccount);
-  const [toAccount, setToAccount] = useState(initialToAccount);
-  const [date, setDate] = useState(initialDate);
+	const [description, setDescription] = useState(initialDescription);
+	const [amount, setAmount] = useState(initialAmount);
+	const [amountError, setAmountError] = useState<Maybe<string>>(Maybe.nothing);
+	const [fromAccount, setFromAccount] = useState(initialFromAccount);
+	const [toAccount, setToAccount] = useState(initialToAccount);
+	const [date, setDate] = useState(initialDate);
 
-  // Focus description field when modal opens
-  useEffect(() => {
-    descriptionRef.current?.focus();
-  }, []);
+	// Focus description field when modal opens
+	useEffect(() => {
+		descriptionRef.current?.focus();
+	}, []);
 
-  const makeAmountError = (amountValue: string): Maybe<string> => {
-    if (!amountValue) return Maybe.nothing;
+	const makeAmountError = (amountValue: string): Maybe<string> => {
+		if (!amountValue) return Maybe.nothing;
 
-    const decimalPlaces = (amountValue.split('.')[1] || '').length;
-    if (decimalPlaces > 2) {
-      return Maybe.just('Amount can have at most 2 decimal places');
-    }
+		const decimalPlaces = (amountValue.split(".")[1] || "").length;
+		if (decimalPlaces > 2) {
+			return Maybe.just("Amount can have at most 2 decimal places");
+		}
 
-    return Maybe.nothing;
-  };
+		return Maybe.nothing;
+	};
 
-  const onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setAmount(value);
-    setAmountError(makeAmountError(value));
-    formChanged();
-  };
+	const onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const value = e.target.value;
+		setAmount(value);
+		setAmountError(makeAmountError(value));
+		formChanged();
+	};
 
-  // Handle Escape key globally
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        clickedCancel();
-      }
-    };
+	// Handle Escape key globally
+	useEffect(() => {
+		const handleEscape = (e: KeyboardEvent) => {
+			if (e.key === "Escape") {
+				clickedCancel();
+			}
+		};
 
-    document.addEventListener('keydown', handleEscape);
+		document.addEventListener("keydown", handleEscape);
 
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [clickedCancel]);
+		return () => {
+			document.removeEventListener("keydown", handleEscape);
+		};
+	}, [clickedCancel]);
 
-  const clickedSavePre = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+	const clickedSavePre = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
 
-    const amountInCents = Math.round(parseFloat(amount) * 100);
-    const parsedDate = parseLocalDate(date) ?? new Date();
-    const dateTimestamp = dateToUnix(parsedDate);
+		const amountInCents = Math.round(parseFloat(amount) * 100);
+		const parsedDate = parseLocalDate(date) ?? new Date();
+		const dateTimestamp = dateToUnix(parsedDate);
 
-    const transactionData = {
-      fromAccountId: parseInt(fromAccount, 10),
-      toAccountId: parseInt(toAccount, 10),
-      date: dateTimestamp,
-      descr: description,
-      cents: amountInCents,
-    };
+		const transactionData = {
+			fromAccountId: parseInt(fromAccount, 10),
+			toAccountId: parseInt(toAccount, 10),
+			date: dateTimestamp,
+			descr: description,
+			cents: amountInCents,
+		};
 
-    clickedSave(transactionData);
-  };
+		clickedSave(transactionData);
+	};
 
-  const handleClickedOutside = (e: React.MouseEvent<HTMLDivElement>) => {
-      const clickedOutside = e.target === e.currentTarget;
-      if (clickedOutside) clickedCancel();
-  };
+	const handleClickedOutside = (e: React.MouseEvent<HTMLDivElement>) => {
+		const clickedOutside = e.target === e.currentTarget;
+		if (clickedOutside) clickedCancel();
+	};
 
-  return (
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Keyboard handled via global Escape listener
-    <div
-      className="modal-overlay"
-      onClick={handleClickedOutside}
-      role="dialog"
-      aria-modal="true"
-    >
-      <div className="modal-content" role="document">
-        <div className="modal-header">
-          <h2>{title}</h2>
-        </div>
+	return (
+		// biome-ignore lint/a11y/useKeyWithClickEvents: Keyboard handled via global Escape listener
+		<div
+			className="modal-overlay"
+			onClick={handleClickedOutside}
+			role="dialog"
+			aria-modal="true"
+		>
+			<div className="modal-content" role="document">
+				<div className="modal-header">
+					<h2>{title}</h2>
+				</div>
 
+				{Maybe.match(
+					saveError,
+					() => null,
+					(msg) => (
+						<div className="form-error-banner">{msg}</div>
+					),
+				)}
 
-        {Maybe.match(saveError,
-          () => null,
-          (msg) => <div className="form-error-banner">{msg}</div>
-        )}
+				<form onSubmit={clickedSavePre}>
+					<div className="form-field">
+						<label htmlFor={descriptionId}>Description</label>
+						<input
+							ref={descriptionRef}
+							id={descriptionId}
+							type="text"
+							value={description}
+							onChange={(e) => {
+								setDescription(e.target.value);
+								formChanged();
+							}}
+							required
+							data-testid="transaction-description"
+						/>
+					</div>
 
-        <form onSubmit={clickedSavePre}>
-          <div className="form-field">
-            <label htmlFor={descriptionId}>Description</label>
-            <input
-              ref={descriptionRef}
-              id={descriptionId}
-              type="text"
-              value={description}
-              onChange={(e) => {
-                setDescription(e.target.value);
-                formChanged();
-              }}
-              required
-              data-testid="transaction-description"
-            />
-          </div>
+					<div className="form-field">
+						<label htmlFor={fromAccountId}>From Account</label>
+						<select
+							id={fromAccountId}
+							value={fromAccount}
+							onChange={(e) => {
+								setFromAccount(e.target.value);
+								formChanged();
+							}}
+							data-testid="transaction-from-account"
+						>
+							{accounts
+								.filter((acc) => acc.accountId.toString() !== toAccount)
+								.map((acc) => (
+									<option key={acc.accountId} value={acc.accountId}>
+										{acc.name}
+									</option>
+								))}
+						</select>
+					</div>
 
-          <div className="form-field">
-            <label htmlFor={fromAccountId}>From Account</label>
-            <select
-              id={fromAccountId}
-              value={fromAccount}
-              onChange={(e) => {
-                setFromAccount(e.target.value);
-                formChanged();
-              }}
-              data-testid="transaction-from-account"
-            >
-              {accounts
-                .filter((acc) => acc.accountId.toString() !== toAccount)
-                .map((acc) => (
-                  <option key={acc.accountId} value={acc.accountId}>
-                    {acc.name}
-                  </option>
-                ))}
-            </select>
-          </div>
+					<div className="form-field">
+						<label htmlFor={toAccountId}>To Account</label>
+						<select
+							id={toAccountId}
+							value={toAccount}
+							onChange={(e) => {
+								setToAccount(e.target.value);
+								formChanged();
+							}}
+							data-testid="transaction-to-account"
+						>
+							{accounts
+								.filter((acc) => acc.accountId.toString() !== fromAccount)
+								.map((acc) => (
+									<option key={acc.accountId} value={acc.accountId}>
+										{acc.name}
+									</option>
+								))}
+						</select>
+					</div>
 
-          <div className="form-field">
-            <label htmlFor={toAccountId}>To Account</label>
-            <select
-              id={toAccountId}
-              value={toAccount}
-              onChange={(e) => {
-                setToAccount(e.target.value);
-                formChanged();
-              }}
-              data-testid="transaction-to-account"
-            >
-              {accounts
-                .filter((acc) => acc.accountId.toString() !== fromAccount)
-                .map((acc) => (
-                  <option key={acc.accountId} value={acc.accountId}>
-                    {acc.name}
-                  </option>
-                ))}
-            </select>
-          </div>
+					<div className="form-field">
+						<label htmlFor={amountId}>Amount</label>
+						<input
+							id={amountId}
+							type="number"
+							step={0.01}
+							value={amount}
+							onChange={onAmountChange}
+							required
+							data-testid="transaction-amount"
+						/>
+						{Maybe.match(
+							amountError,
+							() => null,
+							(msg) => (
+								<div className="field-error">{msg}</div>
+							),
+						)}
+					</div>
 
-          <div className="form-field">
-            <label htmlFor={amountId}>Amount</label>
-            <input
-              id={amountId}
-              type="number"
-              step={0.01}
-              value={amount}
-              onChange={onAmountChange}
-              required
-              data-testid="transaction-amount"
-            />
-            {Maybe.match(amountError,
-              () => null,
-              (msg) => <div className="field-error">{msg}</div>
-            )}
-          </div>
+					<div className="form-field">
+						<label htmlFor={dateId}>Date</label>
+						<input
+							id={dateId}
+							type="date"
+							value={date}
+							onChange={(e) => {
+								setDate(e.target.value);
+								formChanged();
+							}}
+							required
+							data-testid="transaction-date"
+						/>
+					</div>
 
-          <div className="form-field">
-            <label htmlFor={dateId}>Date</label>
-            <input
-              id={dateId}
-              type="date"
-              value={date}
-              onChange={(e) => {
-                setDate(e.target.value);
-                formChanged();
-              }}
-              required
-              data-testid="transaction-date"
-            />
-          </div>
-
-          <div className="modal-actions">
-            <button type="button" className="button button--secondary" onClick={clickedCancel} data-testid="transaction-cancel">
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="button button--primary"
-              disabled={Maybe.isJust(amountError)}
-              data-testid="transaction-save"
-            >
-              Save
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+					<div className="modal-actions">
+						<button
+							type="button"
+							className="button button--secondary"
+							onClick={clickedCancel}
+							data-testid="transaction-cancel"
+						>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							className="button button--primary"
+							disabled={Maybe.isJust(amountError)}
+							data-testid="transaction-save"
+						>
+							Save
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	);
 };

@@ -1,36 +1,34 @@
 // Maybe type - follows Elm's Maybe API
 // Either Nothing or Just<A>
 
-import { impossibleBranch } from './impossibleBranch';
+import { impossibleBranch } from "./impossibleBranch";
 
-export type Maybe<A> =
-  | { tag: 'Nothing' }
-  | { tag: 'Just'; value: A };
+export type Maybe<A> = { tag: "Nothing" } | { tag: "Just"; value: A };
 
-const just = <A>(value: A): Maybe<A> => ({ tag: 'Just', value });
+const just = <A>(value: A): Maybe<A> => ({ tag: "Just", value });
 
-const nothing: Maybe<never> = { tag: 'Nothing' };
+const nothing: Maybe<never> = { tag: "Nothing" };
 
 // Match/fold over Maybe - eliminates need for fragile if checks
 // Usage: Maybe.match(maybe, onNothing, onJust)
 // Nothing handler first, Just handler second
 const match = <A, B>(
-  maybe: Maybe<A>,
-  onNothing: () => B,
-  onJust: (value: A) => B
+	maybe: Maybe<A>,
+	onNothing: () => B,
+	onJust: (value: A) => B,
 ): B => {
-  switch (maybe.tag) {
-    case 'Nothing':
-      return onNothing();
-    case 'Just':
-      return onJust(maybe.value);
+	switch (maybe.tag) {
+		case "Nothing":
+			return onNothing();
+		case "Just":
+			return onJust(maybe.value);
 
-    /* v8 ignore next 2 */
-    default:
-      return impossibleBranch(maybe);
-  }
+		/* v8 ignore next 2 */
+		default:
+			return impossibleBranch(maybe);
+	}
 };
 
-const isJust = <A>(maybe: Maybe<A>): boolean => maybe.tag === 'Just';
+const isJust = <A>(maybe: Maybe<A>): boolean => maybe.tag === "Just";
 
 export const Maybe = { just, nothing, match, isJust } as const;

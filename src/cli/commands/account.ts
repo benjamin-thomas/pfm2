@@ -1,146 +1,151 @@
-import { AccountCommand } from '../../server/cqs/account/commands';
-import { AccountQuery } from '../../server/cqs/account/queries';
-import type { AccountRepo } from '../../server/repos/account/interface';
-import { Maybe } from '../../shared/utils/maybe';
-import { Result } from '../../shared/utils/result';
+import { AccountCommand } from "../../server/cqs/account/commands";
+import { AccountQuery } from "../../server/cqs/account/queries";
+import type { AccountRepo } from "../../server/repos/account/interface";
+import { Maybe } from "../../shared/utils/maybe";
+import { Result } from "../../shared/utils/result";
 
 export const run = async (repo: AccountRepo, args: string[]) => {
-  const accountQuery = AccountQuery.init(repo);
-  const accountCommand = AccountCommand.init(repo);
-  const command = args[0];
+	const accountQuery = AccountQuery.init(repo);
+	const accountCommand = AccountCommand.init(repo);
+	const command = args[0];
 
-  switch (command) {
-    case 'list': {
-      const accounts = await accountQuery.list();
-      console.log('Accounts:');
-      accounts.forEach(acc => {
-        console.log(`  [${acc.accountId}] ${acc.name} (category: ${acc.categoryId})`);
-      });
-      break;
-    }
+	switch (command) {
+		case "list": {
+			const accounts = await accountQuery.list();
+			console.log("Accounts:");
+			accounts.forEach((acc) => {
+				console.log(
+					`  [${acc.accountId}] ${acc.name} (category: ${acc.categoryId})`,
+				);
+			});
+			break;
+		}
 
-    case 'find': {
-      const idStr = args[1];
-      if (!idStr) {
-        console.error('Usage: pfm account find <id>');
-        return;
-      }
+		case "find": {
+			const idStr = args[1];
+			if (!idStr) {
+				console.error("Usage: pfm account find <id>");
+				return;
+			}
 
-      const id = parseInt(idStr, 10);
-      if (Number.isNaN(id)) {
-        console.error('Error: id must be a number');
-        return;
-      }
+			const id = parseInt(idStr, 10);
+			if (Number.isNaN(id)) {
+				console.error("Error: id must be a number");
+				return;
+			}
 
-      const result = await accountQuery.findById(id);
+			const result = await accountQuery.findById(id);
 
-      Result.match(
-        result,
-        (error) => {
-          console.error(`Error: ${error.tag}`);
-        },
-        (maybeAccount) => {
-          Maybe.match(
-            maybeAccount,
-            () => {
-              console.log('Account not found');
-            },
-            (account) => {
-              console.log(`Account [${account.accountId}]:`);
-              console.log(`  Name: ${account.name}`);
-              console.log(`  Category ID: ${account.categoryId}`);
-            }
-          );
-        }
-      );
-      break;
-    }
+			Result.match(
+				result,
+				(error) => {
+					console.error(`Error: ${error.tag}`);
+				},
+				(maybeAccount) => {
+					Maybe.match(
+						maybeAccount,
+						() => {
+							console.log("Account not found");
+						},
+						(account) => {
+							console.log(`Account [${account.accountId}]:`);
+							console.log(`  Name: ${account.name}`);
+							console.log(`  Category ID: ${account.categoryId}`);
+						},
+					);
+				},
+			);
+			break;
+		}
 
-    case 'create': {
-      const name = args[1];
-      const categoryIdStr = args[2];
+		case "create": {
+			const name = args[1];
+			const categoryIdStr = args[2];
 
-      if (!name || !categoryIdStr) {
-        console.error('Usage: pfm account create <name> <categoryId>');
-        return;
-      }
+			if (!name || !categoryIdStr) {
+				console.error("Usage: pfm account create <name> <categoryId>");
+				return;
+			}
 
-      const categoryId = parseInt(categoryIdStr, 10);
-      if (Number.isNaN(categoryId)) {
-        console.error('Error: categoryId must be a number');
-        return;
-      }
+			const categoryId = parseInt(categoryIdStr, 10);
+			if (Number.isNaN(categoryId)) {
+				console.error("Error: categoryId must be a number");
+				return;
+			}
 
-      const account = await accountCommand.create({ name, categoryId });
-      console.log(`Created account [${account.accountId}]: ${account.name}`);
-      break;
-    }
+			const account = await accountCommand.create({ name, categoryId });
+			console.log(`Created account [${account.accountId}]: ${account.name}`);
+			break;
+		}
 
-    case 'update': {
-      const idStr = args[1];
-      const name = args[2];
-      const categoryIdStr = args[3];
+		case "update": {
+			const idStr = args[1];
+			const name = args[2];
+			const categoryIdStr = args[3];
 
-      if (!idStr || !name || !categoryIdStr) {
-        console.error('Usage: pfm account update <id> <name> <categoryId>');
-        return;
-      }
+			if (!idStr || !name || !categoryIdStr) {
+				console.error("Usage: pfm account update <id> <name> <categoryId>");
+				return;
+			}
 
-      const id = parseInt(idStr, 10);
-      const categoryId = parseInt(categoryIdStr, 10);
-      if (Number.isNaN(id) || Number.isNaN(categoryId)) {
-        console.error('Error: id and categoryId must be numbers');
-        return;
-      }
+			const id = parseInt(idStr, 10);
+			const categoryId = parseInt(categoryIdStr, 10);
+			if (Number.isNaN(id) || Number.isNaN(categoryId)) {
+				console.error("Error: id and categoryId must be numbers");
+				return;
+			}
 
-      const { affectedRows } = await accountCommand.update(id, { name, categoryId });
-      if (affectedRows === 0) {
-        console.log('Account not found');
-      } else {
-        console.log(`Updated account ${id}`);
-      }
-      break;
-    }
+			const { affectedRows } = await accountCommand.update(id, {
+				name,
+				categoryId,
+			});
+			if (affectedRows === 0) {
+				console.log("Account not found");
+			} else {
+				console.log(`Updated account ${id}`);
+			}
+			break;
+		}
 
-    case 'delete': {
-      const idStr = args[1];
-      if (!idStr) {
-        console.error('Usage: pfm account delete <id>');
-        return;
-      }
+		case "delete": {
+			const idStr = args[1];
+			if (!idStr) {
+				console.error("Usage: pfm account delete <id>");
+				return;
+			}
 
-      const id = parseInt(idStr, 10);
-      if (Number.isNaN(id)) {
-        console.error('Error: id must be a number');
-        return;
-      }
+			const id = parseInt(idStr, 10);
+			if (Number.isNaN(id)) {
+				console.error("Error: id must be a number");
+				return;
+			}
 
-      const result = await accountCommand.delete(id);
+			const result = await accountCommand.delete(id);
 
-      Result.match(
-        result,
-        (error) => {
-          console.error(`Error: ${error.tag} - ${error.name}`);
-        },
-        (affectedRows) => {
-          if (affectedRows.affectedRows === 0) {
-            console.log('Account not found');
-          } else {
-            console.log(`Removed account ${id}`);
-          }
-        }
-      );
-      break;
-    }
+			Result.match(
+				result,
+				(error) => {
+					console.error(`Error: ${error.tag} - ${error.name}`);
+				},
+				(affectedRows) => {
+					if (affectedRows.affectedRows === 0) {
+						console.log("Account not found");
+					} else {
+						console.log(`Removed account ${id}`);
+					}
+				},
+			);
+			break;
+		}
 
-    default:
-      console.log('Usage: pfm account <command> [args]');
-      console.log('Commands:');
-      console.log('  list                          - List all accounts');
-      console.log('  find <id>                     - Find account by ID');
-      console.log('  create <name> <categoryId>    - Create new account');
-      console.log('  update <id> <name> <categoryId> - Update account');
-      console.log('  delete <id>                   - Remove account');
-      return;
-  }
+		default:
+			console.log("Usage: pfm account <command> [args]");
+			console.log("Commands:");
+			console.log("  list                          - List all accounts");
+			console.log("  find <id>                     - Find account by ID");
+			console.log("  create <name> <categoryId>    - Create new account");
+			console.log("  update <id> <name> <categoryId> - Update account");
+			console.log("  delete <id>                   - Remove account");
+			return;
+	}
 };

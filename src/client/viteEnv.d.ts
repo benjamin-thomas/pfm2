@@ -16,12 +16,12 @@
 // "When you import a *.module.css file, treat it as a default export
 //  that is an object with string keys and string values"
 
-declare module '*.module.css' {
-  const classes: { [key: string]: string };
-  export default classes;
+declare module "*.module.css" {
+	const classes: { [key: string]: string };
+	export default classes;
 }
 
-declare module '*.module.scss' {
-  const classes: { [key: string]: string };
-  export default classes;
+declare module "*.module.scss" {
+	const classes: { [key: string]: string };
+	export default classes;
 }

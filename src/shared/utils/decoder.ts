@@ -1,25 +1,25 @@
-import type { DecodeError } from 'elm-decoders';
-import { Result } from './result';
+import type { DecodeError } from "elm-decoders";
+import { Result } from "./result";
 
 type DecoderResult<T> =
-  | { type: 'OK'; value: T }
-  | { type: 'FAIL'; error: DecodeError };
+	| { type: "OK"; value: T }
+	| { type: "FAIL"; error: DecodeError };
 
 /**
  * Pattern matching for decoder results
  * Similar to Maybe.match and Result.match
  */
 const match = <A, B>(
-  result: DecoderResult<A>,
-  onError: (error: DecodeError) => B,
-  onValid: (value: A) => B
+	result: DecoderResult<A>,
+	onError: (error: DecodeError) => B,
+	onValid: (value: A) => B,
 ): B => {
-  switch (result.type) {
-    case 'FAIL':
-      return onError(result.error);
-    case 'OK':
-      return onValid(result.value);
-  }
+	switch (result.type) {
+		case "FAIL":
+			return onError(result.error);
+		case "OK":
+			return onValid(result.value);
+	}
 };
 
 /**
@@ -46,12 +46,12 @@ const match = <A, B>(
  * ```
  */
 const toResult = <A, E>(
-  decoded: DecoderResult<A>,
-  onError: (error: DecodeError) => E
+	decoded: DecoderResult<A>,
+	onError: (error: DecodeError) => E,
 ): Result<E, A> => {
-  return decoded.type === 'FAIL'
-    ? Result.err(onError(decoded.error))
-    : Result.ok(decoded.value);
+	return decoded.type === "FAIL"
+		? Result.err(onError(decoded.error))
+		: Result.ok(decoded.value);
 };
 
 export const DecoderUtil = { match, toResult } as const;

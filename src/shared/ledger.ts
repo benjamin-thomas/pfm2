@@ -1,4 +1,4 @@
-import type { Transaction } from './transaction';
+import type { Transaction } from "./transaction";
 
 /**
  * A ledger entry represents a transaction from the perspective
@@ -11,9 +11,9 @@ import type { Transaction } from './transaction';
  * - Running balance for the selected account
  */
 export type LedgerEntry = Transaction & {
-  fromAccountName: string;
-  toAccountName: string;
-  flowCents: number; // Negative = outflow from selected account, Positive = inflow to selected account
-  priorBalanceCents: number;
-  runningBalanceCents: number;
+	fromAccountName: string;
+	toAccountName: string;
+	flowCents: number; // Negative = outflow from selected account, Positive = inflow to selected account
+	priorBalanceCents: number;
+	runningBalanceCents: number;
 };

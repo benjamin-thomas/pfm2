@@ -1,5 +1,5 @@
-import type { ApiError } from '../client/api-client/interface';
-import { Result } from './utils/result';
+import type { ApiError } from "../client/api-client/interface";
+import { Result } from "./utils/result";
 
 /**
  * Validates that a transaction doesn't transfer from/to the same account.
@@ -19,15 +19,15 @@ import { Result } from './utils/result';
  * ```
  */
 export const validateTransaction = <T>(
-  fromAccountId: number,
-  toAccountId: number,
-  onValid: () => Result<ApiError, T>
+	fromAccountId: number,
+	toAccountId: number,
+	onValid: () => Result<ApiError, T>,
 ): Result<ApiError, T> => {
-  if (fromAccountId === toAccountId) {
-    return Result.err({
-      tag: 'BadRequest' as const,
-      reason: 'Cannot transfer to the same account',
-    });
-  }
-  return onValid();
+	if (fromAccountId === toAccountId) {
+		return Result.err({
+			tag: "BadRequest" as const,
+			reason: "Cannot transfer to the same account",
+		});
+	}
+	return onValid();
 };

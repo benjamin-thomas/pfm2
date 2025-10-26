@@ -1,9 +1,9 @@
-import { useSearchParams } from 'react-router-dom';
-import App from './App';
-import type { Api } from './api-client/interface';
+import { useSearchParams } from "react-router-dom";
+import App from "./App";
+import type { Api } from "./api-client/interface";
 
 type AppWithRouterProps = {
-  api: Api;
+	api: Api;
 };
 
 /**
@@ -11,22 +11,22 @@ type AppWithRouterProps = {
  * This keeps App pure and testable by separating URL concerns.
  */
 export const AppWithRouter = ({ api }: AppWithRouterProps) => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const accountParam = searchParams.get('account');
-  const selectedAccountId = accountParam ? parseInt(accountParam, 10) : 0;
+	const [searchParams, setSearchParams] = useSearchParams();
+	const accountParam = searchParams.get("account");
+	const selectedAccountId = accountParam ? parseInt(accountParam, 10) : 0;
 
-  const setSelectedAccountId = (accountId: number) => {
-    setSearchParams((params) => {
-      params.set('account', accountId.toString());
-      return params;
-    });
-  };
+	const setSelectedAccountId = (accountId: number) => {
+		setSearchParams((params) => {
+			params.set("account", accountId.toString());
+			return params;
+		});
+	};
 
-  return (
-    <App
-      api={api}
-      selectedAccountId={selectedAccountId}
-      setSelectedAccountId={setSelectedAccountId}
-    />
-  );
+	return (
+		<App
+			api={api}
+			selectedAccountId={selectedAccountId}
+			setSelectedAccountId={setSelectedAccountId}
+		/>
+	);
 };

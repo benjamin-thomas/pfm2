@@ -8,6 +8,23 @@ A TypeScript-based personal finance manager using double-entry bookkeeping.
 VITE_API=fake npm run dev
 ```
 
+### Git Hooks
+
+Install git hooks to automatically format and lint code before commits:
+
+```sh
+./manage/install-git-hooks.sh
+```
+
+This will set up a pre-commit hook that runs:
+- `npm run format` - Format all files with Biome
+- `npm run lint` - Lint all files with Biome
+
+To bypass the hook (not recommended):
+```sh
+git commit --no-verify
+```
+
 ### Test coverage workflow
 
 A good option to interactively improve coverage is to use WebStorm:
