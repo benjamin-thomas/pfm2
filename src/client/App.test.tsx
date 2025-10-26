@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
+import { Result } from '../shared/utils/result';
 import App from './App';
 import { ApiFake, type SeedAccount, type SeedCategory } from './api-client/fake';
 
@@ -311,5 +312,156 @@ describe('App', () => {
         // Verify groceries balance also updated
         const updatedGroceriesCard = screen.getByTestId(`balance-card-${groceries.id}`);
         expect(updatedGroceriesCard.getAttribute('data-test--balance')).toBe('8550'); // 5000 + 3550
+    });
+
+    describe('editing a transaction', () => {
+        it('edits an existing transaction and updates balances', async () => {
+            const user = userEvent.setup();
+
+            // Setup: Initial data with one transaction
+            const assets: SeedCategory = { id: 1, name: 'Assets' };
+            const expenses: SeedCategory = { id: 2, name: 'Expenses' };
+            const unknownExpense: SeedAccount = { id: -1, name: 'Unknown_EXPENSE', categoryId: expenses.id };
+            const unknownIncome: SeedAccount = { id: -2, name: 'Unknown_INCOME', categoryId: expenses.id }; // Note: category doesn't matter here
+            const checking: SeedAccount = { id: 1, name: 'Checking', categoryId: assets.id };
+            const groceries: SeedAccount = { id: 2, name: 'Groceries', categoryId: expenses.id };
+
+            const api = ApiFake.init({
+                categories: [assets, expenses],
+                accounts: [checking, groceries, unknownExpense, unknownIncome],
+                transactions: [
+                    {
+                        fromAccountId: checking.id,
+                        toAccountId: groceries.id,
+                        date: 1,
+                        descr: 'Groceries v1',
+                        cents: 5000,
+                    },
+                ],
+            });
+
+            render(
+                <App
+                    api={api}
+                    selectedAccountId={checking.id}
+                    setSelectedAccountId={noOp}
+                />
+            );
+
+            // Wait for the transaction to appear (first transaction gets ID 1)
+            const transactionRow = await screen.findByTestId('transaction-item--1');
+            expect(transactionRow.getAttribute('data-test--descr')).toBe('Groceries v1');
+
+            // Action: Click the transaction to open the modal
+            await user.click(transactionRow);
+
+            // Assertion: The modal should be pre-filled with the transaction data
+            const descriptionInput = screen.getByTestId('transaction-description') as HTMLInputElement;
+            expect(descriptionInput.value).toBe('Groceries v1');
+
+            const amountInput = screen.getByTestId('transaction-amount') as HTMLInputElement;
+            expect(amountInput.value).toBe('50.00');
+
+            // Action: Edit the form
+            await user.clear(descriptionInput);
+            await user.type(descriptionInput, 'Groceries v2');
+            await user.clear(amountInput);
+            await user.type(amountInput, '75.25');
+
+            // Disable HTML5 validation to work around happy-dom bug
+            const form = screen.getByRole('dialog').querySelector('form');
+            if (!form) throw new Error('Form not found');
+            form.noValidate = true;
+
+            // Action: Save the changes
+            const saveButton = screen.getByTestId('transaction-save');
+            await user.click(saveButton);
+
+            // Assertion: Modal should close
+            expect(screen.queryByRole('dialog')).toBeNull();
+
+            // Assertion: Verify the SAME transaction was updated (ID didn't change)
+            const updatedRow = await screen.findByTestId('transaction-item--1');
+            expect(updatedRow.getAttribute('data-test--descr')).toBe('Groceries v2');
+
+            // Assertion: Balances should be updated correctly
+            const updatedCheckingCard = screen.getByTestId(`balance-card-${checking.id}`);
+            expect(updatedCheckingCard.getAttribute('data-test--balance')).toBe('-7525');
+
+            const updatedGroceriesCard = screen.getByTestId(`balance-card-${groceries.id}`);
+            expect(updatedGroceriesCard.getAttribute('data-test--balance')).toBe('7525');
+        });
+    });
+
+    describe('error handling', () => {
+        it('displays error when save fails and clears error when user edits field', async () => {
+            const user = userEvent.setup();
+
+            // Setup: Basic seed data
+            const assets: SeedCategory = { id: 1, name: 'Assets' };
+            const expenses: SeedCategory = { id: 2, name: 'Expenses' };
+            const unknownExpense: SeedAccount = { id: -1, name: 'Unknown_EXPENSE', categoryId: expenses.id };
+            const unknownIncome: SeedAccount = { id: -2, name: 'Unknown_INCOME', categoryId: assets.id };
+            const checking: SeedAccount = { id: 1, name: 'Checking', categoryId: assets.id };
+            const groceries: SeedAccount = { id: 2, name: 'Groceries', categoryId: expenses.id };
+
+            const api = ApiFake.init({
+                categories: [assets, expenses],
+                accounts: [checking, groceries, unknownExpense, unknownIncome],
+                transactions: [],
+            });
+
+            // Override create to always fail
+            api.transactions.create = () => Promise.resolve(
+                Result.err({ tag: 'BadRequest', reason: 'Unexpected condition ABC!' })
+            );
+
+            render(
+                <App
+                    api={api}
+                    selectedAccountId={checking.id}
+                    setSelectedAccountId={noOp}
+                />
+            );
+
+            // Wait for initial load (wait for button that always renders)
+            const addButton = await screen.findByTestId('add-transaction-button');
+
+            // Open the add transaction modal
+            await user.click(addButton);
+
+            // Fill in the form
+            const descriptionInput = screen.getByTestId('transaction-description');
+            await user.type(descriptionInput, 'Test transaction');
+
+            const amountInput = screen.getByTestId('transaction-amount');
+            await user.type(amountInput, '50.00');
+
+            // Disable HTML5 validation
+            const form = screen.getByRole('dialog').querySelector('form');
+            if (!form) throw new Error('Form not found');
+            form.noValidate = true;
+
+            // Submit the form (will fail)
+            const saveButton = screen.getByTestId('transaction-save');
+            await user.click(saveButton);
+
+            // Assert: Error message appears
+            const errorBanner = await screen.findByText("Unexpected condition ABC!");
+            expect(errorBanner).toBeTruthy();
+
+            // Assert: Modal stays open
+            expect(screen.getByRole('dialog')).toBeTruthy();
+
+            // Action: User edits the description field
+            await user.clear(descriptionInput);
+            await user.type(descriptionInput, 'Modified transaction');
+
+            // Assert: Error banner disappears
+            expect(screen.queryByText("Unexpected condition ABC!")).toBeNull();
+
+            // Assert: Modal still open
+            expect(screen.getByRole('dialog')).toBeTruthy();
+        });
     });
 });

@@ -5,9 +5,10 @@ import './TransactionList.css';
 type TransactionListProps = {
   transactions: LedgerEntry[];
   selectedAccountName: string;
+  onTransactionSelect: (transaction: LedgerEntry) => void;
 };
 
-export const TransactionList = ({ transactions, selectedAccountName }: TransactionListProps) => {
+export const TransactionList = ({ transactions, selectedAccountName, onTransactionSelect }: TransactionListProps) => {
   if (transactions.length === 0) {
     return <div className="empty">No transactions found for {selectedAccountName}.</div>;
   }
@@ -25,8 +26,11 @@ export const TransactionList = ({ transactions, selectedAccountName }: Transacti
           <li
             key={entry.transactionId}
             className="transaction-item"
+            data-testid={`transaction-item--${entry.transactionId}`}
+            data-test--descr={entry.descr}
             data-test--balance-before={entry.priorBalanceCents}
             data-test--balance-after={entry.runningBalanceCents}
+            onClick={() => onTransactionSelect(entry)}
           >
             <div className="transaction-item__row">
               <div className="transaction-item__main-content">

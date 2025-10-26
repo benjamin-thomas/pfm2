@@ -4,14 +4,16 @@ import type { Status } from '../shared/async';
 import type { LedgerEntry } from '../shared/ledger';
 import { isUnknownAccount } from '../shared/utils/accounts';
 import { impossibleBranch } from '../shared/utils/impossibleBranch';
+import { Maybe } from '../shared/utils/maybe';
 import { Result } from '../shared/utils/result';
-import type { Api } from './api-client/interface';
-import { AddTransactionModal, type NewTransactionData } from './components/AddTransactionModal';
+import type {Api, ApiError} from './api-client/interface';
 import { BalanceCards } from './components/BalanceCards';
 import TransactionFilters from './components/TransactionFilters';
 import { TransactionList } from './components/TransactionList';
+import { TransactionModal, type ModalMode, type TransactionData } from './components/TransactionModal';
 import './App.css';
 import './components/Buttons.css';
+import {Transaction} from "../shared/transaction.ts";
 
 type FinancialData = {
   ledgerEntries: LedgerEntry[];
@@ -44,7 +46,8 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
     maxAmount: '',
     unknownExpenses: false,
   });
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<Maybe<ModalMode>>(Maybe.nothing);
+  const [saveError, setSaveError] = useState<Maybe<string>>(Maybe.nothing);
 
   const fetchFinancialData = useCallback((accountId: number, accounts: Account[]) => {
     Promise.all([
@@ -134,41 +137,6 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
-  const handleAddTransaction = async (transactionData: NewTransactionData) => {
-    const result = await api.transactions.create(transactionData);
-
-    Result.match(
-      result,
-      (error) => {
-        const errMsg = error.tag === 'BadRequest'
-          ? error.reason
-          : 'Failed to create transaction';
-        setFinancialData({ kind: 'Error', error: errMsg });
-      },
-      () => {
-        // Reload accounts and financial data after successful transaction creation
-        api.accounts.list()
-          .then(accountsResult => {
-            Result.match(
-              accountsResult,
-              (error) => {
-                const errMsg = error.tag === 'BadRequest'
-                  ? error.reason
-                  : 'Failed to load accounts';
-                setFinancialData({ kind: 'Error', error: errMsg });
-              },
-              (accounts) => {
-                // Reload financial data with updated transactions
-                fetchFinancialData(selectedAccountId, accounts);
-                setIsModalOpen(false);
-              }
-            );
-          })
-          .catch(err => setFinancialData({ kind: 'Error', error: err?.message || 'Unknown error' }));
-      }
-    );
-  };
-
   return (
     <div className="container">
       <h1>PFM2 - Personal Finance Manager</h1>
@@ -256,14 +224,75 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
 
             return (
               <>
-                <AddTransactionModal
-                  isOpen={isModalOpen}
-                  onClose={() => setIsModalOpen(false)}
-                  onSubmit={handleAddTransaction}
-                  accounts={accounts}
-                  defaultFromAccountId={selectedAccountId}
-                  defaultToAccountId={unknownExpense.accountId}
-                />
+                {Maybe.match(modalMode,
+                  () => null,
+                  (mode) => {
+                    const clickedSave = (formData: TransactionData) => {
+                      // Determine which API call to make based on mode
+                      const save: () => (Promise<Result<ApiError, Transaction>>) = () => {
+                        switch (mode.kind) {
+                          case 'add':
+                            // Simulate a server error easily (keep this for a bit)
+                            // return Promise.resolve(Result.err({ tag: 'BadRequest', reason: `Simulated server error ${Math.random()}` }));  
+                            return api.transactions.create(formData);
+                          case 'edit':
+                            return api.transactions.update(mode.transaction.transactionId, formData);
+                          default:
+                            return impossibleBranch(mode);
+                        }
+                      };
+
+                      save().then(result => {
+                        Result.match(
+                          result,
+                          (error) => {
+                            // Set error to display in modal
+                            const errMsg = error.tag === 'BadRequest' ? error.reason : `Failed to save: ${error.tag}`;
+                            setSaveError(Maybe.just(errMsg));
+                          },
+                          () => {
+                            // On success, close modal and refetch data
+                            setModalMode(Maybe.nothing);
+                            setSaveError(Maybe.nothing);
+
+                            // Reload accounts and financial data after successful transaction creation
+                            api.accounts.list()
+                              .then(accountsResult => {
+                                Result.match(
+                                  accountsResult,
+                                  (error) => {
+                                    const errMsg = error.tag === 'BadRequest'
+                                      ? error.reason
+                                      : 'Failed to load accounts';
+                                    setFinancialData({ kind: 'Error', error: errMsg });
+                                  },
+                                  (accounts) => {
+                                    // Reload financial data with updated transactions
+                                    fetchFinancialData(selectedAccountId, accounts);
+                                  }
+                                );
+                              })
+                              .catch(err => setFinancialData({ kind: 'Error', error: err?.message || 'Unknown error' }));
+                          }
+                        );
+                      });
+                    };
+
+                    return (
+                      <TransactionModal
+                        clickedCancel={() => {
+                          setModalMode(Maybe.nothing);
+                          setSaveError(Maybe.nothing);
+                        }}
+                        clickedSave={clickedSave}
+                        saveError={saveError}
+                        formChanged={() => setSaveError(Maybe.nothing)}
+                        accounts={accounts}
+                        mode={mode}
+                      />
+                    )
+                  }
+                )}
 
                 <div className="section">
                   <BalanceCards
@@ -287,7 +316,7 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
                         <button
                           type="button"
                           className="button button--primary"
-                          onClick={() => setIsModalOpen(true)}
+                          onClick={() => setModalMode(Maybe.just({ kind: 'add', defaultFromAccountId: selectedAccountId, defaultToAccountId: unknownExpense.accountId }))}
                           data-testid="add-transaction-button"
                         >
                           Add Transaction
@@ -308,6 +337,7 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
                     <TransactionList
                       transactions={filteredLedgerEntries}
                       selectedAccountName={selectedAccount.name}
+                      onTransactionSelect={(transaction) => setModalMode(Maybe.just({ kind: 'edit', transaction }))}
                     />
                   </div>
                 </div>

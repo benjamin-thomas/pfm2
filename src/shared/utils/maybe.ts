@@ -31,4 +31,6 @@ const match = <A, B>(
   }
 };
 
-export const Maybe = { just, nothing, match } as const;
+const isJust = <A>(maybe: Maybe<A>): boolean => maybe.tag === 'Just';
+
+export const Maybe = { just, nothing, match, isJust } as const;

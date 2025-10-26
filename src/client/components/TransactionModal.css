@@ -137,3 +137,14 @@ html:not(.dark-theme) .form-field input[type="date"] {
   margin-top: 6px;
   min-height: 18px;
 }
+
+.form-error-banner {
+  background-color: rgba(255, 71, 87, 0.1);
+  border: 1px solid rgba(255, 71, 87, 0.3);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  color: #ff4757;
+  font-size: 14px;
+  font-weight: 500;
+}

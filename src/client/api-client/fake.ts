@@ -1,6 +1,7 @@
 import type { Account, AccountBalance } from '../../shared/account';
 import type { LedgerEntry } from '../../shared/ledger';
 import type { NewTransaction, Transaction, UpdateTransaction } from '../../shared/transaction';
+import { validateTransaction } from '../../shared/transaction-validation';
 import { Maybe } from '../../shared/utils/maybe';
 import { Result } from '../../shared/utils/result';
 import type { Api } from './interface';
@@ -89,24 +90,22 @@ const init = (seedData: SeedData): Api => {
       },
 
       create: (transaction) => {
-        // Validation: Cannot transfer to/from the same account
-        if (transaction.fromAccountId === transaction.toAccountId) {
-          return Promise.resolve(
-            Result.err({
-              tag: 'BadRequest' as const,
-              reason: 'Cannot transfer to the same account',
-            })
-          );
-        }
-
-        const newTx: Transaction = {
-          ...transaction,
-          transactionId: nextId++,
-          createdAt: Math.floor(Date.now() / 1000),
-          updatedAt: Math.floor(Date.now() / 1000),
-        };
-        transactions.push(newTx);
-        return Promise.resolve(Result.ok(newTx));
+        return Promise.resolve(
+          validateTransaction(
+            transaction.fromAccountId,
+            transaction.toAccountId,
+            () => {
+              const newTx: Transaction = {
+                ...transaction,
+                transactionId: nextId++,
+                createdAt: Math.floor(Date.now() / 1000),
+                updatedAt: Math.floor(Date.now() / 1000),
+              };
+              transactions.push(newTx);
+              return Result.ok(newTx);
+            }
+          )
+        );
       },
 
       update: (id, transaction: UpdateTransaction) => {
@@ -115,17 +114,23 @@ const init = (seedData: SeedData): Api => {
           return Promise.resolve(Result.err(ApiErr.notFound));
         }
 
-        const existing = transactions[index];
-
-
-        const updated: Transaction = {
-          ...transaction,
-          transactionId: existing.transactionId,
-          createdAt: existing.createdAt,
-          updatedAt: Math.floor(Date.now() / 1000),
-        };
-        transactions[index] = updated;
-        return Promise.resolve(Result.ok(updated));
+        return Promise.resolve(
+          validateTransaction(
+            transaction.fromAccountId,
+            transaction.toAccountId,
+            () => {
+              const existing = transactions[index];
+              const updated: Transaction = {
+                ...transaction,
+                transactionId: existing.transactionId,
+                createdAt: existing.createdAt,
+                updatedAt: Math.floor(Date.now() / 1000),
+              };
+              transactions[index] = updated;
+              return Result.ok(updated);
+            }
+          )
+        );
       },
 
       delete: (id) => {
