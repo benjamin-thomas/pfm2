@@ -63,25 +63,23 @@ const init = (seedData: SeedData): Api => {
 		}
 
 		// Join accountRows with categoryRows (like SQL JOIN)
-		return accountRows
-			.map((account) => {
-				const category = categoryRows.find(
-					(cat) => cat.id === account.categoryId,
-				);
-				if (!category) {
-					throw new Error(`Category not found for account ${account.name}`);
-				}
+		return accountRows.map((account) => {
+			const category = categoryRows.find(
+				(cat) => cat.id === account.categoryId,
+			);
+			if (!category) {
+				throw new Error(`Category not found for account ${account.name}`);
+			}
 
-				const balances = balanceMap.get(account.id) || { added: 0, removed: 0 };
-				return {
-					accountId: account.id,
-					accountName: account.name,
-					categoryId: category.id,
-					categoryName: category.name,
-					balance: balances.added - balances.removed,
-				};
-			})
-			.filter((ab) => ab.balance !== 0);
+			const balances = balanceMap.get(account.id) || { added: 0, removed: 0 };
+			return {
+				accountId: account.id,
+				accountName: account.name,
+				categoryId: category.id,
+				categoryName: category.name,
+				balance: balances.added - balances.removed,
+			};
+		});
 	};
 
 	return {

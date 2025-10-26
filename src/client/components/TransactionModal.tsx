@@ -21,6 +21,7 @@ export type ModalMode =
 type TransactionModalProps = {
 	clickedCancel: () => void;
 	clickedSave: (transaction: TransactionData) => void;
+	clickedDeleteConfirmation: (transactionId: number) => void;
 	saveError: Maybe<string>;
 	formChanged: () => void;
 	accounts: Account[];
@@ -47,6 +48,7 @@ const parseLocalDate = (value: string): Date | null => {
 export const TransactionModal = ({
 	clickedCancel,
 	clickedSave,
+	clickedDeleteConfirmation,
 	saveError,
 	formChanged,
 	accounts,
@@ -98,6 +100,7 @@ export const TransactionModal = ({
 	const [fromAccount, setFromAccount] = useState(initialFromAccount);
 	const [toAccount, setToAccount] = useState(initialToAccount);
 	const [date, setDate] = useState(initialDate);
+	const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
 	// Focus description field when modal opens
 	useEffect(() => {
@@ -160,6 +163,10 @@ export const TransactionModal = ({
 		if (clickedOutside) clickedCancel();
 	};
 
+	const clickedDelete = () => {
+		setShowDeleteConfirmation(true);
+	};
+
 	return (
 		// biome-ignore lint/a11y/useKeyWithClickEvents: Keyboard handled via global Escape listener
 		<div
@@ -181,119 +188,204 @@ export const TransactionModal = ({
 					),
 				)}
 
-				<form onSubmit={clickedSavePre}>
-					<div className="form-field">
-						<label htmlFor={descriptionId}>Description</label>
-						<input
-							ref={descriptionRef}
-							id={descriptionId}
-							type="text"
-							value={description}
-							onChange={(e) => {
-								setDescription(e.target.value);
-								formChanged();
-							}}
-							required
-							data-testid="transaction-description"
-						/>
+				{showDeleteConfirmation ? (
+					<div className="delete-confirmation">
+						<p className="confirmation-question">Delete this transaction?</p>
+						<div className="transaction-recap">
+							<div className="recap-row">
+								<span className="recap-label">Description:</span>
+								<span
+									className="recap-value"
+									data-testid="delete-recap-description"
+								>
+									{description}
+								</span>
+							</div>
+							<div className="recap-row">
+								<span className="recap-label">Amount:</span>
+								<span className="recap-value" data-testid="delete-recap-amount">
+									{(parseFloat(amount) || 0).toFixed(2)}
+								</span>
+							</div>
+						</div>
+						<p className="confirmation-warning">
+							This action cannot be undone.
+						</p>
+						<div className="modal-actions">
+							<div className="modal-actions__left" />
+							<div className="modal-actions__right">
+								<button
+									type="button"
+									className="button button--secondary"
+									onClick={() => setShowDeleteConfirmation(false)}
+									data-testid="delete-cancel"
+								>
+									Cancel
+								</button>
+								<button
+									type="button"
+									className="button button--danger"
+									onClick={() => {
+										switch (mode.kind) {
+											case "add":
+												// We don't display the delete button on the create dialog
+												throw new Error(
+													"Impossible state, should never happen!",
+												);
+											case "edit":
+												clickedDeleteConfirmation(
+													mode.transaction.transactionId,
+												);
+												return;
+											default:
+												return impossibleBranch(mode);
+										}
+									}}
+									data-testid="transaction-delete-confirm"
+								>
+									Confirm Delete
+								</button>
+							</div>
+						</div>
 					</div>
+				) : (
+					<form onSubmit={clickedSavePre}>
+						<div className="form-field">
+							<label htmlFor={descriptionId}>Description</label>
+							<input
+								ref={descriptionRef}
+								id={descriptionId}
+								type="text"
+								value={description}
+								onChange={(e) => {
+									setDescription(e.target.value);
+									formChanged();
+								}}
+								required
+								data-testid="transaction-description"
+							/>
+						</div>
 
-					<div className="form-field">
-						<label htmlFor={fromAccountId}>From Account</label>
-						<select
-							id={fromAccountId}
-							value={fromAccount}
-							onChange={(e) => {
-								setFromAccount(e.target.value);
-								formChanged();
-							}}
-							data-testid="transaction-from-account"
-						>
-							{accounts
-								.filter((acc) => acc.accountId.toString() !== toAccount)
-								.map((acc) => (
-									<option key={acc.accountId} value={acc.accountId}>
-										{acc.name}
-									</option>
-								))}
-						</select>
-					</div>
+						<div className="form-field">
+							<label htmlFor={fromAccountId}>From Account</label>
+							<select
+								id={fromAccountId}
+								value={fromAccount}
+								onChange={(e) => {
+									setFromAccount(e.target.value);
+									formChanged();
+								}}
+								data-testid="transaction-from-account"
+							>
+								{accounts
+									.filter((acc) => acc.accountId.toString() !== toAccount)
+									.map((acc) => (
+										<option key={acc.accountId} value={acc.accountId}>
+											{acc.name}
+										</option>
+									))}
+							</select>
+						</div>
 
-					<div className="form-field">
-						<label htmlFor={toAccountId}>To Account</label>
-						<select
-							id={toAccountId}
-							value={toAccount}
-							onChange={(e) => {
-								setToAccount(e.target.value);
-								formChanged();
-							}}
-							data-testid="transaction-to-account"
-						>
-							{accounts
-								.filter((acc) => acc.accountId.toString() !== fromAccount)
-								.map((acc) => (
-									<option key={acc.accountId} value={acc.accountId}>
-										{acc.name}
-									</option>
-								))}
-						</select>
-					</div>
+						<div className="form-field">
+							<label htmlFor={toAccountId}>To Account</label>
+							<select
+								id={toAccountId}
+								value={toAccount}
+								onChange={(e) => {
+									setToAccount(e.target.value);
+									formChanged();
+								}}
+								data-testid="transaction-to-account"
+							>
+								{accounts
+									.filter((acc) => acc.accountId.toString() !== fromAccount)
+									.map((acc) => (
+										<option key={acc.accountId} value={acc.accountId}>
+											{acc.name}
+										</option>
+									))}
+							</select>
+						</div>
 
-					<div className="form-field">
-						<label htmlFor={amountId}>Amount</label>
-						<input
-							id={amountId}
-							type="number"
-							step={0.01}
-							value={amount}
-							onChange={onAmountChange}
-							required
-							data-testid="transaction-amount"
-						/>
-						{Maybe.match(
-							amountError,
-							() => null,
-							(msg) => (
-								<div className="field-error">{msg}</div>
-							),
-						)}
-					</div>
+						<div className="form-field">
+							<label htmlFor={amountId}>Amount</label>
+							<input
+								id={amountId}
+								type="number"
+								step={0.01}
+								value={amount}
+								onChange={onAmountChange}
+								required
+								data-testid="transaction-amount"
+							/>
+							{Maybe.match(
+								amountError,
+								() => null,
+								(msg) => (
+									<div className="field-error">{msg}</div>
+								),
+							)}
+						</div>
 
-					<div className="form-field">
-						<label htmlFor={dateId}>Date</label>
-						<input
-							id={dateId}
-							type="date"
-							value={date}
-							onChange={(e) => {
-								setDate(e.target.value);
-								formChanged();
-							}}
-							required
-							data-testid="transaction-date"
-						/>
-					</div>
+						<div className="form-field">
+							<label htmlFor={dateId}>Date</label>
+							<input
+								id={dateId}
+								type="date"
+								value={date}
+								onChange={(e) => {
+									setDate(e.target.value);
+									formChanged();
+								}}
+								required
+								data-testid="transaction-date"
+							/>
+						</div>
 
-					<div className="modal-actions">
-						<button
-							type="button"
-							className="button button--secondary"
-							onClick={clickedCancel}
-							data-testid="transaction-cancel"
-						>
-							Cancel
-						</button>
-						<button
-							type="submit"
-							className="button button--primary"
-							disabled={Maybe.isJust(amountError)}
-							data-testid="transaction-save"
-						>
-							Save
-						</button>
-					</div>
-				</form>
+						<div className="modal-actions">
+							<div className="modal-actions__left">
+								{(() => {
+									switch (mode.kind) {
+										case "add":
+											return null;
+										case "edit":
+											return (
+												<button
+													type="button"
+													className="button button--danger"
+													onClick={clickedDelete}
+													data-testid="transaction-delete"
+												>
+													Delete
+												</button>
+											);
+										default:
+											return impossibleBranch(mode);
+									}
+								})()}
+							</div>
+							<div className="modal-actions__right">
+								<button
+									type="button"
+									className="button button--secondary"
+									onClick={clickedCancel}
+									data-testid="transaction-cancel"
+								>
+									Cancel
+								</button>
+								<button
+									type="submit"
+									className="button button--primary"
+									disabled={Maybe.isJust(amountError)}
+									data-testid="transaction-save"
+								>
+									Save
+								</button>
+							</div>
+						</div>
+					</form>
+				)}
 			</div>
 		</div>
 	);

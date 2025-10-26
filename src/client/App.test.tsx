@@ -88,7 +88,7 @@ describe("App", () => {
 
 		// Verify we rendered 3 balance cards
 		const balanceCards = screen.getAllByTestId(/^balance-card-/);
-		expect(balanceCards).toHaveLength(3);
+		expect(balanceCards).toHaveLength(5);
 
 		// Verify each balance card shows correct balance
 		const checkingCard = screen.getByTestId(`balance-card-${checking.id}`);
@@ -499,6 +499,124 @@ describe("App", () => {
 			expect(updatedGroceriesCard.getAttribute("data-test--balance")).toBe(
 				"7525",
 			);
+		});
+
+		it("handles deleting a transaction", async () => {
+			const user = userEvent.setup();
+
+			// Setup: Initial data with one transaction
+			const assets: SeedCategory = { id: 1, name: "Assets" };
+			const expenses: SeedCategory = { id: 2, name: "Expenses" };
+			const unknownExpense: SeedAccount = {
+				id: -1,
+				name: "Unknown_EXPENSE",
+				categoryId: expenses.id,
+			};
+			const unknownIncome: SeedAccount = {
+				id: -2,
+				name: "Unknown_INCOME",
+				categoryId: assets.id,
+			};
+			const checking: SeedAccount = {
+				id: 1,
+				name: "Checking",
+				categoryId: assets.id,
+			};
+			const groceries: SeedAccount = {
+				id: 2,
+				name: "Groceries",
+				categoryId: expenses.id,
+			};
+
+			const api = ApiFake.init({
+				categories: [assets, expenses],
+				accounts: [checking, groceries, unknownExpense, unknownIncome],
+				transactions: [
+					{
+						fromAccountId: checking.id,
+						toAccountId: groceries.id,
+						date: 1,
+						descr: "Groceries",
+						cents: 5000,
+					},
+				],
+			});
+
+			render(
+				<App
+					api={api}
+					selectedAccountId={checking.id}
+					setSelectedAccountId={noOp}
+				/>,
+			);
+
+			// Wait for transaction to appear and click it
+			const transactionRow = await screen.findByTestId("transaction-item--1");
+			await user.click(transactionRow);
+
+			// Assert: Delete button should be visible in the modal
+			const deleteButton = screen.getByTestId("transaction-delete");
+			expect(deleteButton).toBeTruthy();
+			expect(deleteButton.textContent).toMatch(/delete/i);
+
+			// Click delete button
+			await user.click(deleteButton);
+
+			// Assert: Modal should show confirmation message
+			screen.getByText(/delete this transaction/i);
+			screen.getByText(/this action cannot be undone/i);
+
+			// Assert: Should show transaction details recap
+			const recapDescription = screen.getByTestId("delete-recap-description");
+			expect(recapDescription.textContent).toBe("Groceries");
+
+			const recapAmount = screen.getByTestId("delete-recap-amount");
+			expect(recapAmount.textContent).toBe("50.00");
+
+			// Assert: Original form fields should be hidden
+			expect(screen.queryByTestId("transaction-description")).toBeNull();
+
+			// Assert: Should have Cancel button in confirmation
+			const confirmCancelButton = screen.getByTestId("delete-cancel");
+			expect(confirmCancelButton.textContent).toMatch(/cancel/i);
+
+			// Click cancel to go back to edit form
+			await user.click(confirmCancelButton);
+
+			// Assert: Should be back in edit form
+			expect(screen.getByTestId("transaction-description"));
+			expect(screen.queryByTestId("delete-recap-description")).toBeNull();
+
+			// Click delete again to re-enter confirmation
+			const deleteButtonAgain = screen.getByTestId("transaction-delete");
+			await user.click(deleteButtonAgain);
+
+			// Assert: Back in confirmation mode
+			expect(screen.getByTestId("delete-recap-description"));
+
+			// Assert: Should have Confirm Delete button
+			const confirmButton = screen.getByTestId("transaction-delete-confirm");
+			expect(confirmButton.textContent).toMatch(/confirm delete/i);
+
+			// Click Confirm Delete
+			await user.click(confirmButton);
+
+			// Assert: Modal should be closed
+			expect(screen.queryByRole("dialog")).toBeNull();
+
+			// Assert: Transaction should be deleted from the list
+			expect(screen.queryByTestId("transaction-item--1")).toBeNull();
+
+			// Assert: Balances should be updated (back to zero since only transaction was deleted)
+			const updatedCheckingCard = screen.getByTestId(
+				`balance-card-${checking.id}`,
+			);
+			expect(updatedCheckingCard.getAttribute("data-test--balance")).toBe("0");
+
+			const updatedGroceriesCard = screen.getByTestId(
+				`balance-card-${groceries.id}`,
+			);
+			expect(updatedGroceriesCard.getAttribute("data-test--balance")).toBe("0");
 		});
 	});
 

@@ -87,9 +87,19 @@ html:not(.dark-theme) .form-field input[type="date"] {
 .modal-actions {
 	display: flex;
 	gap: 12px;
-	justify-content: flex-end;
+	justify-content: space-between;
 	margin-top: 32px;
 	padding-top: 0;
+}
+
+.modal-actions__left {
+	display: flex;
+	gap: 12px;
+}
+
+.modal-actions__right {
+	display: flex;
+	gap: 12px;
 }
 
 .modal-actions .button {
@@ -131,6 +141,17 @@ html:not(.dark-theme) .form-field input[type="date"] {
 	opacity: 0.5;
 }
 
+.modal-actions .button--danger {
+	background-color: transparent;
+	color: #ff4757;
+	border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+.modal-actions .button--danger:hover {
+	background-color: rgba(255, 71, 87, 0.1);
+	border-color: #ff4757;
+}
+
 .field-error {
 	color: #ff4757;
 	font-size: 13px;
@@ -147,4 +168,52 @@ html:not(.dark-theme) .form-field input[type="date"] {
 	color: #ff4757;
 	font-size: 14px;
 	font-weight: 500;
+}
+
+.delete-confirmation {
+	padding: 8px 0;
+}
+
+.confirmation-question {
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--color-text-bright);
+	margin: 0 0 20px 0;
+}
+
+.transaction-recap {
+	background-color: var(--color-bg);
+	border: 1px solid var(--color-border);
+	border-radius: 8px;
+	padding: 16px;
+	margin-bottom: 20px;
+}
+
+.recap-row {
+	display: flex;
+	justify-content: space-between;
+	padding: 8px 0;
+}
+
+.recap-row:not(:last-child) {
+	border-bottom: 1px solid var(--color-border);
+}
+
+.recap-label {
+	color: var(--color-text-secondary);
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.recap-value {
+	color: var(--color-text-bright);
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.confirmation-warning {
+	color: var(--color-text-secondary);
+	font-size: 13px;
+	font-style: italic;
+	margin: 0;
 }

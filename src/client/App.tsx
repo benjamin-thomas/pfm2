@@ -293,6 +293,56 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
 									modalMode,
 									() => null,
 									(mode) => {
+										const clickedDeleteConfirmation = (
+											transactionId: number,
+										) => {
+											api.transactions.delete(transactionId).then((result) => {
+												Result.match(
+													result,
+													(error) => {
+														const errMsg =
+															error.tag === "BadRequest"
+																? error.reason
+																: `Failed to delete: ${error.tag}`;
+														setSaveError(Maybe.just(errMsg));
+													},
+													() => {
+														setModalMode(Maybe.nothing);
+														// restoreFocusedRow(); FIXME: think how we could handle that
+														api.accounts
+															.list()
+															.then((accountsResult) => {
+																Result.match(
+																	accountsResult,
+																	(error) => {
+																		const errMsg =
+																			error.tag === "BadRequest"
+																				? error.reason
+																				: "Failed to load accounts";
+																		setFinancialData({
+																			kind: "Error",
+																			error: errMsg,
+																		});
+																	},
+																	(accounts) => {
+																		fetchFinancialData(
+																			selectedAccountId,
+																			accounts,
+																		);
+																	},
+																);
+															})
+															.catch((err) =>
+																setFinancialData({
+																	kind: "Error",
+																	error: err?.message || "Unknown error",
+																}),
+															);
+													},
+												);
+											});
+										};
+
 										const clickedSave = (formData: TransactionData) => {
 											// Determine which API call to make based on mode
 											const save: () => Promise<Result<ApiError, Transaction>> =
@@ -373,6 +423,7 @@ const App = ({ api, selectedAccountId, setSelectedAccountId }: AppProps) => {
 													restoreFocusedRow();
 												}}
 												clickedSave={clickedSave}
+												clickedDeleteConfirmation={clickedDeleteConfirmation}
 												saveError={saveError}
 												formChanged={() => setSaveError(Maybe.nothing)}
 												accounts={accounts}
