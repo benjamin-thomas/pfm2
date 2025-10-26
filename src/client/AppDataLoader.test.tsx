@@ -2,16 +2,26 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { Result } from "../shared/utils/result";
-import App from "./App";
+import AppDataLoader from "./AppDataLoader";
 import {
 	ApiFake,
 	type SeedAccount,
 	type SeedCategory,
 } from "./api-client/fake";
 
-describe("App", () => {
+describe("AppDataLoader", () => {
 	afterEach(() => cleanup()); // must clean up manually to avoid "double renders"
 	const noOp = () => {};
+
+	// Helper to convert SeedAccount to Account
+	const toAccounts = (seedAccounts: SeedAccount[]) =>
+		seedAccounts.map((acc) => ({
+			accountId: acc.id,
+			categoryId: acc.categoryId,
+			name: acc.name,
+			createdAt: 0,
+			updatedAt: 0,
+		}));
 
 	it("renders transactions from fake API", async () => {
 		// Self-contained test data
@@ -69,8 +79,9 @@ describe("App", () => {
 		});
 
 		render(
-			<App
+			<AppDataLoader
 				api={api}
+				initialAccounts={toAccounts([unknownExpense, unknownIncome, employer, checking, groceries])}
 				selectedAccountId={checking.id}
 				setSelectedAccountId={noOp}
 			/>,
@@ -207,8 +218,9 @@ describe("App", () => {
 			const expectedCheckingBalanceCents = "91500"; // 100000 - 5000 - 1000 - 2500
 
 			render(
-				<App
+				<AppDataLoader
 					api={api}
+					initialAccounts={toAccounts([unknownExpense, unknownIncome, checking, employer, groceries, clothing])}
 					selectedAccountId={checking.id}
 					setSelectedAccountId={noOp}
 				/>,
@@ -241,8 +253,9 @@ describe("App", () => {
 		it("switches to groceries account perspective and updates ledger correctly", async () => {
 			const expectedGroceriesBalanceCents = "7500";
 			const { rerender } = render(
-				<App
+				<AppDataLoader
 					api={api}
+					initialAccounts={toAccounts([unknownExpense, unknownIncome, checking, employer, groceries, clothing])}
 					selectedAccountId={checking.id}
 					setSelectedAccountId={noOp}
 				/>,
@@ -259,8 +272,9 @@ describe("App", () => {
 
 			// Switch to Groceries account perspective
 			rerender(
-				<App
+				<AppDataLoader
 					api={api}
+					initialAccounts={toAccounts([unknownExpense, unknownIncome, checking, employer, groceries, clothing])}
 					selectedAccountId={groceries.id}
 					setSelectedAccountId={noOp}
 				/>,
@@ -334,8 +348,9 @@ describe("App", () => {
 		});
 
 		render(
-			<App
+			<AppDataLoader
 				api={api}
+				initialAccounts={toAccounts([unknownExpense, unknownIncome, checking, groceries])}
 				selectedAccountId={checking.id}
 				setSelectedAccountId={noOp}
 			/>,
@@ -436,8 +451,9 @@ describe("App", () => {
 			});
 
 			render(
-				<App
+				<AppDataLoader
 					api={api}
+					initialAccounts={toAccounts([checking, groceries, unknownExpense, unknownIncome])}
 					selectedAccountId={checking.id}
 					setSelectedAccountId={noOp}
 				/>,
@@ -543,8 +559,9 @@ describe("App", () => {
 			});
 
 			render(
-				<App
+				<AppDataLoader
 					api={api}
+					initialAccounts={toAccounts([checking, groceries, unknownExpense, unknownIncome])}
 					selectedAccountId={checking.id}
 					setSelectedAccountId={noOp}
 				/>,
@@ -664,8 +681,9 @@ describe("App", () => {
 				);
 
 			render(
-				<App
+				<AppDataLoader
 					api={api}
+					initialAccounts={toAccounts([checking, groceries, unknownExpense, unknownIncome])}
 					selectedAccountId={checking.id}
 					setSelectedAccountId={noOp}
 				/>,

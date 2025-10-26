@@ -7,7 +7,7 @@ import {
 	getAccountByName,
 	makeDbDate,
 } from "../shared/fakeData";
-import { AppWithRouter } from "./AppWithRouter";
+import { AppBootstrap } from "./AppBootstrap";
 import { ApiFake } from "./api-client/fake.ts";
 import { ApiHttp } from "./api-client/http.ts";
 import "./main.css";
@@ -156,7 +156,7 @@ if (!rootElement) throw new Error("Root element not found");
 ReactDOM.createRoot(rootElement).render(
 	<React.StrictMode>
 		<BrowserRouter>
-			<AppWithRouter api={api} />
+			<AppBootstrap api={api} />
 		</BrowserRouter>
 	</React.StrictMode>,
 );
