@@ -1,6 +1,12 @@
 # Personal Finance Manager (PFM2)
 
-A personal finance manager using double-entry bookkeeping, built with TypeScript and functional programming patterns.
+A personal finance manager demo, using double-entry bookkeeping.
+
+**Note:** This is a focused TypeScript implementation. For a broader exploration of the same domain across multiple
+languages (most interestingly Elm+Haskell, fullstack PureScript), see the [original exploration repo](https://github.com/benjamin-thomas/pfm).
+
+The goal of this project is to demonstrate code organization patterns, by implementing a central slice of a typical
+finance manager app
 
 [🔗 Live Demo](#) (TODO)
 
@@ -10,7 +16,28 @@ A personal finance manager using double-entry bookkeeping, built with TypeScript
 
 ---
 
-## Overview
+## What This Demonstrates
+
+**Architecture & Patterns:**
+- Manual dependency injection
+  - Swappable implementations for testing
+- Repository pattern
+- Command-Query Separation (CQS)
+- Elm-style decoders to validate incoming data
+- Type-safe error handling without exceptions
+
+**Fullstack TypeScript:**
+- React frontend with hooks
+- Express REST API
+- SQLite database integration (planned)
+- End-to-end type safety, see the "shared" directory
+
+**Testing & Quality:**
+- Integration testing without mocks
+- Test coverage tracking
+- Strict TypeScript configuration
+
+## Technical overview
 
 - **Type-Safe Error Handling**: `Result<E, T>` and `Maybe<T>` instead of exceptions and nulls
 - **Simulated ADTs and Pattern Matching**: Using discriminated unions to simulate algebraic data types with exhaustive pattern matching
@@ -60,6 +87,7 @@ async function deleteAccount(id: number): Promise<void> {
 // Result workflow ✅
 async function deleteAccount(id: number): Promise<Result<DeleteError, AffectedRows>> {
   // Caller MUST handle both success and error cases
+  // Oh, I cannot delete an account if it's a "system account" OR if it's linked to existing transactions: now I know!   
 }
 ```
 
@@ -92,6 +120,22 @@ This separation forces us to decouple the software. As a by-product, we get fast
 Money always "comes from somewhere" and "goes to somewhere". There are no truly negative values - just different perspectives on the same transaction.
 
 Try clicking different account balance cards in the UI - each view of the same transactions tells a different story.
+
+### About CQS
+
+CQS is the layer where business rules naturally live, and are enforced.
+
+This is why I'm using Elm-style decoders to validate incoming data:
+  - decoding is an HTTP concern
+  - validating the decoded data is a business rule concern that lives in CQS
+
+Also, separating reads from writes makes for cleaner code organization at the expense of incidental duplication.
+
+From the backend's perspective, the shape of incoming data (for writes) may not necessarily match the shape of the output
+data (for reads).
+
+- Writes: shouldn't contain ID, createdAt, updatedAt columns
+- Reads: may contain aggregated/joined data, etc.
 
 ---
 
