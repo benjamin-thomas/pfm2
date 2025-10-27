@@ -125,7 +125,7 @@ Try clicking different account balance cards in the UI - each view of the same t
 
 CQS is the layer where business rules naturally live, and are enforced.
 
-This is why I'm using Elm-style decoders to validate incoming data:
+This is why I'm using Elm-style decoders (rather than a lib like Zod) to validate incoming data:
   - decoding is an HTTP concern
   - validating the decoded data is a business rule concern that lives in CQS
 
