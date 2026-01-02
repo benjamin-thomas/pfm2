@@ -17,7 +17,7 @@ const init = (): TransactionRepo => {
 		const now = Math.floor(Date.now() / 1000);
 		return {
 			...newTx,
-			transactionId: nextId++,
+			id: nextId++,
 			createdAt: now,
 			updatedAt: now,
 		};
@@ -49,73 +49,67 @@ const init = (): TransactionRepo => {
 	};
 
 	return {
-		create: (transaction: NewTransaction): Promise<Transaction> => {
+		create: (transaction: NewTransaction): Transaction => {
 			const newTx = createTransaction(transaction);
 			transactions.push(newTx);
-			return Promise.resolve(newTx);
+			return newTx;
 		},
 
-		findById: (id: number): Promise<Maybe<Transaction>> => {
-			const transaction = transactions.find((tx) => tx.transactionId === id);
-			return Promise.resolve(
-				transaction ? Maybe.just(transaction) : Maybe.nothing,
+		findById: (id: number): Maybe<Transaction> => {
+			const transaction = transactions.find((tx) => tx.id === id);
+			return transaction ? Maybe.just(transaction) : Maybe.nothing;
+		},
+
+		list: (filters: Maybe<TransactionFilters>): Transaction[] => {
+			return applyFilters(transactions, filters);
+		},
+
+		listByAccount: (accountId: number): Transaction[] => {
+			return transactions.filter(
+				(tx) => tx.fromAccountId === accountId || tx.toAccountId === accountId,
 			);
 		},
 
-		list: (filters: Maybe<TransactionFilters>): Promise<Transaction[]> => {
-			const filtered = applyFilters(transactions, filters);
-			return Promise.resolve(filtered);
-		},
-
-		listByAccount: (accountId: number): Promise<Transaction[]> => {
-			return Promise.resolve(
-				transactions.filter(
-					(tx) =>
-						tx.fromAccountId === accountId || tx.toAccountId === accountId,
-				),
-			);
-		},
-
-		update: (id: number, updates: UpdateTransaction): Promise<AffectedRows> => {
-			const index = transactions.findIndex((tx) => tx.transactionId === id);
-			if (index === -1) return Promise.resolve({ affectedRows: 0 });
+		update: (id: number, updates: UpdateTransaction): AffectedRows => {
+			const index = transactions.findIndex((tx) => tx.id === id);
+			if (index === -1) return { affectedRows: 0 };
 
 			const existing = transactions[index];
 			const updated: Transaction = {
 				...updates,
-				transactionId: existing.transactionId,
+				id: existing.id,
 				createdAt: existing.createdAt,
 				updatedAt: Math.floor(Date.now() / 1000),
 			};
 			transactions[index] = updated;
-			return Promise.resolve({ affectedRows: 1 });
+			return { affectedRows: 1 };
 		},
 
-		delete: (id: number): Promise<AffectedRows> => {
-			const index = transactions.findIndex((tx) => tx.transactionId === id);
-			if (index === -1) return Promise.resolve({ affectedRows: 0 });
+		delete: (id: number): AffectedRows => {
+			const index = transactions.findIndex((tx) => tx.id === id);
+			if (index === -1) return { affectedRows: 0 };
 
 			transactions.splice(index, 1);
-			return Promise.resolve({ affectedRows: 1 });
+			return { affectedRows: 1 };
 		},
 
-		createMany: (newTransactions: NewTransaction[]): Promise<Transaction[]> => {
+		createMany: (newTransactions: NewTransaction[]): Transaction[] => {
 			const created = newTransactions.map((tx) => createTransaction(tx));
 			transactions.push(...created);
-			return Promise.resolve(created);
+			return created;
 		},
 
-		deleteMany: (ids: number[]): Promise<number> => {
+		deleteMany: (ids: number[]): number => {
 			const idSet = new Set(ids);
 			const before = transactions.length;
-			transactions = transactions.filter((tx) => !idSet.has(tx.transactionId));
-			return Promise.resolve(before - transactions.length);
+			transactions = transactions.filter((tx) => !idSet.has(tx.id));
+			return before - transactions.length;
 		},
 	};
 };
 
 // Factory with seed data
-const initWithSeed = async (): Promise<TransactionRepo> => {
+const initWithSeed = (): TransactionRepo => {
 	const transactionRepo = init();
 
 	const seedData: NewTransaction[] = [
@@ -149,7 +143,9 @@ const initWithSeed = async (): Promise<TransactionRepo> => {
 		},
 	];
 
-	await Promise.all(seedData.map((tx) => transactionRepo.create(tx)));
+	for (const tx of seedData) {
+		transactionRepo.create(tx);
+	}
 	return transactionRepo;
 };
 

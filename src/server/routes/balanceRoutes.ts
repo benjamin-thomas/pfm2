@@ -5,9 +5,9 @@ export const registerBalanceRoutes = (
 	router: Router,
 	balanceQuery: BalanceQuery,
 ): void => {
-	router.get("/api/balances", async (_req, res) => {
+	router.get("/api/balances", (_req, res) => {
 		try {
-			const balances = await balanceQuery.getBalances();
+			const balances = balanceQuery.getBalances();
 			res.json(balances);
 		} catch (error) {
 			console.error("Error in GET /api/balances:", error);

@@ -31,13 +31,13 @@ export const TransactionList = ({
 					: "transaction-item__amount--negative";
 
 				return (
-					<li key={entry.transactionId} className="transaction-item">
+					<li key={entry.id} className="transaction-item">
 						{/* Wrap content in button for accessibility (keyboard navigation with Enter/Space) */}
 						<button
 							type="button"
 							onClick={() => onTransactionSelect(entry)}
 							className="transaction-item__button"
-							data-testid={`transaction-item--${entry.transactionId}`}
+							data-testid={`transaction-item--${entry.id}`}
 							data-test--descr={entry.descr}
 							data-test--balance-before={entry.priorBalanceCents}
 							data-test--balance-after={entry.runningBalanceCents}

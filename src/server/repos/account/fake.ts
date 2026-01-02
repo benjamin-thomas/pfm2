@@ -14,16 +14,16 @@ const init = (): AccountRepo => {
 	let nextId = accountRows.length + 1;
 
 	return {
-		listAll: (): Promise<Account[]> => {
-			return Promise.resolve(accounts);
+		listAll: (): Account[] => {
+			return accounts;
 		},
 
-		findById: (id: number): Promise<Maybe<Account>> => {
+		findById: (id: number): Maybe<Account> => {
 			const account = accounts.find((a) => a.accountId === id);
-			return Promise.resolve(account ? Maybe.just(account) : Maybe.nothing);
+			return account ? Maybe.just(account) : Maybe.nothing;
 		},
 
-		create: (newAccount: NewAccount): Promise<Account> => {
+		create: (newAccount: NewAccount): Account => {
 			const account: Account = {
 				...newAccount,
 				accountId: nextId++,
@@ -31,12 +31,12 @@ const init = (): AccountRepo => {
 				updatedAt: Math.floor(Date.now() / 1000),
 			};
 			accounts.push(account);
-			return Promise.resolve(account);
+			return account;
 		},
 
-		update: (id: number, updates: NewAccount): Promise<AffectedRows> => {
+		update: (id: number, updates: NewAccount): AffectedRows => {
 			const index = accounts.findIndex((a) => a.accountId === id);
-			if (index === -1) return Promise.resolve({ affectedRows: 0 });
+			if (index === -1) return { affectedRows: 0 };
 
 			const existing = accounts[index];
 			const updated: Account = {
@@ -46,15 +46,15 @@ const init = (): AccountRepo => {
 				updatedAt: Math.floor(Date.now() / 1000),
 			};
 			accounts[index] = updated;
-			return Promise.resolve({ affectedRows: 1 });
+			return { affectedRows: 1 };
 		},
 
-		delete: (id: number): Promise<AffectedRows> => {
+		delete: (id: number): AffectedRows => {
 			const index = accounts.findIndex((a) => a.accountId === id);
-			if (index === -1) return Promise.resolve({ affectedRows: 0 });
+			if (index === -1) return { affectedRows: 0 };
 
 			accounts.splice(index, 1);
-			return Promise.resolve({ affectedRows: 1 });
+			return { affectedRows: 1 };
 		},
 	};
 };
@@ -70,13 +70,13 @@ const initCategory = (): CategoryRepo => {
 	}));
 
 	return {
-		listAll: (): Promise<Category[]> => {
-			return Promise.resolve(categories);
+		listAll: (): Category[] => {
+			return categories;
 		},
 
-		findById: (id: number): Promise<Maybe<Category>> => {
+		findById: (id: number): Maybe<Category> => {
 			const category = categories.find((c) => c.categoryId === id);
-			return Promise.resolve(category ? Maybe.just(category) : Maybe.nothing);
+			return category ? Maybe.just(category) : Maybe.nothing;
 		},
 	};
 };

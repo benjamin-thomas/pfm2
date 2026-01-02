@@ -2,7 +2,7 @@
 import { Decoder } from "elm-decoders";
 
 export type Transaction = {
-	transactionId: number;
+	id: number;
 	fromAccountId: number;
 	toAccountId: number;
 	date: number; // Unix timestamp
@@ -32,7 +32,7 @@ export type TransactionFilters = {
 
 // Decoders for runtime validation
 export const transactionDecoder: Decoder<Transaction> = Decoder.object({
-	transactionId: Decoder.number,
+	id: Decoder.number,
 	fromAccountId: Decoder.number,
 	toAccountId: Decoder.number,
 	date: Decoder.number,
@@ -47,7 +47,7 @@ export const transactionsDecoder: Decoder<Transaction[]> =
 
 export type NewTransaction = Omit<
 	Transaction,
-	"transactionId" | "createdAt" | "updatedAt"
+	"id" | "createdAt" | "updatedAt"
 >;
 
 export const newTransactionDecoder: Decoder<NewTransaction> = Decoder.object({
@@ -60,7 +60,7 @@ export const newTransactionDecoder: Decoder<NewTransaction> = Decoder.object({
 
 export type UpdateTransaction = Omit<
 	Transaction,
-	"transactionId" | "createdAt" | "updatedAt"
+	"id" | "createdAt" | "updatedAt"
 >;
 
 export const updateTransactionDecoder: Decoder<UpdateTransaction> =

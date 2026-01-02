@@ -90,30 +90,11 @@ BEGIN
     WHERE account_id = NEW.account_id;
 END;
 
-INSERT INTO accounts (category_id, name)
-VALUES (1, 'OpeningBalance')    -- account_id =  1
-     , (2, 'Checking account')  -- account_id =  2
-     , (2, 'Savings account')   -- account_id =  3
-     , (3, 'Unknown_INCOME')    -- account_id =  4
-     , (3, 'Employer')          -- account_id =  5
-     , (4, 'Unknown_EXPENSE')   -- account_id =  6
-     , (4, 'Groceries')         -- account_id =  7
-     , (4, 'Communications')    -- account_id =  8
-     , (4, 'Transport')         -- account_id =  9
-     , (4, 'Health')            -- account_id = 10
-     , (4, 'Energy')            -- account_id = 11
-     , (4, 'Clothing')          -- account_id = 12
-     , (4, 'Leisure')           -- account_id = 13
-     ;
-
 CREATE TABLE transactions
     ( transaction_id  INTEGER        PRIMARY KEY
-    , budget_id       INTEGER        NOT NULL REFERENCES budgets(budget_id)
     , from_account_id INTEGER        NOT NULL REFERENCES accounts(account_id)
     , to_account_id   INTEGER        NOT NULL REFERENCES accounts(account_id)
-    , unique_fit_id   TEXT           NULL
     , date            INTEGER        NOT NULL
-    , descr_orig      TEXT           NOT NULL -- will enable classifying if source=OFX
     , descr           TEXT           NOT NULL
     , cents           INTEGER        NOT NULL CHECK (cents > 0)
     , created_at      INTEGER        NOT NULL DEFAULT (strftime('%s', current_timestamp))

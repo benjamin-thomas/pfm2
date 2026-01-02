@@ -12,20 +12,20 @@ export type AffectedRows = { affectedRows: number };
 
 export interface TransactionRepo {
 	// Create
-	create(transaction: NewTransaction): Promise<Transaction>;
+	create(transaction: NewTransaction): Transaction;
 
 	// Read
-	findById(id: number): Promise<Maybe<Transaction>>;
-	list(filters: Maybe<TransactionFilters>): Promise<Transaction[]>;
-	listByAccount(accountId: number): Promise<Transaction[]>;
+	findById(id: number): Maybe<Transaction>;
+	list(filters: Maybe<TransactionFilters>): Transaction[];
+	listByAccount(accountId: number): Transaction[];
 
 	// Update
-	update(id: number, updates: UpdateTransaction): Promise<AffectedRows>;
+	update(id: number, updates: UpdateTransaction): AffectedRows;
 
 	// Delete
-	delete(id: number): Promise<AffectedRows>;
+	delete(id: number): AffectedRows;
 
 	// Bulk operations
-	createMany(transactions: NewTransaction[]): Promise<Transaction[]>;
-	deleteMany(ids: number[]): Promise<number>; // Returns count deleted
+	createMany(transactions: NewTransaction[]): Transaction[];
+	deleteMany(ids: number[]): number; // Returns count deleted
 }

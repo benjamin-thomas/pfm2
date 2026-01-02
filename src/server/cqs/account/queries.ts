@@ -13,19 +13,17 @@ const isHidden = (account: Account): boolean => {
 };
 
 export type AccountQuery = {
-	list(): Promise<Account[]>;
-	findById(id: number): Promise<Result<FindByIdError, Maybe<Account>>>;
+	list(): Account[];
+	findById(id: number): Result<FindByIdError, Maybe<Account>>;
 };
 
 const init = (repo: AccountRepo): AccountQuery => {
-	const list = (): Promise<Account[]> => {
+	const list = (): Account[] => {
 		return repo.listAll();
 	};
 
-	const findById = async (
-		id: number,
-	): Promise<Result<FindByIdError, Maybe<Account>>> => {
-		const maybeAccount = await repo.findById(id);
+	const findById = (id: number): Result<FindByIdError, Maybe<Account>> => {
+		const maybeAccount = repo.findById(id);
 
 		return Maybe.match(
 			maybeAccount,

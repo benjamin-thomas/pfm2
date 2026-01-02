@@ -43,7 +43,7 @@ const init = (seedData: SeedData): Api => {
 	// Initialize with provided seed data
 	transactions = seedTransactions.map((tx) => ({
 		...tx,
-		transactionId: nextId++,
+		id: nextId++,
 		createdAt: Math.floor(Date.now() / 1000),
 		updatedAt: Math.floor(Date.now() / 1000),
 	}));
@@ -95,7 +95,7 @@ const init = (seedData: SeedData): Api => {
 			},
 
 			findById: (id) => {
-				const tx = transactions.find((tx) => tx.transactionId === id);
+				const tx = transactions.find((tx) => tx.id === id);
 				return Promise.resolve(Result.ok(tx ? Maybe.just(tx) : Maybe.nothing));
 			},
 
@@ -107,7 +107,7 @@ const init = (seedData: SeedData): Api => {
 						() => {
 							const newTx: Transaction = {
 								...transaction,
-								transactionId: nextId++,
+								id: nextId++,
 								createdAt: Math.floor(Date.now() / 1000),
 								updatedAt: Math.floor(Date.now() / 1000),
 							};
@@ -119,7 +119,7 @@ const init = (seedData: SeedData): Api => {
 			},
 
 			update: (id, transaction: UpdateTransaction) => {
-				const index = transactions.findIndex((tx) => tx.transactionId === id);
+				const index = transactions.findIndex((tx) => tx.id === id);
 				if (index === -1) {
 					return Promise.resolve(Result.err(ApiErr.notFound));
 				}
@@ -132,7 +132,7 @@ const init = (seedData: SeedData): Api => {
 							const existing = transactions[index];
 							const updated: Transaction = {
 								...transaction,
-								transactionId: existing.transactionId,
+								id: existing.id,
 								createdAt: existing.createdAt,
 								updatedAt: Math.floor(Date.now() / 1000),
 							};
@@ -144,7 +144,7 @@ const init = (seedData: SeedData): Api => {
 			},
 
 			delete: (id) => {
-				const index = transactions.findIndex((tx) => tx.transactionId === id);
+				const index = transactions.findIndex((tx) => tx.id === id);
 				if (index === -1) {
 					return Promise.resolve(Result.err(ApiErr.notFound));
 				}

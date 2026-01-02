@@ -2,13 +2,13 @@ import express from "express";
 import { AccountCommand } from "./cqs/account/commands";
 import { AccountQuery } from "./cqs/account/queries";
 import { BalanceQuery } from "./cqs/balance/queries";
+import { LedgerQuery } from "./cqs/ledger/queries";
 import { TransactionCommand } from "./cqs/transaction/commands";
 import { TransactionQuery } from "./cqs/transaction/queries";
-import { AccountRepoFake, CategoryRepoFake } from "./repos/account/fake";
-import { BalanceRepoFake } from "./repos/balance/fake";
-import { TransactionRepoFake } from "./repos/transaction/fake";
+import { initReposOrAbort } from "./repos/initRepos";
 import { registerAccountRoutes } from "./routes/accountRoutes";
 import { registerBalanceRoutes } from "./routes/balanceRoutes";
+import { registerLedgerRoutes } from "./routes/ledgerRoutes";
 import { registerTransactionRoutes } from "./routes/transactionRoutes";
 
 if (!process.env.BE_PORT) throw new Error("Missing mandatory env var: BE_PORT");
@@ -40,15 +40,8 @@ app.use((req, res, next) => {
 });
 
 // Initialize repositories
-// TODO: switch to fake/sql repos via env var setting
-const transactionRepo = await TransactionRepoFake.initWithSeed();
-const accountRepo = AccountRepoFake.init();
-const categoryRepo = CategoryRepoFake.init();
-const balanceRepo = BalanceRepoFake.init(
-	transactionRepo,
-	accountRepo,
-	categoryRepo,
-);
+const { transactionRepo, accountRepo, balanceRepo, ledgerRepo } =
+	initReposOrAbort();
 
 // Initialize CQS handlers
 const accountQuery = AccountQuery.init(accountRepo);
@@ -56,6 +49,7 @@ const accountCommand = AccountCommand.init(accountRepo);
 const transactionQuery = TransactionQuery.init(transactionRepo);
 const transactionCommand = TransactionCommand.init(transactionRepo);
 const balanceQuery = BalanceQuery.init(balanceRepo);
+const ledgerQuery = LedgerQuery.init(ledgerRepo);
 
 // Routes
 app.get("/health", (_req, res) => {
@@ -69,6 +63,7 @@ app.get("/hello/:name", (req, res) => {
 registerTransactionRoutes(app, transactionQuery, transactionCommand);
 registerBalanceRoutes(app, balanceQuery);
 registerAccountRoutes(app, accountQuery, accountCommand);
+registerLedgerRoutes(app, ledgerQuery);
 
 // Start server
 app.listen(BE_PORT, BE_HOST, () => {

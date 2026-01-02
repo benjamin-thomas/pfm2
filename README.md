@@ -87,7 +87,7 @@ async function deleteAccount(id: number): Promise<void> {
 // Result workflow ✅
 async function deleteAccount(id: number): Promise<Result<DeleteError, AffectedRows>> {
   // Caller MUST handle both success and error cases
-  // Oh, I cannot delete an account if it's a "system account" OR if it's linked to existing transactions: now I know!   
+  // Oh, I cannot delete an account if it's a "system account" OR if it's linked to existing transactions: now I know!
 }
 ```
 

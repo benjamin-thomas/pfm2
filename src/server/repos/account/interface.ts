@@ -4,14 +4,14 @@ import type { Maybe } from "../../../shared/utils/maybe";
 export type AffectedRows = { affectedRows: number };
 
 export interface AccountRepo {
-	listAll(): Promise<Account[]>;
-	findById(id: number): Promise<Maybe<Account>>;
-	create(account: NewAccount): Promise<Account>;
-	update(id: number, account: NewAccount): Promise<AffectedRows>;
-	delete(id: number): Promise<AffectedRows>;
+	listAll(): Account[];
+	findById(id: number): Maybe<Account>;
+	create(account: NewAccount): Account;
+	update(id: number, account: NewAccount): AffectedRows;
+	delete(id: number): AffectedRows;
 }
 
 export interface CategoryRepo {
-	listAll(): Promise<Category[]>;
-	findById(id: number): Promise<Maybe<Category>>;
+	listAll(): Category[];
+	findById(id: number): Maybe<Category>;
 }

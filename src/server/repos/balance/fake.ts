@@ -16,12 +16,10 @@ const init = (
 	categoryRepo: CategoryRepo,
 ): BalanceRepo => {
 	return {
-		getBalances: async (): Promise<AccountBalance[]> => {
-			const [transactions, accounts, categories] = await Promise.all([
-				transactionRepo.list(Maybe.nothing),
-				accountRepo.listAll(),
-				categoryRepo.listAll(),
-			]);
+		getBalances: (): AccountBalance[] => {
+			const transactions = transactionRepo.list(Maybe.nothing);
+			const accounts = accountRepo.listAll();
+			const categories = categoryRepo.listAll();
 
 			// Calculate balance for each account using double-entry logic
 			const balanceMap = new Map<number, { added: number; removed: number }>();

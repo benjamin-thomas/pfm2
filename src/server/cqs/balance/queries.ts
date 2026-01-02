@@ -3,11 +3,11 @@ import type { AccountBalance } from "../../../shared/account";
 import type { BalanceRepo } from "../../repos/balance/interface";
 
 export type BalanceQuery = {
-	getBalances(): Promise<AccountBalance[]>;
+	getBalances(): AccountBalance[];
 };
 
 const init = (repo: BalanceRepo): BalanceQuery => {
-	const getBalances = (): Promise<AccountBalance[]> => {
+	const getBalances = (): AccountBalance[] => {
 		return repo.getBalances();
 	};
 

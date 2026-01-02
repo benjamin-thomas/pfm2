@@ -13,30 +13,28 @@ const isLocked = (account: Account): boolean => {
 };
 
 export type AccountCommand = {
-	create(data: NewAccount): Promise<Account>;
-	update(id: number, data: NewAccount): Promise<AffectedRows>;
-	delete(id: number): Promise<Result<RemoveError, AffectedRows>>;
+	create(data: NewAccount): Account;
+	update(id: number, data: NewAccount): AffectedRows;
+	delete(id: number): Result<RemoveError, AffectedRows>;
 };
 
 const init = (repo: AccountRepo): AccountCommand => {
-	const create = (data: NewAccount): Promise<Account> => {
+	const create = (data: NewAccount): Account => {
 		return repo.create(data);
 	};
 
-	const update = (id: number, data: NewAccount): Promise<AffectedRows> => {
+	const update = (id: number, data: NewAccount): AffectedRows => {
 		return repo.update(id, data);
 	};
 
-	const delete_ = async (
-		id: number,
-	): Promise<Result<RemoveError, AffectedRows>> => {
-		const maybeAccount = await repo.findById(id);
+	const delete_ = (id: number): Result<RemoveError, AffectedRows> => {
+		const maybeAccount = repo.findById(id);
 
 		return Maybe.match(
 			maybeAccount,
 			// Not found is not an error - just return 0 affected rows
-			async () => Result.ok({ affectedRows: 0 }),
-			async (account) => {
+			() => Result.ok({ affectedRows: 0 }),
+			(account) => {
 				if (isLocked(account)) {
 					return Result.err({
 						tag: "AccountLocked",
@@ -44,7 +42,7 @@ const init = (repo: AccountRepo): AccountCommand => {
 						name: account.name,
 					});
 				}
-				const affectedRows = await repo.delete(id);
+				const affectedRows = repo.delete(id);
 				return Result.ok(affectedRows);
 			},
 		);

@@ -219,10 +219,7 @@ const AppDataLoaded = ({
 								case "add":
 									return api.transactions.create(formData);
 								case "edit":
-									return api.transactions.update(
-										mode.transaction.transactionId,
-										formData,
-									);
+									return api.transactions.update(mode.transaction.id, formData);
 								default:
 									return impossibleBranch(mode);
 							}

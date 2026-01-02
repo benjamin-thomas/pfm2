@@ -47,7 +47,7 @@ export const DeleteDialogBody = ({
 					<button
 						type="button"
 						className="button button--danger"
-						onClick={() => onConfirm(transaction.transactionId)}
+						onClick={() => onConfirm(transaction.id)}
 						data-testid="transaction-delete-confirm"
 					>
 						Confirm Delete
