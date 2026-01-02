@@ -37,3 +37,15 @@ export const accountDecoder: Decoder<Account> = Decoder.object({
 
 export const accountsDecoder: Decoder<Account[]> =
 	Decoder.array(accountDecoder);
+
+export const accountBalanceDecoder: Decoder<AccountBalance> = Decoder.object({
+	accountId: Decoder.number,
+	accountName: Decoder.string,
+	categoryId: Decoder.number,
+	categoryName: Decoder.string,
+	balance: Decoder.number,
+});
+
+export const accountBalancesDecoder: Decoder<AccountBalance[]> = Decoder.array(
+	accountBalanceDecoder,
+);

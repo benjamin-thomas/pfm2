@@ -1,7 +1,12 @@
 // SQLite account repository implementation
 
 import type { Database } from "better-sqlite3";
-import type { Account, NewAccount } from "../../../shared/account";
+import {
+	type Account,
+	type NewAccount,
+	accountDecoder,
+	accountsDecoder,
+} from "../../../shared/account";
 import { Maybe } from "../../../shared/utils/maybe";
 import type { AccountRepo, AffectedRows } from "./interface";
 
@@ -15,7 +20,7 @@ const init = (db: Database): AccountRepo => {
 			     , updated_at AS updatedAt
 			FROM accounts
 		`;
-		return db.prepare(query).all() as Account[];
+		return accountsDecoder.guard(db.prepare(query).all());
 	};
 
 	const findById = (id: number): Maybe<Account> => {
@@ -28,8 +33,8 @@ const init = (db: Database): AccountRepo => {
 			FROM accounts
 			WHERE account_id = ?
 		`;
-		const row = db.prepare(query).get(id) as Account | undefined;
-		return row ? Maybe.just(row) : Maybe.nothing;
+		const row = db.prepare(query).get(id);
+		return row ? Maybe.just(accountDecoder.guard(row)) : Maybe.nothing;
 	};
 
 	const create = (account: NewAccount): Account => {
@@ -42,7 +47,9 @@ const init = (db: Database): AccountRepo => {
 			        , created_at AS createdAt
 			        , updated_at AS updatedAt
 		`;
-		return db.prepare(query).get(account.categoryId, account.name) as Account;
+		return accountDecoder.guard(
+			db.prepare(query).get(account.categoryId, account.name),
+		);
 	};
 
 	const update = (id: number, account: NewAccount): AffectedRows => {

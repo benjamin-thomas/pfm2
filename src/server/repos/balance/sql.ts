@@ -1,6 +1,9 @@
 // SQLite balance repository implementation
 import type Database from "better-sqlite3";
-import type { AccountBalance } from "../../../shared/account";
+import {
+	type AccountBalance,
+	accountBalancesDecoder,
+} from "../../../shared/account";
 import type { BalanceRepo } from "./interface";
 
 const init = (db: Database.Database): BalanceRepo => {
@@ -35,8 +38,7 @@ const init = (db: Database.Database): BalanceRepo => {
 			WHERE COALESCE(x.added, 0) - COALESCE(x.removed, 0) != 0
 		`;
 
-		const rows = db.prepare(query).all() as AccountBalance[];
-		return rows;
+		return accountBalancesDecoder.guard(db.prepare(query).all());
 	};
 
 	return { getBalances };

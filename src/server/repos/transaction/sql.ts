@@ -1,11 +1,13 @@
 // SQLite transaction repository implementation
 
 import type { Database } from "better-sqlite3";
-import type {
-	NewTransaction,
-	Transaction,
-	TransactionFilters,
-	UpdateTransaction,
+import {
+	type NewTransaction,
+	type Transaction,
+	type TransactionFilters,
+	transactionDecoder,
+	transactionsDecoder,
+	type UpdateTransaction,
 } from "../../../shared/transaction";
 import { Maybe } from "../../../shared/utils/maybe";
 import type { AffectedRows, TransactionRepo } from "./interface";
@@ -36,27 +38,23 @@ const init = (db: Database): TransactionRepo => {
 			        , created_at AS createdAt
 			        , updated_at AS updatedAt
 		`;
-		return db
-			.prepare(query)
-			.get(
-				tx.fromAccountId,
-				tx.toAccountId,
-				tx.date,
-				tx.descr,
-				tx.cents,
-			) as Transaction;
+		return transactionDecoder.guard(
+			db
+				.prepare(query)
+				.get(tx.fromAccountId, tx.toAccountId, tx.date, tx.descr, tx.cents),
+		);
 	};
 
 	const findById = (id: number): Maybe<Transaction> => {
 		const query = `${baseSelect} WHERE transaction_id = ?`;
-		const row = db.prepare(query).get(id) as Transaction | undefined;
-		return row ? Maybe.just(row) : Maybe.nothing;
+		const row = db.prepare(query).get(id);
+		return row ? Maybe.just(transactionDecoder.guard(row)) : Maybe.nothing;
 	};
 
 	const list = (filters: Maybe<TransactionFilters>): Transaction[] => {
 		return Maybe.match(
 			filters,
-			() => db.prepare(baseSelect).all() as Transaction[],
+			() => transactionsDecoder.guard(db.prepare(baseSelect).all()),
 			(f) => {
 				const conditions: string[] = [];
 				const params: (string | number)[] = [];
@@ -83,18 +81,20 @@ const init = (db: Database): TransactionRepo => {
 				}
 
 				if (conditions.length === 0) {
-					return db.prepare(baseSelect).all() as Transaction[];
+					return transactionsDecoder.guard(db.prepare(baseSelect).all());
 				}
 
 				const query = `${baseSelect} WHERE ${conditions.join(" AND ")}`;
-				return db.prepare(query).all(...params) as Transaction[];
+				return transactionsDecoder.guard(db.prepare(query).all(...params));
 			},
 		);
 	};
 
 	const listByAccount = (accountId: number): Transaction[] => {
 		const query = `${baseSelect} WHERE from_account_id = ? OR to_account_id = ?`;
-		return db.prepare(query).all(accountId, accountId) as Transaction[];
+		return transactionsDecoder.guard(
+			db.prepare(query).all(accountId, accountId),
+		);
 	};
 
 	const update = (id: number, tx: UpdateTransaction): AffectedRows => {
@@ -122,7 +122,7 @@ const init = (db: Database): TransactionRepo => {
 
 	const createMany = (txs: NewTransaction[]): Transaction[] => {
 		const insertStmt = db.prepare(`
-			INSERT INTO transactions 
+			INSERT INTO transactions
 				( from_account_id
 				, to_account_id
 				, date
@@ -146,15 +146,16 @@ const init = (db: Database): TransactionRepo => {
 		`);
 
 		const insertAll = db.transaction((transactions: NewTransaction[]) => {
-			return transactions.map(
-				(tx) =>
+			return transactions.map((tx) =>
+				transactionDecoder.guard(
 					insertStmt.get(
 						tx.fromAccountId,
 						tx.toAccountId,
 						tx.date,
 						tx.descr,
 						tx.cents,
-					) as Transaction,
+					),
+				),
 			);
 		});
 
