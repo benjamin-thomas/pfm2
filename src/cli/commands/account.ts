@@ -3,8 +3,9 @@ import { AccountQuery } from "../../server/cqs/account/queries";
 import type { AccountRepo } from "../../server/repos/account/interface";
 import { Maybe } from "../../shared/utils/maybe";
 import { Result } from "../../shared/utils/result";
+import type { IO } from "../../shared/io/interface";
 
-export const run = (repo: AccountRepo, args: string[]) => {
+export const run = (io: IO, repo: AccountRepo, args: string[]) => {
 	const accountQuery = AccountQuery.init(repo);
 	const accountCommand = AccountCommand.init(repo);
 	const command = args[0];
@@ -12,9 +13,9 @@ export const run = (repo: AccountRepo, args: string[]) => {
 	switch (command) {
 		case "list": {
 			const accounts = accountQuery.list();
-			console.log("Accounts:");
+			io.logInfo("Accounts:");
 			accounts.forEach((acc) => {
-				console.log(`  [${acc.id}] ${acc.name} (category: ${acc.categoryId})`);
+				io.logInfo(`  [${acc.id}] ${acc.name} (category: ${acc.categoryId})`);
 			});
 			break;
 		}
@@ -22,13 +23,13 @@ export const run = (repo: AccountRepo, args: string[]) => {
 		case "find": {
 			const idStr = args[1];
 			if (!idStr) {
-				console.error("Usage: pfm account find <id>");
+				io.logErr("Usage: pfm account find <id>");
 				return;
 			}
 
 			const id = parseInt(idStr, 10);
 			if (Number.isNaN(id)) {
-				console.error("Error: id must be a number");
+				io.logErr("Error: id must be a number");
 				return;
 			}
 
@@ -37,18 +38,18 @@ export const run = (repo: AccountRepo, args: string[]) => {
 			Result.match(
 				result,
 				(error) => {
-					console.error(`Error: ${error.tag}`);
+					io.logErr(`Error: ${error.tag}`);
 				},
 				(maybeAccount) => {
 					Maybe.match(
 						maybeAccount,
 						() => {
-							console.log("Account not found");
+							io.logInfo("Account not found");
 						},
 						(account) => {
-							console.log(`Account [${account.id}]:`);
-							console.log(`  Name: ${account.name}`);
-							console.log(`  Category ID: ${account.categoryId}`);
+							io.logInfo(`Account [${account.id}]:`);
+							io.logInfo(`  Name: ${account.name}`);
+							io.logInfo(`  Category ID: ${account.categoryId}`);
 						},
 					);
 				},
@@ -61,18 +62,18 @@ export const run = (repo: AccountRepo, args: string[]) => {
 			const categoryIdStr = args[2];
 
 			if (!name || !categoryIdStr) {
-				console.error("Usage: pfm account create <name> <categoryId>");
+				io.logErr("Usage: pfm account create <name> <categoryId>");
 				return;
 			}
 
 			const categoryId = parseInt(categoryIdStr, 10);
 			if (Number.isNaN(categoryId)) {
-				console.error("Error: categoryId must be a number");
+				io.logErr("Error: categoryId must be a number");
 				return;
 			}
 
 			const account = accountCommand.create({ name, categoryId });
-			console.log(`Created account [${account.id}]: ${account.name}`);
+			io.logInfo(`Created account [${account.id}]: ${account.name}`);
 			break;
 		}
 
@@ -82,14 +83,14 @@ export const run = (repo: AccountRepo, args: string[]) => {
 			const categoryIdStr = args[3];
 
 			if (!idStr || !name || !categoryIdStr) {
-				console.error("Usage: pfm account update <id> <name> <categoryId>");
+				io.logErr("Usage: pfm account update <id> <name> <categoryId>");
 				return;
 			}
 
 			const id = parseInt(idStr, 10);
 			const categoryId = parseInt(categoryIdStr, 10);
 			if (Number.isNaN(id) || Number.isNaN(categoryId)) {
-				console.error("Error: id and categoryId must be numbers");
+				io.logErr("Error: id and categoryId must be numbers");
 				return;
 			}
 
@@ -98,9 +99,9 @@ export const run = (repo: AccountRepo, args: string[]) => {
 				categoryId,
 			});
 			if (affectedRows === 0) {
-				console.log("Account not found");
+				io.logInfo("Account not found");
 			} else {
-				console.log(`Updated account ${id}`);
+				io.logInfo(`Updated account ${id}`);
 			}
 			break;
 		}
@@ -108,13 +109,13 @@ export const run = (repo: AccountRepo, args: string[]) => {
 		case "delete": {
 			const idStr = args[1];
 			if (!idStr) {
-				console.error("Usage: pfm account delete <id>");
+				io.logErr("Usage: pfm account delete <id>");
 				return;
 			}
 
 			const id = parseInt(idStr, 10);
 			if (Number.isNaN(id)) {
-				console.error("Error: id must be a number");
+				io.logErr("Error: id must be a number");
 				return;
 			}
 
@@ -123,13 +124,13 @@ export const run = (repo: AccountRepo, args: string[]) => {
 			Result.match(
 				result,
 				(error) => {
-					console.error(`Error: ${error.tag} - ${error.name}`);
+					io.logErr(`Error: ${error.tag} - ${error.name}`);
 				},
 				(affectedRows) => {
 					if (affectedRows.affectedRows === 0) {
-						console.log("Account not found");
+						io.logInfo("Account not found");
 					} else {
-						console.log(`Removed account ${id}`);
+						io.logInfo(`Removed account ${id}`);
 					}
 				},
 			);
@@ -137,13 +138,13 @@ export const run = (repo: AccountRepo, args: string[]) => {
 		}
 
 		default:
-			console.log("Usage: pfm account <command> [args]");
-			console.log("Commands:");
-			console.log("  list                          - List all accounts");
-			console.log("  find <id>                     - Find account by ID");
-			console.log("  create <name> <categoryId>    - Create new account");
-			console.log("  update <id> <name> <categoryId> - Update account");
-			console.log("  delete <id>                   - Remove account");
+			io.logInfo("Usage: pfm account <command> [args]");
+			io.logInfo("Commands:");
+			io.logInfo("  list                          - List all accounts");
+			io.logInfo("  find <id>                     - Find account by ID");
+			io.logInfo("  create <name> <categoryId>    - Create new account");
+			io.logInfo("  update <id> <name> <categoryId> - Update account");
+			io.logInfo("  delete <id>                   - Remove account");
 			return;
 	}
 };

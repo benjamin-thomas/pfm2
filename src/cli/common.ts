@@ -4,6 +4,7 @@ import Database from "better-sqlite3";
 import { AccountRepoFake } from "../server/repos/account/fake";
 import type { AccountRepo } from "../server/repos/account/interface";
 import { AccountRepoSql } from "../server/repos/account/sql";
+import { RealIO } from "../shared/io/real";
 import { impossibleBranch } from "../shared/utils/impossibleBranch";
 
 // Define list first, then derive type from it using typeof and indexed access
@@ -19,7 +20,7 @@ export const isValidRepoVariant = (value?: string): value is REPO_VARIANT => {
 export const makeAccountRepoOrThrow = (repoType: REPO_VARIANT): AccountRepo => {
 	switch (repoType) {
 		case "fake":
-			return AccountRepoFake.init();
+			return AccountRepoFake.init(RealIO, []);
 		case "sql": {
 			const dbPath = process.env.DB_PATH;
 			if (!dbPath) {

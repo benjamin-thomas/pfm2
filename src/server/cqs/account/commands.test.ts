@@ -1,4 +1,5 @@
 import { assert, describe, it } from "vitest";
+import { makeFakeIO } from "../../../shared/io/fake";
 import { Maybe } from "../../../shared/utils/maybe";
 import { Result } from "../../../shared/utils/result";
 import { AccountRepoFake } from "../../repos/account/fake";
@@ -7,23 +8,34 @@ import { AccountCommand } from "./commands";
 describe("Account Commands", () => {
 	describe("create", () => {
 		it("creates a new account", () => {
-			const repo = AccountRepoFake.init();
+			const { io } = makeFakeIO({ now: 1000 });
+			const repo = AccountRepoFake.init(io, []);
 			const accountCommand = AccountCommand.init(repo);
 			const account = accountCommand.create({
 				name: "New Account",
 				categoryId: 2,
 			});
 
-			assert.equal(account.name, "New Account");
-			assert.equal(account.categoryId, 2);
-			assert.property(account, "id");
+			assert.deepEqual(account, {
+				id: 1,
+				name: "New Account",
+				categoryId: 2,
+				createdAt: 1000,
+				updatedAt: 1000,
+			});
 		});
 	});
 
 	describe("update", () => {
 		it("updates an existing account", () => {
-			const repo = AccountRepoFake.init();
+			const { io, setTime } = makeFakeIO({ now: 1000 });
+			const repo = AccountRepoFake.init(io, [
+				{ name: "Checking", categoryId: 1 },
+				{ name: "Savings", categoryId: 2 },
+			]);
 			const accountCommand = AccountCommand.init(repo);
+
+			setTime(2000);
 			const { affectedRows } = accountCommand.update(2, {
 				name: "Updated Name",
 				categoryId: 3,
@@ -39,14 +51,22 @@ describe("Account Commands", () => {
 					throw new Error("Expected some value");
 				},
 				(account) => {
-					assert.equal(account.name, "Updated Name");
-					assert.equal(account.categoryId, 3);
+					assert.deepEqual(account, {
+						id: 2,
+						name: "Updated Name",
+						categoryId: 3,
+						createdAt: 1000,
+						updatedAt: 2000,
+					});
 				},
 			);
 		});
 
 		it("returns 0 affected rows when account not found", () => {
-			const repo = AccountRepoFake.init();
+			const { io } = makeFakeIO({ now: 1000 });
+			const repo = AccountRepoFake.init(io, [
+				{ name: "Checking", categoryId: 1 },
+			]);
 			const accountCommand = AccountCommand.init(repo);
 			const { affectedRows } = accountCommand.update(999, {
 				name: "Updated Name",
@@ -59,7 +79,11 @@ describe("Account Commands", () => {
 
 	describe("delete", () => {
 		it("deletes an existing account", () => {
-			const repo = AccountRepoFake.init();
+			const { io } = makeFakeIO({ now: 1000 });
+			const repo = AccountRepoFake.init(io, [
+				{ name: "Checking", categoryId: 1 },
+				{ name: "Savings", categoryId: 2 },
+			]);
 			const accountCommand = AccountCommand.init(repo);
 			const result = accountCommand.delete(2);
 
@@ -79,7 +103,10 @@ describe("Account Commands", () => {
 		});
 
 		it("returns 0 affected rows when account not found", () => {
-			const repo = AccountRepoFake.init();
+			const { io } = makeFakeIO({ now: 1000 });
+			const repo = AccountRepoFake.init(io, [
+				{ name: "Checking", categoryId: 1 },
+			]);
 			const accountCommand = AccountCommand.init(repo);
 			const result = accountCommand.delete(999);
 
@@ -95,11 +122,24 @@ describe("Account Commands", () => {
 		});
 
 		it("returns error when account is locked", () => {
-			const repo = AccountRepoFake.init();
+			const { io, setTime } = makeFakeIO({ now: 1000 });
+			const repo = AccountRepoFake.init(io, [
+				{ name: "Checking", categoryId: 1 },
+			]);
+
 			// Create a locked account
+			setTime(2000);
 			const account = repo.create({
 				name: "SYSTEM_Admin",
 				categoryId: 2,
+			});
+
+			assert.deepEqual(account, {
+				id: 2,
+				name: "SYSTEM_Admin",
+				categoryId: 2,
+				createdAt: 2000,
+				updatedAt: 2000,
 			});
 
 			const accountCommand = AccountCommand.init(repo);

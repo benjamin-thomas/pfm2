@@ -1,4 +1,5 @@
 import { assert, describe, it } from "vitest";
+import { makeFakeIO } from "../../../shared/io/fake";
 import { Maybe } from "../../../shared/utils/maybe";
 import { Result } from "../../../shared/utils/result";
 import { AccountRepoFake } from "../../repos/account/fake";
@@ -7,20 +8,40 @@ import { AccountQuery } from "./queries";
 describe("Account Queries", () => {
 	describe("list", () => {
 		it("returns all accounts", () => {
-			const repo = AccountRepoFake.init();
+			const { io } = makeFakeIO({ now: 1000 });
+			const repo = AccountRepoFake.init(io, [
+				{ name: "Checking", categoryId: 1 },
+				{ name: "Savings", categoryId: 2 },
+			]);
 			const accountQuery = AccountQuery.init(repo);
 			const accounts = accountQuery.list();
 
-			assert.isAbove(accounts.length, 0);
-			assert.property(accounts[0], "id");
-			assert.property(accounts[0], "name");
-			assert.property(accounts[0], "categoryId");
+			assert.deepEqual(accounts, [
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
+				{
+					id: 2,
+					name: "Savings",
+					categoryId: 2,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
+			]);
 		});
 	});
 
 	describe("findById", () => {
 		it("returns account when found", () => {
-			const repo = AccountRepoFake.init();
+			const { io } = makeFakeIO({ now: 1000 });
+			const repo = AccountRepoFake.init(io, [
+				{ name: "Checking", categoryId: 1 },
+				{ name: "Savings", categoryId: 2 },
+			]);
 			const accountQuery = AccountQuery.init(repo);
 			const result = accountQuery.findById(2);
 
@@ -36,8 +57,13 @@ describe("Account Queries", () => {
 							throw new Error("Expected some value");
 						},
 						(account) => {
-							assert.equal(account.id, 2);
-							assert.equal(account.name, "Checking account");
+							assert.deepEqual(account, {
+								id: 2,
+								name: "Savings",
+								categoryId: 2,
+								createdAt: 1000,
+								updatedAt: 1000,
+							});
 						},
 					);
 				},
@@ -45,7 +71,10 @@ describe("Account Queries", () => {
 		});
 
 		it("returns none when account not found", () => {
-			const repo = AccountRepoFake.init();
+			const { io } = makeFakeIO({ now: 1000 });
+			const repo = AccountRepoFake.init(io, [
+				{ name: "Checking", categoryId: 1 },
+			]);
 			const accountQuery = AccountQuery.init(repo);
 			const result = accountQuery.findById(999);
 
@@ -61,8 +90,13 @@ describe("Account Queries", () => {
 		});
 
 		it("returns error when account is hidden", () => {
-			const repo = AccountRepoFake.init();
+			const { io, setTime } = makeFakeIO({ now: 1000 });
+			const repo = AccountRepoFake.init(io, [
+				{ name: "Checking", categoryId: 1 },
+			]);
+
 			// Create a hidden account
+			setTime(2000);
 			const account = repo.create({
 				name: "HIDDEN_Secret",
 				categoryId: 2,

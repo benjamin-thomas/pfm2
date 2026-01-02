@@ -1,17 +1,17 @@
 import type { Account, NewAccount } from "../../../shared/account";
-import { accountRows } from "../../../shared/fakeData";
+import type { IO } from "../../../shared/io/interface";
 import { Maybe } from "../../../shared/utils/maybe";
 import type { AccountRepo, AffectedRows } from "./interface";
 
-const init = (): AccountRepo => {
-	const accounts: Account[] = accountRows.map((row) => ({
-		id: row.id,
-		name: row.name,
-		categoryId: row.categoryId,
-		createdAt: 0,
-		updatedAt: 0,
+const init = (io: IO, initialAccounts: NewAccount[]): AccountRepo => {
+	const now = io.now();
+	const accounts: Account[] = initialAccounts.map((acc, index) => ({
+		...acc,
+		id: index + 1,
+		createdAt: now,
+		updatedAt: now,
 	}));
-	let nextId = accountRows.length + 1;
+	let nextId = accounts.length + 1;
 
 	return {
 		listAll: (): Account[] => {
@@ -24,11 +24,12 @@ const init = (): AccountRepo => {
 		},
 
 		create: (newAccount: NewAccount): Account => {
+			const now = io.now();
 			const account: Account = {
 				...newAccount,
 				id: nextId++,
-				createdAt: Math.floor(Date.now() / 1000),
-				updatedAt: Math.floor(Date.now() / 1000),
+				createdAt: now,
+				updatedAt: now,
 			};
 			accounts.push(account);
 			return account;
@@ -43,7 +44,7 @@ const init = (): AccountRepo => {
 				...updates,
 				id: existing.id,
 				createdAt: existing.createdAt,
-				updatedAt: Math.floor(Date.now() / 1000),
+				updatedAt: io.now(),
 			};
 			accounts[index] = updated;
 			return { affectedRows: 1 };

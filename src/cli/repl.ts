@@ -10,6 +10,7 @@ import {
 	makeAccountRepoOrThrow,
 	REPO_VARIANTS,
 } from "./common";
+import { RealIO } from "../shared/io/real";
 
 const repoType = process.env.REPO;
 if (!isValidRepoVariant(repoType)) {
@@ -105,7 +106,7 @@ const processCommand = (line: string) => {
 			break;
 
 		case "account":
-			accountCommands.run(accountRepo, commandArgs);
+			accountCommands.run(RealIO, accountRepo, commandArgs);
 			break;
 
 		default:

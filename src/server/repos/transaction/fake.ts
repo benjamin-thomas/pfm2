@@ -1,5 +1,6 @@
 // Fake transaction repository for testing - in-memory storage
 
+import type { IO } from "../../../shared/io/interface";
 import type {
 	NewTransaction,
 	Transaction,
@@ -9,12 +10,21 @@ import type {
 import { Maybe } from "../../../shared/utils/maybe";
 import type { AffectedRows, TransactionRepo } from "./interface";
 
-const init = (): TransactionRepo => {
-	let transactions: Transaction[] = [];
-	let nextId = 1;
+const init = (
+	io: IO,
+	initialTransactions: NewTransaction[],
+): TransactionRepo => {
+	const now = io.now();
+	let transactions: Transaction[] = initialTransactions.map((tx, index) => ({
+		...tx,
+		id: index + 1,
+		createdAt: now,
+		updatedAt: now,
+	}));
+	let nextId = transactions.length + 1;
 
 	const createTransaction = (newTx: NewTransaction): Transaction => {
-		const now = Math.floor(Date.now() / 1000);
+		const now = io.now();
 		return {
 			...newTx,
 			id: nextId++,
@@ -79,7 +89,7 @@ const init = (): TransactionRepo => {
 				...updates,
 				id: existing.id,
 				createdAt: existing.createdAt,
-				updatedAt: Math.floor(Date.now() / 1000),
+				updatedAt: io.now(),
 			};
 			transactions[index] = updated;
 			return { affectedRows: 1 };
@@ -108,45 +118,4 @@ const init = (): TransactionRepo => {
 	};
 };
 
-// Factory with seed data
-const initWithSeed = (): TransactionRepo => {
-	const transactionRepo = init();
-
-	const seedData: NewTransaction[] = [
-		{
-			fromAccountId: 5, // Employer
-			toAccountId: 2, // Checking account
-			date: Math.floor(new Date("2024-09-30").getTime() / 1000),
-			descr: "Monthly Income",
-			cents: 100000, // +1000.00 EUR
-		},
-		{
-			fromAccountId: 2, // Checking account
-			toAccountId: 6, // Unknown_EXPENSE
-			date: Math.floor(new Date("2024-09-25").getTime() / 1000),
-			descr: "Rent Payment",
-			cents: 50000, // -500.00 EUR
-		},
-		{
-			fromAccountId: 2, // Checking account
-			toAccountId: 7, // Groceries
-			date: Math.floor(new Date("2024-09-20").getTime() / 1000),
-			descr: "Grocery Store",
-			cents: 3400, // -34.00 EUR
-		},
-		{
-			fromAccountId: 2, // Checking account
-			toAccountId: 9, // Transport
-			date: Math.floor(new Date("2024-09-18").getTime() / 1000),
-			descr: "Gas Station",
-			cents: 2500, // -25.00 EUR
-		},
-	];
-
-	for (const tx of seedData) {
-		transactionRepo.create(tx);
-	}
-	return transactionRepo;
-};
-
-export const TransactionRepoFake = { init, initWithSeed } as const;
+export const TransactionRepoFake = { init } as const;

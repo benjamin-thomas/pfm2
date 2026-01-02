@@ -6,6 +6,7 @@ import {
 	makeAccountRepoOrThrow,
 	REPO_VARIANTS,
 } from "./common";
+import { RealIO } from "../shared/io/real";
 
 const main = () => {
 	const repoType = process.env.REPO;
@@ -31,7 +32,7 @@ const main = () => {
 
 	switch (resource) {
 		case "account":
-			accountCommands.run(accountRepo, commandArgs);
+			accountCommands.run(RealIO, accountRepo, commandArgs);
 			break;
 
 		default:

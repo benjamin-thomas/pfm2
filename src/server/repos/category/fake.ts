@@ -1,14 +1,15 @@
-import type { Category } from "../../../shared/category";
-import { categoryRows } from "../../../shared/fakeData";
+import type { Category, NewCategory } from "../../../shared/category";
+import type { IO } from "../../../shared/io/interface";
 import { Maybe } from "../../../shared/utils/maybe";
 import type { CategoryRepo } from "./interface";
 
-const init = (): CategoryRepo => {
-	const categories: Category[] = categoryRows.map((row) => ({
-		id: row.id,
-		name: row.name,
-		createdAt: 0,
-		updatedAt: 0,
+const init = (io: IO, initialCategories: NewCategory[]): CategoryRepo => {
+	const now = io.now();
+	const categories: Category[] = initialCategories.map((cat, index) => ({
+		...cat,
+		id: index + 1,
+		createdAt: now,
+		updatedAt: now,
 	}));
 
 	return {

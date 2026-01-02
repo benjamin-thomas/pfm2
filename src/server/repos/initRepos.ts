@@ -2,6 +2,8 @@
 
 import { readFileSync } from "node:fs";
 import Database from "better-sqlite3";
+import * as FakeData from "../../shared/fakeData";
+import { RealIO } from "../../shared/io/real";
 import { impossibleBranch } from "../../shared/utils/impossibleBranch";
 import { AccountRepoFake } from "./account/fake";
 import type { AccountRepo } from "./account/interface";
@@ -35,9 +37,12 @@ export type Repos = {
 };
 
 const initFakeRepos = (): Repos => {
-	const transactionRepo = TransactionRepoFake.initWithSeed();
-	const accountRepo = AccountRepoFake.init();
-	const categoryRepo = CategoryRepoFake.init();
+	const transactionRepo = TransactionRepoFake.init(
+		RealIO,
+		FakeData.transactionRows,
+	);
+	const accountRepo = AccountRepoFake.init(RealIO, FakeData.accountRows);
+	const categoryRepo = CategoryRepoFake.init(RealIO, FakeData.categoryRows);
 	const balanceRepo = BalanceRepoFake.init(
 		transactionRepo,
 		accountRepo,
