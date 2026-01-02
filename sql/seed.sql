@@ -1,3 +1,10 @@
+INSERT INTO categories (name)
+VALUES ('Equity')
+     , ('Assets')
+     , ('Income')
+     , ('Expenses')
+;
+
 INSERT INTO accounts (category_id, name)
 VALUES (1, 'OpeningBalance')    -- account_id =  1
      , (2, 'Checking account')  -- account_id =  2

@@ -16,9 +16,7 @@ const init = (
 			const accounts = accountRepo.listAll();
 
 			// Build account name lookup
-			const accountNameMap = new Map(
-				accounts.map((a) => [a.accountId, a.name]),
-			);
+			const accountNameMap = new Map(accounts.map((a) => [a.id, a.name]));
 
 			// Convert transactions to ledger entries with flow direction
 			const entries: LedgerEntry[] = transactions.map((tx) => {

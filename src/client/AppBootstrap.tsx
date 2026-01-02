@@ -36,7 +36,7 @@ export const AppBootstrap = ({ api }: AppBootstrapProps) => {
 						const accountParam = searchParams.get("account");
 						if (!accountParam && accounts.length > 0) {
 							setSearchParams((params) => {
-								params.set("account", String(accounts[0].accountId));
+								params.set("account", String(accounts[0].id));
 								return params;
 							});
 						}

@@ -203,7 +203,7 @@ const init = (seedData: SeedData): Api => {
 			list: () => {
 				// Return all accounts from accountRows
 				const accounts: Account[] = accountRows.map((account) => ({
-					accountId: account.id,
+					id: account.id,
 					name: account.name,
 					categoryId: account.categoryId,
 					createdAt: 0,

@@ -65,13 +65,6 @@ BEGIN
     WHERE category_id = NEW.category_id;
 END;
 
-INSERT INTO categories (name)
-VALUES ('Equity')
-     , ('Assets')
-     , ('Income')
-     , ('Expenses')
-     ;
-
 CREATE TABLE accounts
     ( account_id  INTEGER PRIMARY KEY
     , category_id INTEGER NOT NULL REFERENCES categories(category_id)

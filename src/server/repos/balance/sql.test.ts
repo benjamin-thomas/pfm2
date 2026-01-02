@@ -40,7 +40,7 @@ describe("BalanceRepoSql", () => {
 	});
 
 	it("calculates balance for a single transaction", () => {
-		// Insert one transaction: Checking -> Groceries = 5000 cents ($50)
+		// Insert one transaction: Checking -> Groceries = 50€
 		db.prepare(
 			"INSERT INTO transactions (from_account_id, to_account_id, date, descr, cents) VALUES (?, ?, ?, ?, ?)",
 		).run(
@@ -56,7 +56,7 @@ describe("BalanceRepoSql", () => {
 		// Should have 2 accounts with non-zero balance
 		expect(balances).toHaveLength(2);
 
-		// Checking lost $50 (sent money out)
+		// Checking lost 50€ (sent money out)
 		const checking = balances.find((b) => b.accountName === "Checking account");
 		expect(checking).toMatchObject({
 			accountName: "Checking account",
@@ -64,7 +64,7 @@ describe("BalanceRepoSql", () => {
 			balance: -5000,
 		});
 
-		// Groceries gained $50 (received money)
+		// Groceries gained 50€ (received money)
 		const groceries = balances.find((b) => b.accountName === "Groceries");
 		expect(groceries).toMatchObject({
 			accountName: "Groceries",

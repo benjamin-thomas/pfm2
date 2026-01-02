@@ -1,4 +1,4 @@
-import type { Account, Category, NewAccount } from "../../../shared/account";
+import type { Account, NewAccount } from "../../../shared/account";
 import type { Maybe } from "../../../shared/utils/maybe";
 
 export type AffectedRows = { affectedRows: number };
@@ -9,9 +9,4 @@ export interface AccountRepo {
 	create(account: NewAccount): Account;
 	update(id: number, account: NewAccount): AffectedRows;
 	delete(id: number): AffectedRows;
-}
-
-export interface CategoryRepo {
-	listAll(): Category[];
-	findById(id: number): Maybe<Category>;
 }

@@ -1,27 +1,15 @@
-// Account and Category domain types
+// Account domain types
 import { Decoder } from "elm-decoders";
 
-export type Category = {
-	categoryId: number;
-	name: string;
-	createdAt: number;
-	updatedAt: number;
-};
-
 export type Account = {
-	accountId: number;
+	id: number;
 	categoryId: number;
 	name: string;
 	createdAt: number;
 	updatedAt: number;
 };
 
-export type NewAccount = Omit<Account, "accountId" | "createdAt" | "updatedAt">;
-
-export type NewCategory = Omit<
-	Category,
-	"categoryId" | "createdAt" | "updatedAt"
->;
+export type NewAccount = Omit<Account, "id" | "createdAt" | "updatedAt">;
 
 // View model with balance
 export type AccountView = Account & {
@@ -40,7 +28,7 @@ export type AccountBalance = {
 
 // Decoders for runtime validation
 export const accountDecoder: Decoder<Account> = Decoder.object({
-	accountId: Decoder.number,
+	id: Decoder.number,
 	categoryId: Decoder.number,
 	name: Decoder.string,
 	createdAt: Decoder.number,

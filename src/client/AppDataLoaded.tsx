@@ -1,20 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import type { Account, AccountBalance } from "../shared/account";
 import type { LedgerEntry } from "../shared/ledger";
+import type { Transaction } from "../shared/transaction.ts";
 import { isUnknownAccount } from "../shared/utils/accounts";
 import { impossibleBranch } from "../shared/utils/impossibleBranch";
 import { Maybe } from "../shared/utils/maybe";
 import { Result } from "../shared/utils/result";
 import type { Api, ApiError } from "./api-client/interface";
 import { BalanceCards } from "./components/BalanceCards";
-import TransactionFilters from "./components/TransactionFilters";
-import { TransactionList } from "./components/TransactionList";
 import {
 	type DialogMode,
 	type TransactionData,
 	TransactionDialog,
 } from "./components/Transaction/TransactionDialog";
-import type { Transaction } from "../shared/transaction.ts";
+import TransactionFilters from "./components/TransactionFilters";
+import { TransactionList } from "./components/TransactionList";
 import "./AppDataLoaded.css";
 
 type AppDataLoadedProps = {
@@ -124,9 +124,7 @@ const AppDataLoaded = ({
 	};
 
 	// Sanity check: must have valid selected account
-	const selectedAccount = accounts.find(
-		(a) => a.accountId === selectedAccountId,
-	);
+	const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
 	if (!selectedAccount) {
 		throw new Error(
 			`Data integrity error: Selected account ${selectedAccountId} not found`,
@@ -134,10 +132,14 @@ const AppDataLoaded = ({
 	}
 
 	// Extract unknown accounts (validated at startup)
-	const unknownExpense = accounts.find((acc) => acc.name === "Unknown_EXPENSE");
-	const unknownIncome = accounts.find((acc) => acc.name === "Unknown_INCOME");
+	const unknownExpenseAccount = accounts.find(
+		(acc) => acc.name === "Unknown_EXPENSE",
+	);
+	const unknownIncomeAccount = accounts.find(
+		(acc) => acc.name === "Unknown_INCOME",
+	);
 
-	if (!unknownExpense || !unknownIncome) {
+	if (!unknownExpenseAccount || !unknownIncomeAccount) {
 		throw new Error("Data integrity error: Unknown accounts must exist");
 	}
 
@@ -291,7 +293,7 @@ const AppDataLoaded = ({
 										Maybe.just({
 											kind: "add",
 											defaultFromAccountId: selectedAccountId,
-											defaultToAccountId: unknownExpense.accountId,
+											defaultToAccountId: unknownExpenseAccount.id,
 										}),
 									)
 								}

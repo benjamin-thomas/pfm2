@@ -1,11 +1,11 @@
-import type { Account, Category, NewAccount } from "../../../shared/account";
-import { accountRows, categoryRows } from "../../../shared/fakeData";
+import type { Account, NewAccount } from "../../../shared/account";
+import { accountRows } from "../../../shared/fakeData";
 import { Maybe } from "../../../shared/utils/maybe";
-import type { AccountRepo, AffectedRows, CategoryRepo } from "./interface";
+import type { AccountRepo, AffectedRows } from "./interface";
 
 const init = (): AccountRepo => {
 	const accounts: Account[] = accountRows.map((row) => ({
-		accountId: row.id,
+		id: row.id,
 		name: row.name,
 		categoryId: row.categoryId,
 		createdAt: 0,
@@ -19,14 +19,14 @@ const init = (): AccountRepo => {
 		},
 
 		findById: (id: number): Maybe<Account> => {
-			const account = accounts.find((a) => a.accountId === id);
+			const account = accounts.find((a) => a.id === id);
 			return account ? Maybe.just(account) : Maybe.nothing;
 		},
 
 		create: (newAccount: NewAccount): Account => {
 			const account: Account = {
 				...newAccount,
-				accountId: nextId++,
+				id: nextId++,
 				createdAt: Math.floor(Date.now() / 1000),
 				updatedAt: Math.floor(Date.now() / 1000),
 			};
@@ -35,13 +35,13 @@ const init = (): AccountRepo => {
 		},
 
 		update: (id: number, updates: NewAccount): AffectedRows => {
-			const index = accounts.findIndex((a) => a.accountId === id);
+			const index = accounts.findIndex((a) => a.id === id);
 			if (index === -1) return { affectedRows: 0 };
 
 			const existing = accounts[index];
 			const updated: Account = {
 				...updates,
-				accountId: existing.accountId,
+				id: existing.id,
 				createdAt: existing.createdAt,
 				updatedAt: Math.floor(Date.now() / 1000),
 			};
@@ -50,7 +50,7 @@ const init = (): AccountRepo => {
 		},
 
 		delete: (id: number): AffectedRows => {
-			const index = accounts.findIndex((a) => a.accountId === id);
+			const index = accounts.findIndex((a) => a.id === id);
 			if (index === -1) return { affectedRows: 0 };
 
 			accounts.splice(index, 1);
@@ -60,25 +60,3 @@ const init = (): AccountRepo => {
 };
 
 export const AccountRepoFake = { init } as const;
-
-const initCategory = (): CategoryRepo => {
-	const categories: Category[] = categoryRows.map((row) => ({
-		categoryId: row.id,
-		name: row.name,
-		createdAt: 0,
-		updatedAt: 0,
-	}));
-
-	return {
-		listAll: (): Category[] => {
-			return categories;
-		},
-
-		findById: (id: number): Maybe<Category> => {
-			const category = categories.find((c) => c.categoryId === id);
-			return category ? Maybe.just(category) : Maybe.nothing;
-		},
-	};
-};
-
-export const CategoryRepoFake = { init: initCategory } as const;

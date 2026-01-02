@@ -29,9 +29,9 @@ export const registerTransactionRoutes = (
 ): void => {
 	// GET /api/transactions?search=term
 	// http GET :8086/api/transactions search==grocery
-	router.get("/api/transactions", async (_req, res) => {
+	router.get("/api/transactions", (_req, res) => {
 		try {
-			const result: Transaction[] = await transactionQuery.list(Maybe.nothing);
+			const result: Transaction[] = transactionQuery.list(Maybe.nothing);
 			res.json(result);
 		} catch (error) {
 			console.error("Error in GET /api/transactions:", error);
@@ -40,7 +40,7 @@ export const registerTransactionRoutes = (
 	});
 
 	// GET /api/transactions/:id
-	router.get("/api/transactions/:id", async (req, res) => {
+	router.get("/api/transactions/:id", (req, res) => {
 		try {
 			const id = parseInt(req.params.id, 10);
 			if (Number.isNaN(id)) {
@@ -48,7 +48,7 @@ export const registerTransactionRoutes = (
 				return;
 			}
 
-			const maybeTransaction = await transactionQuery.findById(id);
+			const maybeTransaction = transactionQuery.findById(id);
 
 			Maybe.match(
 				maybeTransaction,
@@ -66,20 +66,19 @@ export const registerTransactionRoutes = (
 	});
 
 	// POST /api/transactions
-	router.post("/api/transactions", async (req, res) => {
+	router.post("/api/transactions", (req, res) => {
 		try {
 			const result = newTransactionDecoder.run(req.body);
 
-			await DecoderUtil.match(
+			DecoderUtil.match(
 				result,
 				(error) => {
 					res
 						.status(400)
 						.json({ error: "Invalid transaction data", details: error });
-					return Promise.resolve();
 				},
-				async (newTransaction: NewTransactionInput) => {
-					const transaction = await transactionCommand.create(newTransaction);
+				(newTransaction: NewTransactionInput) => {
+					const transaction = transactionCommand.create(newTransaction);
 					res.status(201).json(transaction);
 				},
 			);
@@ -90,7 +89,7 @@ export const registerTransactionRoutes = (
 	});
 
 	// PUT /api/transactions/:id
-	router.put("/api/transactions/:id", async (req, res) => {
+	router.put("/api/transactions/:id", (req, res) => {
 		try {
 			const id = parseInt(req.params.id, 10);
 			if (Number.isNaN(id)) {
@@ -100,16 +99,15 @@ export const registerTransactionRoutes = (
 
 			const result = newTransactionDecoder.run(req.body);
 
-			await DecoderUtil.match(
+			DecoderUtil.match(
 				result,
 				(error) => {
 					res
 						.status(400)
 						.json({ error: "Invalid transaction data", details: error });
-					return Promise.resolve();
 				},
-				async (updates) => {
-					const { affectedRows } = await transactionCommand.update(id, updates);
+				(updates) => {
+					const { affectedRows } = transactionCommand.update(id, updates);
 					if (affectedRows === 0) {
 						res.status(404).json({ error: "Transaction not found" });
 						return;
@@ -125,7 +123,7 @@ export const registerTransactionRoutes = (
 	});
 
 	// DELETE /api/transactions/:id
-	router.delete("/api/transactions/:id", async (req, res) => {
+	router.delete("/api/transactions/:id", (req, res) => {
 		try {
 			const id = parseInt(req.params.id, 10);
 			if (Number.isNaN(id)) {
@@ -133,7 +131,7 @@ export const registerTransactionRoutes = (
 				return;
 			}
 
-			const { affectedRows } = await transactionCommand.delete(id);
+			const { affectedRows } = transactionCommand.delete(id);
 			if (affectedRows === 0) {
 				res.status(404).json({ error: "Transaction not found" });
 				return;

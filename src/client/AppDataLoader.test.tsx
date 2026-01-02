@@ -16,7 +16,7 @@ describe("AppDataLoader", () => {
 	// Helper to convert SeedAccount to Account
 	const toAccounts = (seedAccounts: SeedAccount[]) =>
 		seedAccounts.map((acc) => ({
-			accountId: acc.id,
+			id: acc.id,
 			categoryId: acc.categoryId,
 			name: acc.name,
 			createdAt: 0,
@@ -81,7 +81,13 @@ describe("AppDataLoader", () => {
 		render(
 			<AppDataLoader
 				api={api}
-				initialAccounts={toAccounts([unknownExpense, unknownIncome, employer, checking, groceries])}
+				initialAccounts={toAccounts([
+					unknownExpense,
+					unknownIncome,
+					employer,
+					checking,
+					groceries,
+				])}
 				selectedAccountId={checking.id}
 				setSelectedAccountId={noOp}
 			/>,
@@ -220,7 +226,14 @@ describe("AppDataLoader", () => {
 			render(
 				<AppDataLoader
 					api={api}
-					initialAccounts={toAccounts([unknownExpense, unknownIncome, checking, employer, groceries, clothing])}
+					initialAccounts={toAccounts([
+						unknownExpense,
+						unknownIncome,
+						checking,
+						employer,
+						groceries,
+						clothing,
+					])}
 					selectedAccountId={checking.id}
 					setSelectedAccountId={noOp}
 				/>,
@@ -255,7 +268,14 @@ describe("AppDataLoader", () => {
 			const { rerender } = render(
 				<AppDataLoader
 					api={api}
-					initialAccounts={toAccounts([unknownExpense, unknownIncome, checking, employer, groceries, clothing])}
+					initialAccounts={toAccounts([
+						unknownExpense,
+						unknownIncome,
+						checking,
+						employer,
+						groceries,
+						clothing,
+					])}
 					selectedAccountId={checking.id}
 					setSelectedAccountId={noOp}
 				/>,
@@ -274,7 +294,14 @@ describe("AppDataLoader", () => {
 			rerender(
 				<AppDataLoader
 					api={api}
-					initialAccounts={toAccounts([unknownExpense, unknownIncome, checking, employer, groceries, clothing])}
+					initialAccounts={toAccounts([
+						unknownExpense,
+						unknownIncome,
+						checking,
+						employer,
+						groceries,
+						clothing,
+					])}
 					selectedAccountId={groceries.id}
 					setSelectedAccountId={noOp}
 				/>,
@@ -350,7 +377,12 @@ describe("AppDataLoader", () => {
 		render(
 			<AppDataLoader
 				api={api}
-				initialAccounts={toAccounts([unknownExpense, unknownIncome, checking, groceries])}
+				initialAccounts={toAccounts([
+					unknownExpense,
+					unknownIncome,
+					checking,
+					groceries,
+				])}
 				selectedAccountId={checking.id}
 				setSelectedAccountId={noOp}
 			/>,
@@ -453,7 +485,12 @@ describe("AppDataLoader", () => {
 			render(
 				<AppDataLoader
 					api={api}
-					initialAccounts={toAccounts([checking, groceries, unknownExpense, unknownIncome])}
+					initialAccounts={toAccounts([
+						checking,
+						groceries,
+						unknownExpense,
+						unknownIncome,
+					])}
 					selectedAccountId={checking.id}
 					setSelectedAccountId={noOp}
 				/>,
@@ -561,7 +598,12 @@ describe("AppDataLoader", () => {
 			render(
 				<AppDataLoader
 					api={api}
-					initialAccounts={toAccounts([checking, groceries, unknownExpense, unknownIncome])}
+					initialAccounts={toAccounts([
+						checking,
+						groceries,
+						unknownExpense,
+						unknownIncome,
+					])}
 					selectedAccountId={checking.id}
 					setSelectedAccountId={noOp}
 				/>,
@@ -683,7 +725,12 @@ describe("AppDataLoader", () => {
 			render(
 				<AppDataLoader
 					api={api}
-					initialAccounts={toAccounts([checking, groceries, unknownExpense, unknownIncome])}
+					initialAccounts={toAccounts([
+						checking,
+						groceries,
+						unknownExpense,
+						unknownIncome,
+					])}
 					selectedAccountId={checking.id}
 					setSelectedAccountId={noOp}
 				/>,

@@ -1,6 +1,7 @@
 import type { AccountBalance } from "../../../shared/account";
 import { Maybe } from "../../../shared/utils/maybe";
-import type { AccountRepo, CategoryRepo } from "../account/interface";
+import type { AccountRepo } from "../account/interface";
+import type { CategoryRepo } from "../category/interface";
 import type { TransactionRepo } from "../transaction/interface";
 import type { BalanceRepo } from "./interface";
 
@@ -40,18 +41,16 @@ const init = (
 			}
 
 			// Build AccountBalance objects
-			const categoryMap = new Map(
-				categories.map((c) => [c.categoryId, c.name]),
-			);
+			const categoryMap = new Map(categories.map((c) => [c.id, c.name]));
 
 			return accounts
 				.map((account) => {
-					const balances = balanceMap.get(account.accountId) || {
+					const balances = balanceMap.get(account.id) || {
 						added: 0,
 						removed: 0,
 					};
 					return {
-						accountId: account.accountId,
+						accountId: account.id,
 						accountName: account.name,
 						categoryId: account.categoryId,
 						categoryName: categoryMap.get(account.categoryId) || "Unknown",

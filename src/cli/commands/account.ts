@@ -4,19 +4,17 @@ import type { AccountRepo } from "../../server/repos/account/interface";
 import { Maybe } from "../../shared/utils/maybe";
 import { Result } from "../../shared/utils/result";
 
-export const run = async (repo: AccountRepo, args: string[]) => {
+export const run = (repo: AccountRepo, args: string[]) => {
 	const accountQuery = AccountQuery.init(repo);
 	const accountCommand = AccountCommand.init(repo);
 	const command = args[0];
 
 	switch (command) {
 		case "list": {
-			const accounts = await accountQuery.list();
+			const accounts = accountQuery.list();
 			console.log("Accounts:");
 			accounts.forEach((acc) => {
-				console.log(
-					`  [${acc.accountId}] ${acc.name} (category: ${acc.categoryId})`,
-				);
+				console.log(`  [${acc.id}] ${acc.name} (category: ${acc.categoryId})`);
 			});
 			break;
 		}
@@ -34,7 +32,7 @@ export const run = async (repo: AccountRepo, args: string[]) => {
 				return;
 			}
 
-			const result = await accountQuery.findById(id);
+			const result = accountQuery.findById(id);
 
 			Result.match(
 				result,
@@ -48,7 +46,7 @@ export const run = async (repo: AccountRepo, args: string[]) => {
 							console.log("Account not found");
 						},
 						(account) => {
-							console.log(`Account [${account.accountId}]:`);
+							console.log(`Account [${account.id}]:`);
 							console.log(`  Name: ${account.name}`);
 							console.log(`  Category ID: ${account.categoryId}`);
 						},
@@ -73,8 +71,8 @@ export const run = async (repo: AccountRepo, args: string[]) => {
 				return;
 			}
 
-			const account = await accountCommand.create({ name, categoryId });
-			console.log(`Created account [${account.accountId}]: ${account.name}`);
+			const account = accountCommand.create({ name, categoryId });
+			console.log(`Created account [${account.id}]: ${account.name}`);
 			break;
 		}
 
@@ -95,7 +93,7 @@ export const run = async (repo: AccountRepo, args: string[]) => {
 				return;
 			}
 
-			const { affectedRows } = await accountCommand.update(id, {
+			const { affectedRows } = accountCommand.update(id, {
 				name,
 				categoryId,
 			});
@@ -120,7 +118,7 @@ export const run = async (repo: AccountRepo, args: string[]) => {
 				return;
 			}
 
-			const result = await accountCommand.delete(id);
+			const result = accountCommand.delete(id);
 
 			Result.match(
 				result,

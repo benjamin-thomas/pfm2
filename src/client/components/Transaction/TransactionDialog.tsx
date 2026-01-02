@@ -296,9 +296,9 @@ export const TransactionDialog = ({
 								data-testid="transaction-from-account"
 							>
 								{accounts
-									.filter((acc) => acc.accountId.toString() !== toAccount)
+									.filter((acc) => acc.id.toString() !== toAccount)
 									.map((acc) => (
-										<option key={acc.accountId} value={acc.accountId}>
+										<option key={acc.id} value={acc.id}>
 											{acc.name}
 										</option>
 									))}
@@ -317,9 +317,9 @@ export const TransactionDialog = ({
 								data-testid="transaction-to-account"
 							>
 								{accounts
-									.filter((acc) => acc.accountId.toString() !== fromAccount)
+									.filter((acc) => acc.id.toString() !== fromAccount)
 									.map((acc) => (
-										<option key={acc.accountId} value={acc.accountId}>
+										<option key={acc.id} value={acc.id}>
 											{acc.name}
 										</option>
 									))}

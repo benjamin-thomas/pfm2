@@ -3,16 +3,21 @@
 import { readFileSync } from "node:fs";
 import Database from "better-sqlite3";
 import { impossibleBranch } from "../../shared/utils/impossibleBranch";
-import { AccountRepoFake, CategoryRepoFake } from "./account/fake";
-import type { AccountRepo, CategoryRepo } from "./account/interface";
+import { AccountRepoFake } from "./account/fake";
+import type { AccountRepo } from "./account/interface";
+import { AccountRepoSql } from "./account/sql";
 import { BalanceRepoFake } from "./balance/fake";
 import type { BalanceRepo } from "./balance/interface";
 import { BalanceRepoSql } from "./balance/sql";
+import { CategoryRepoFake } from "./category/fake";
+import type { CategoryRepo } from "./category/interface";
+import { CategoryRepoSql } from "./category/sql";
 import { LedgerRepoFake } from "./ledger/fake";
 import type { LedgerRepo } from "./ledger/interface";
 import { LedgerRepoSql } from "./ledger/sql";
 import { TransactionRepoFake } from "./transaction/fake";
 import type { TransactionRepo } from "./transaction/interface";
+import { TransactionRepoSql } from "./transaction/sql";
 
 export const REPO_VARIANTS = ["fake", "sql"] as const;
 export type RepoVariant = (typeof REPO_VARIANTS)[number];
@@ -59,13 +64,11 @@ const initSqlRepos = (): Repos => {
 
 	const db = new Database(dbPath);
 	db.exec(readFileSync("sql/init.sql", "utf-8"));
+	db.exec(readFileSync("sql/seed.sql", "utf-8"));
 
-	// For SQL, we still need fake account/transaction/category repos
-	// since AccountRepoSql and TransactionRepoSql are not yet implemented
-	const transactionRepo = TransactionRepoFake.initWithSeed();
-	const accountRepo = AccountRepoFake.init();
-	const categoryRepo = CategoryRepoFake.init();
-
+	const transactionRepo = TransactionRepoSql.init(db);
+	const accountRepo = AccountRepoSql.init(db);
+	const categoryRepo = CategoryRepoSql.init(db);
 	const balanceRepo = BalanceRepoSql.init(db);
 	const ledgerRepo = LedgerRepoSql.init(db);
 

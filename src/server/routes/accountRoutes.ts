@@ -20,9 +20,9 @@ export const registerAccountRoutes = (
 	accountCommand: AccountCommand,
 ): void => {
 	// GET /api/accounts
-	router.get("/api/accounts", async (_req, res) => {
+	router.get("/api/accounts", (_req, res) => {
 		try {
-			const accounts = await accountQuery.list();
+			const accounts = accountQuery.list();
 			res.json(accounts);
 		} catch (error) {
 			console.error("Error in GET /api/accounts:", error);
@@ -31,7 +31,7 @@ export const registerAccountRoutes = (
 	});
 
 	// GET /api/accounts/:id
-	router.get("/api/accounts/:id", async (req, res) => {
+	router.get("/api/accounts/:id", (req, res) => {
 		try {
 			const id = parseInt(req.params.id, 10);
 			if (Number.isNaN(id)) {
@@ -39,7 +39,7 @@ export const registerAccountRoutes = (
 				return;
 			}
 
-			const result = await accountQuery.findById(id);
+			const result = accountQuery.findById(id);
 
 			Result.match(
 				result,
@@ -72,20 +72,19 @@ export const registerAccountRoutes = (
 	});
 
 	// POST /api/accounts
-	router.post("/api/accounts", async (req, res) => {
+	router.post("/api/accounts", (req, res) => {
 		try {
 			const result = newAccountDecoder.run(req.body);
 
-			await DecoderUtil.match(
+			DecoderUtil.match(
 				result,
 				(error) => {
 					res
 						.status(400)
 						.json({ error: "Invalid account data", details: error });
-					return Promise.resolve();
 				},
-				async (newAccount: NewAccountInput) => {
-					const account = await accountCommand.create(newAccount);
+				(newAccount: NewAccountInput) => {
+					const account = accountCommand.create(newAccount);
 					res.status(201).json(account);
 				},
 			);
@@ -96,7 +95,7 @@ export const registerAccountRoutes = (
 	});
 
 	// PUT /api/accounts/:id
-	router.put("/api/accounts/:id", async (req, res) => {
+	router.put("/api/accounts/:id", (req, res) => {
 		try {
 			const id = parseInt(req.params.id, 10);
 			if (Number.isNaN(id)) {
@@ -106,16 +105,15 @@ export const registerAccountRoutes = (
 
 			const result = newAccountDecoder.run(req.body);
 
-			await DecoderUtil.match(
+			DecoderUtil.match(
 				result,
 				(error) => {
 					res
 						.status(400)
 						.json({ error: "Invalid account data", details: error });
-					return Promise.resolve();
 				},
-				async (updates: NewAccountInput) => {
-					const { affectedRows } = await accountCommand.update(id, updates);
+				(updates: NewAccountInput) => {
+					const { affectedRows } = accountCommand.update(id, updates);
 
 					if (affectedRows === 0) {
 						res.status(404).json({ error: "Account not found" });
@@ -132,7 +130,7 @@ export const registerAccountRoutes = (
 	});
 
 	// DELETE /api/accounts/:id
-	router.delete("/api/accounts/:id", async (req, res) => {
+	router.delete("/api/accounts/:id", (req, res) => {
 		try {
 			const id = parseInt(req.params.id, 10);
 			if (Number.isNaN(id)) {
@@ -140,7 +138,7 @@ export const registerAccountRoutes = (
 				return;
 			}
 
-			const result = await accountCommand.delete(id);
+			const result = accountCommand.delete(id);
 
 			Result.match(
 				result,

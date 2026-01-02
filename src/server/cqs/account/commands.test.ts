@@ -6,25 +6,25 @@ import { AccountCommand } from "./commands";
 
 describe("Account Commands", () => {
 	describe("create", () => {
-		it("creates a new account", async () => {
+		it("creates a new account", () => {
 			const repo = AccountRepoFake.init();
 			const accountCommand = AccountCommand.init(repo);
-			const account = await accountCommand.create({
+			const account = accountCommand.create({
 				name: "New Account",
 				categoryId: 2,
 			});
 
 			assert.equal(account.name, "New Account");
 			assert.equal(account.categoryId, 2);
-			assert.property(account, "accountId");
+			assert.property(account, "id");
 		});
 	});
 
 	describe("update", () => {
-		it("updates an existing account", async () => {
+		it("updates an existing account", () => {
 			const repo = AccountRepoFake.init();
 			const accountCommand = AccountCommand.init(repo);
-			const { affectedRows } = await accountCommand.update(2, {
+			const { affectedRows } = accountCommand.update(2, {
 				name: "Updated Name",
 				categoryId: 3,
 			});
@@ -32,7 +32,7 @@ describe("Account Commands", () => {
 			assert.equal(affectedRows, 1);
 
 			// Verify the update
-			const maybeAccount = await repo.findById(2);
+			const maybeAccount = repo.findById(2);
 			Maybe.match(
 				maybeAccount,
 				() => {
@@ -45,10 +45,10 @@ describe("Account Commands", () => {
 			);
 		});
 
-		it("returns 0 affected rows when account not found", async () => {
+		it("returns 0 affected rows when account not found", () => {
 			const repo = AccountRepoFake.init();
 			const accountCommand = AccountCommand.init(repo);
-			const { affectedRows } = await accountCommand.update(999, {
+			const { affectedRows } = accountCommand.update(999, {
 				name: "Updated Name",
 				categoryId: 3,
 			});
@@ -58,10 +58,10 @@ describe("Account Commands", () => {
 	});
 
 	describe("delete", () => {
-		it("deletes an existing account", async () => {
+		it("deletes an existing account", () => {
 			const repo = AccountRepoFake.init();
 			const accountCommand = AccountCommand.init(repo);
-			const result = await accountCommand.delete(2);
+			const result = accountCommand.delete(2);
 
 			Result.match(
 				result,
@@ -74,14 +74,14 @@ describe("Account Commands", () => {
 			);
 
 			// Verify it's gone
-			const maybeAccount = await repo.findById(2);
+			const maybeAccount = repo.findById(2);
 			assert.equal(maybeAccount.tag, "Nothing");
 		});
 
-		it("returns 0 affected rows when account not found", async () => {
+		it("returns 0 affected rows when account not found", () => {
 			const repo = AccountRepoFake.init();
 			const accountCommand = AccountCommand.init(repo);
-			const result = await accountCommand.delete(999);
+			const result = accountCommand.delete(999);
 
 			Result.match(
 				result,
@@ -94,23 +94,23 @@ describe("Account Commands", () => {
 			);
 		});
 
-		it("returns error when account is locked", async () => {
+		it("returns error when account is locked", () => {
 			const repo = AccountRepoFake.init();
 			// Create a locked account
-			const account = await repo.create({
+			const account = repo.create({
 				name: "SYSTEM_Admin",
 				categoryId: 2,
 			});
 
 			const accountCommand = AccountCommand.init(repo);
-			const result = await accountCommand.delete(account.accountId);
+			const result = accountCommand.delete(account.id);
 
 			Result.match(
 				result,
 				(error) => {
 					assert.deepStrictEqual(error, {
 						tag: "AccountLocked",
-						accountId: account.accountId,
+						accountId: account.id,
 						name: "SYSTEM_Admin",
 					});
 				},

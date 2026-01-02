@@ -77,7 +77,7 @@ const parseCommandLine = (line: string): string[] => {
 	return args;
 };
 
-const processCommand = async (line: string) => {
+const processCommand = (line: string) => {
 	const args = parseCommandLine(line.trim());
 	const resource = args[0];
 	const commandArgs = args.slice(1);
@@ -105,7 +105,7 @@ const processCommand = async (line: string) => {
 			break;
 
 		case "account":
-			await accountCommands.run(accountRepo, commandArgs);
+			accountCommands.run(accountRepo, commandArgs);
 			break;
 
 		default:
@@ -119,12 +119,12 @@ console.log("Type 'help' for commands, 'exit' to quit\n");
 
 rl.prompt();
 
-rl.on("line", async (line) => {
+rl.on("line", (line) => {
 	if (line.trim()) {
 		commandHistory.push(line);
 	}
 	try {
-		await processCommand(line);
+		processCommand(line);
 	} catch (err) {
 		console.error("Error:", err);
 	}

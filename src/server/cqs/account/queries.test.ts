@@ -6,23 +6,23 @@ import { AccountQuery } from "./queries";
 
 describe("Account Queries", () => {
 	describe("list", () => {
-		it("returns all accounts", async () => {
+		it("returns all accounts", () => {
 			const repo = AccountRepoFake.init();
 			const accountQuery = AccountQuery.init(repo);
-			const accounts = await accountQuery.list();
+			const accounts = accountQuery.list();
 
 			assert.isAbove(accounts.length, 0);
-			assert.property(accounts[0], "accountId");
+			assert.property(accounts[0], "id");
 			assert.property(accounts[0], "name");
 			assert.property(accounts[0], "categoryId");
 		});
 	});
 
 	describe("findById", () => {
-		it("returns account when found", async () => {
+		it("returns account when found", () => {
 			const repo = AccountRepoFake.init();
 			const accountQuery = AccountQuery.init(repo);
-			const result = await accountQuery.findById(2);
+			const result = accountQuery.findById(2);
 
 			Result.match(
 				result,
@@ -36,7 +36,7 @@ describe("Account Queries", () => {
 							throw new Error("Expected some value");
 						},
 						(account) => {
-							assert.equal(account.accountId, 2);
+							assert.equal(account.id, 2);
 							assert.equal(account.name, "Checking account");
 						},
 					);
@@ -44,10 +44,10 @@ describe("Account Queries", () => {
 			);
 		});
 
-		it("returns none when account not found", async () => {
+		it("returns none when account not found", () => {
 			const repo = AccountRepoFake.init();
 			const accountQuery = AccountQuery.init(repo);
-			const result = await accountQuery.findById(999);
+			const result = accountQuery.findById(999);
 
 			Result.match(
 				result,
@@ -60,23 +60,23 @@ describe("Account Queries", () => {
 			);
 		});
 
-		it("returns error when account is hidden", async () => {
+		it("returns error when account is hidden", () => {
 			const repo = AccountRepoFake.init();
 			// Create a hidden account
-			const account = await repo.create({
+			const account = repo.create({
 				name: "HIDDEN_Secret",
 				categoryId: 2,
 			});
 
 			const accountQuery = AccountQuery.init(repo);
-			const result = await accountQuery.findById(account.accountId);
+			const result = accountQuery.findById(account.id);
 
 			Result.match(
 				result,
 				(error) => {
 					assert.deepEqual(error, {
 						tag: "AccountHidden",
-						accountId: account.accountId,
+						accountId: account.id,
 					});
 				},
 				() => {

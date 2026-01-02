@@ -1,4 +1,6 @@
 // Common CLI utilities
+import { readFileSync } from "node:fs";
+import Database from "better-sqlite3";
 import { AccountRepoFake } from "../server/repos/account/fake";
 import type { AccountRepo } from "../server/repos/account/interface";
 import { AccountRepoSql } from "../server/repos/account/sql";
@@ -15,15 +17,23 @@ export const isValidRepoVariant = (value?: string): value is REPO_VARIANT => {
 };
 
 export const makeAccountRepoOrThrow = (repoType: REPO_VARIANT): AccountRepo => {
-	return (() => {
-		switch (repoType) {
-			case "fake":
-				return AccountRepoFake.init();
-			case "sql":
-				return AccountRepoSql.init();
-			/* v8 ignore next 2 */
-			default:
-				return impossibleBranch(repoType);
+	switch (repoType) {
+		case "fake":
+			return AccountRepoFake.init();
+		case "sql": {
+			const dbPath = process.env.DB_PATH;
+			if (!dbPath) {
+				throw new Error(
+					"Missing mandatory env var: DB_PATH (required when REPO=sql)",
+				);
+			}
+			const db = new Database(dbPath);
+			db.exec(readFileSync("sql/init.sql", "utf-8"));
+			db.exec(readFileSync("sql/seed.sql", "utf-8"));
+			return AccountRepoSql.init(db);
 		}
-	})();
+		/* v8 ignore next 2 */
+		default:
+			return impossibleBranch(repoType);
+	}
 };

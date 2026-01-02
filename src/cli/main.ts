@@ -7,7 +7,7 @@ import {
 	REPO_VARIANTS,
 } from "./common";
 
-const main = async () => {
+const main = () => {
 	const repoType = process.env.REPO;
 	if (!isValidRepoVariant(repoType)) {
 		console.error(
@@ -31,7 +31,7 @@ const main = async () => {
 
 	switch (resource) {
 		case "account":
-			await accountCommands.run(accountRepo, commandArgs);
+			accountCommands.run(accountRepo, commandArgs);
 			break;
 
 		default:
@@ -44,7 +44,4 @@ const main = async () => {
 	}
 };
 
-main().catch((err) => {
-	console.error("Fatal error:", err);
-	process.exit(1);
-});
+main();
