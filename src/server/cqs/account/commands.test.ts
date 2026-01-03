@@ -30,8 +30,20 @@ describe("Account Commands", () => {
 		it("updates an existing account", () => {
 			const { io, setTime } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
-				{ name: "Savings", categoryId: 2 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
+				{
+					id: 2,
+					name: "Savings",
+					categoryId: 2,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 			const accountCommand = AccountCommand.init(repo);
 
@@ -65,7 +77,13 @@ describe("Account Commands", () => {
 		it("returns 0 affected rows when account not found", () => {
 			const { io } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 			const accountCommand = AccountCommand.init(repo);
 			const { affectedRows } = accountCommand.update(999, {
@@ -81,8 +99,20 @@ describe("Account Commands", () => {
 		it("deletes an existing account", () => {
 			const { io } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
-				{ name: "Savings", categoryId: 2 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
+				{
+					id: 2,
+					name: "Savings",
+					categoryId: 2,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 			const accountCommand = AccountCommand.init(repo);
 			const result = accountCommand.delete(2);
@@ -105,7 +135,13 @@ describe("Account Commands", () => {
 		it("returns 0 affected rows when account not found", () => {
 			const { io } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 			const accountCommand = AccountCommand.init(repo);
 			const result = accountCommand.delete(999);
@@ -124,7 +160,13 @@ describe("Account Commands", () => {
 		it("returns error when account is locked", () => {
 			const { io, setTime } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 
 			// Create a locked account

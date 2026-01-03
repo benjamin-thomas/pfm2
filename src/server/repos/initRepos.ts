@@ -37,12 +37,17 @@ export type Repos = {
 };
 
 const initFakeRepos = (): Repos => {
-	const transactionRepo = TransactionRepoFake.init(
-		RealIO,
-		FakeData.transactionRows,
+	const clock = { now: () => RealIO.now() };
+	const { categoryRows, categoryNameToId } = FakeData.makeCategoryRows(clock);
+	const { accountRows, accountNameToId } = FakeData.makeAccountRows(
+		clock,
+		categoryNameToId,
 	);
-	const accountRepo = AccountRepoFake.init(RealIO, FakeData.accountRows);
-	const categoryRepo = CategoryRepoFake.init(RealIO, FakeData.categoryRows);
+	const transactionRows = FakeData.makeTransactionRows(clock, accountNameToId);
+
+	const transactionRepo = TransactionRepoFake.init(RealIO, transactionRows);
+	const accountRepo = AccountRepoFake.init(RealIO, accountRows);
+	const categoryRepo = CategoryRepoFake.init(RealIO, categoryRows);
 	const balanceRepo = BalanceRepoFake.init(
 		transactionRepo,
 		accountRepo,

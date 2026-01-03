@@ -8,8 +8,20 @@ describe("CLI account commands", () => {
 		it("displays all accounts", () => {
 			const { io, logInfoLines } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
-				{ name: "Savings", categoryId: 2 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
+				{
+					id: 2,
+					name: "Savings",
+					categoryId: 2,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 
 			run(io, repo, ["list"]);
@@ -53,7 +65,13 @@ describe("CLI account commands", () => {
 		it("shows 'not found' for non-existent account", () => {
 			const { io, logInfoLines } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 
 			run(io, repo, ["find", "999"]);
@@ -64,8 +82,20 @@ describe("CLI account commands", () => {
 		it("displays account details when found", () => {
 			const { io, logInfoLines } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
-				{ name: "Savings", categoryId: 2 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
+				{
+					id: 2,
+					name: "Savings",
+					categoryId: 2,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 
 			run(io, repo, ["find", "2"]);
@@ -122,7 +152,13 @@ describe("CLI account commands", () => {
 		it("creates account with correct next id", () => {
 			const { io, logInfoLines } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Existing", categoryId: 1 },
+				{
+					id: 1,
+					name: "Existing",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 
 			run(io, repo, ["create", "New Account", "2"]);
@@ -190,7 +226,13 @@ describe("CLI account commands", () => {
 		it("shows 'not found' when account does not exist", () => {
 			const { io, logInfoLines } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 
 			run(io, repo, ["update", "999", "New Name", "2"]);
@@ -201,7 +243,13 @@ describe("CLI account commands", () => {
 		it("updates account successfully", () => {
 			const { io, logInfoLines } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 
 			run(io, repo, ["update", "1", "Updated Name", "3"]);
@@ -232,7 +280,13 @@ describe("CLI account commands", () => {
 		it("shows 'not found' when account does not exist", () => {
 			const { io, logInfoLines } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 
 			run(io, repo, ["delete", "999"]);
@@ -243,7 +297,13 @@ describe("CLI account commands", () => {
 		it("shows error when account is locked", () => {
 			const { io, logErrLines } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 			// Create a locked account (name starts with SYSTEM_)
 			repo.create({ name: "SYSTEM_Admin", categoryId: 1 });
@@ -256,8 +316,20 @@ describe("CLI account commands", () => {
 		it("deletes account successfully", () => {
 			const { io, logInfoLines } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
-				{ name: "Savings", categoryId: 2 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
+				{
+					id: 2,
+					name: "Savings",
+					categoryId: 2,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 
 			run(io, repo, ["delete", "2"]);

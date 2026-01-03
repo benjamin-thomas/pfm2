@@ -3,15 +3,10 @@ import type { IO } from "../../../shared/io/interface";
 import { Maybe } from "../../../shared/utils/maybe";
 import type { AccountRepo, AffectedRows } from "./interface";
 
-const init = (io: IO, initialAccounts: NewAccount[]): AccountRepo => {
-	const now = io.now();
-	const accounts: Account[] = initialAccounts.map((acc, index) => ({
-		...acc,
-		id: index + 1,
-		createdAt: now,
-		updatedAt: now,
-	}));
-	let nextId = accounts.length + 1;
+const init = (io: IO, initialAccounts: Account[]): AccountRepo => {
+	const accounts: Account[] = [...initialAccounts];
+	let nextId =
+		accounts.length === 0 ? 1 : Math.max(...accounts.map((a) => a.id)) + 1;
 
 	return {
 		listAll: (): Account[] => {

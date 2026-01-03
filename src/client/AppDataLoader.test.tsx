@@ -1,94 +1,93 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
+import { makeAccountRows, makeCategoryRows } from "../shared/fakeData";
+import type { Transaction } from "../shared/transaction";
 import { Result } from "../shared/utils/result";
 import AppDataLoader from "./AppDataLoader";
-import {
-	ApiFake,
-	type SeedAccount,
-	type SeedCategory,
-} from "./api-client/fake";
+import { buildTestApi } from "./api-client/fake";
+
+// Helper to unwrap Result or throw
+const unwrapOrThrow = <X, A>(result: Result<X, A>): A => {
+	return Result.match(
+		result,
+		(err) => {
+			throw new Error(`Unexpected error: ${JSON.stringify(err)}`);
+		},
+		(value) => value,
+	);
+};
+
+// Centralized test setup using shared fakeData
+const clock = { now: () => 1000 };
+const { categoryRows, categoryNameToId } = makeCategoryRows(clock);
+const { accountRows, accountNameToId } = makeAccountRows(
+	clock,
+	categoryNameToId,
+);
+
+// Helper to get account ID by name
+const accId = (name: string): number => {
+	const id = accountNameToId.get(name);
+	if (!id) throw new Error(`Unknown account: "${name}"`);
+	return id;
+};
+
+// Account IDs from fakeData.ts for test assertions
+const checkingId = accId("Checking account");
+const employerId = accId("Employer ABC");
+const groceriesId = accId("Groceries");
+const clothingId = accId("Clothing");
+
+// Helper to build test API with custom transactions
+const makeTestApi = (
+	transactionsFn: (accId: (name: string) => number) => Transaction[],
+) => {
+	const transactions = transactionsFn(accId);
+	return buildTestApi(clock, {
+		categories: () => ({ categoryRows, categoryNameToId }),
+		accounts: () => ({ accountRows, accountNameToId }),
+		transactions: () => transactions,
+	});
+};
 
 describe("AppDataLoader", () => {
 	afterEach(() => cleanup()); // must clean up manually to avoid "double renders"
 	const noOp = () => {};
 
-	// Helper to convert SeedAccount to Account
-	const toAccounts = (seedAccounts: SeedAccount[]) =>
-		seedAccounts.map((acc) => ({
-			id: acc.id,
-			categoryId: acc.categoryId,
-			name: acc.name,
-			createdAt: 0,
-			updatedAt: 0,
-		}));
-
 	it("renders transactions from fake API", async () => {
-		// Self-contained test data
-		const income: SeedCategory = { id: 1, name: "Income" };
-		const assets: SeedCategory = { id: 2, name: "Assets" };
-		const expenses: SeedCategory = { id: 3, name: "Expenses" };
+		const api = makeTestApi((accId) => [
+			{
+				id: 1,
+				fromAccountId: accId("Employer ABC"),
+				toAccountId: accId("Checking account"),
+				date: 1,
+				descr: "Salary",
+				cents: 100000,
+				createdAt: clock.now(),
+				updatedAt: clock.now(),
+			},
+			{
+				id: 2,
+				fromAccountId: accId("Checking account"),
+				toAccountId: accId("Groceries"),
+				date: 2,
+				descr: "Supermarket",
+				cents: 5000,
+				createdAt: clock.now(),
+				updatedAt: clock.now(),
+			},
+		]);
 
-		// System accounts have negative IDs
-		const unknownExpense: SeedAccount = {
-			id: -1,
-			name: "Unknown_EXPENSE",
-			categoryId: expenses.id,
-		};
-		const unknownIncome: SeedAccount = {
-			id: -2,
-			name: "Unknown_INCOME",
-			categoryId: income.id,
-		};
-
-		const employer: SeedAccount = {
-			id: 1,
-			name: "Employer ABC",
-			categoryId: income.id,
-		};
-		const checking: SeedAccount = {
-			id: 2,
-			name: "Checking account",
-			categoryId: assets.id,
-		};
-		const groceries: SeedAccount = {
-			id: 3,
-			name: "Groceries",
-			categoryId: expenses.id,
-		};
-
-		const api = ApiFake.init({
-			categories: [income, assets, expenses],
-			accounts: [unknownExpense, unknownIncome, employer, checking, groceries],
-			transactions: [
-				{
-					fromAccountId: employer.id,
-					toAccountId: checking.id,
-					date: 1,
-					descr: "Salary",
-					cents: 100000,
-				},
-				{
-					fromAccountId: checking.id,
-					toAccountId: groceries.id,
-					date: 2,
-					descr: "Supermarket",
-					cents: 5000,
-				},
-			],
-		});
+		// Get accounts for initialAccounts prop
+		const accountsResult = await api.accounts.list();
+		const accounts = unwrapOrThrow(accountsResult);
 
 		render(
 			<AppDataLoader
 				api={api}
-				initialAccounts={toAccounts([
-					unknownExpense,
-					unknownIncome,
-					employer,
-					checking,
-					groceries,
-				])}
-				selectedAccountId={checking.id}
+				initialAccounts={accounts}
+				selectedAccountId={checkingId}
 				setSelectedAccountId={noOp}
 			/>,
 		);
@@ -103,138 +102,96 @@ describe("AppDataLoader", () => {
 		// Should show transaction count
 		screen.getByText(/2 of 2 transactions/);
 
-		// Verify we rendered 5 balance cards (all accounts, including zero balances)
+		// Verify we rendered balance cards for all accounts
 		const balanceCards = screen.getAllByTestId(/^balance-card-/);
-		expect(balanceCards).toHaveLength(5);
+		expect(balanceCards).toHaveLength(accountRows.length);
 
 		// Verify each balance card shows correct balance
-		const checkingCard = screen.getByTestId(`balance-card-${checking.id}`);
+		const checkingCard = screen.getByTestId(`balance-card-${checkingId}`);
 		expect(checkingCard.getAttribute("data-test--balance")).toBe("95000");
 
-		const employerCard = screen.getByTestId(`balance-card-${employer.id}`);
+		const employerCard = screen.getByTestId(`balance-card-${employerId}`);
 		expect(employerCard.getAttribute("data-test--balance")).toBe("-100000");
 
-		const groceriesCard = screen.getByTestId(`balance-card-${groceries.id}`);
+		const groceriesCard = screen.getByTestId(`balance-card-${groceriesId}`);
 		expect(groceriesCard.getAttribute("data-test--balance")).toBe("5000");
 	});
 
 	describe("account perspective switching", () => {
-		// Self-contained test data
-		const income: SeedCategory = { id: 1, name: "Income" };
-		const assets: SeedCategory = { id: 2, name: "Assets" };
-		const expenses: SeedCategory = { id: 3, name: "Expenses" };
-
-		// System accounts have negative IDs
-		const unknownExpense: SeedAccount = {
-			id: -1,
-			name: "Unknown_EXPENSE",
-			categoryId: expenses.id,
-		};
-		const unknownIncome: SeedAccount = {
-			id: -2,
-			name: "Unknown_INCOME",
-			categoryId: income.id,
-		};
-
-		const checking: SeedAccount = {
-			id: 100,
-			name: "Checking account",
-			categoryId: assets.id,
-		};
-		const employer: SeedAccount = {
-			id: 200,
-			name: "Employer ABC",
-			categoryId: income.id,
-		};
-		const groceries: SeedAccount = {
-			id: 300,
-			name: "Groceries",
-			categoryId: expenses.id,
-		};
-		const clothing: SeedAccount = {
-			id: 400,
-			name: "Clothing",
-			categoryId: expenses.id,
-		};
-
-		// Transactions in chronological order (app displays in reverse)
-		const api = ApiFake.init({
-			categories: [income, assets, expenses],
-			accounts: [
-				unknownExpense,
-				unknownIncome,
-				checking,
-				employer,
-				groceries,
-				clothing,
-			],
-			transactions: [
-				{
-					fromAccountId: employer.id,
-					toAccountId: checking.id,
-					date: 1,
-					descr: "Salary",
-					cents: 100000,
-				},
-				{
-					fromAccountId: checking.id,
-					toAccountId: groceries.id,
-					date: 2,
-					descr: "Supermarket",
-					cents: 5000,
-				},
-				{
-					fromAccountId: checking.id,
-					toAccountId: clothing.id,
-					date: 3,
-					descr: "T-shirt",
-					cents: 1000,
-				},
-				{
-					fromAccountId: checking.id,
-					toAccountId: groceries.id,
-					date: 4,
-					descr: "Supermarket 2",
-					cents: 2500,
-				},
-			],
-		});
+		const api = makeTestApi((accId) => [
+			{
+				id: 1,
+				fromAccountId: accId("Employer ABC"),
+				toAccountId: accId("Checking account"),
+				date: 1,
+				descr: "Salary",
+				cents: 100000,
+				createdAt: clock.now(),
+				updatedAt: clock.now(),
+			},
+			{
+				id: 2,
+				fromAccountId: accId("Checking account"),
+				toAccountId: accId("Groceries"),
+				date: 2,
+				descr: "Supermarket",
+				cents: 5000,
+				createdAt: clock.now(),
+				updatedAt: clock.now(),
+			},
+			{
+				id: 3,
+				fromAccountId: accId("Checking account"),
+				toAccountId: accId("Clothing"),
+				date: 3,
+				descr: "T-shirt",
+				cents: 1000,
+				createdAt: clock.now(),
+				updatedAt: clock.now(),
+			},
+			{
+				id: 4,
+				fromAccountId: accId("Checking account"),
+				toAccountId: accId("Groceries"),
+				date: 4,
+				descr: "Supermarket 2",
+				cents: 2500,
+				createdAt: clock.now(),
+				updatedAt: clock.now(),
+			},
+		]);
 
 		const expectCheckingBalance = (cents: string) => {
-			const card = screen.getByTestId(`balance-card-${checking.id}`);
+			const card = screen.getByTestId(`balance-card-${checkingId}`);
 			expect(card.getAttribute("data-test--balance")).toBe(cents);
 		};
 
 		const expectEmployerBalance = (cents: string) => {
-			const card = screen.getByTestId(`balance-card-${employer.id}`);
+			const card = screen.getByTestId(`balance-card-${employerId}`);
 			expect(card.getAttribute("data-test--balance")).toBe(cents);
 		};
 
 		const expectGroceriesBalance = (cents: string) => {
-			const card = screen.getByTestId(`balance-card-${groceries.id}`);
+			const card = screen.getByTestId(`balance-card-${groceriesId}`);
 			expect(card.getAttribute("data-test--balance")).toBe(cents);
 		};
 
 		const expectClothingBalance = (cents: string) => {
-			const card = screen.getByTestId(`balance-card-${clothing.id}`);
+			const card = screen.getByTestId(`balance-card-${clothingId}`);
 			expect(card.getAttribute("data-test--balance")).toBe(cents);
 		};
 
 		it("displays ledger from checking account perspective with correct balance movement", async () => {
 			const expectedCheckingBalanceCents = "91500"; // 100000 - 5000 - 1000 - 2500
 
+			const accountsResult = await api.accounts.list();
+			const accounts = unwrapOrThrow(accountsResult);
+
 			render(
 				<AppDataLoader
 					api={api}
-					initialAccounts={toAccounts([
-						unknownExpense,
-						unknownIncome,
-						checking,
-						employer,
-						groceries,
-						clothing,
-					])}
-					selectedAccountId={checking.id}
+					initialAccounts={accounts}
+					selectedAccountId={checkingId}
 					setSelectedAccountId={noOp}
 				/>,
 			);
@@ -265,18 +222,15 @@ describe("AppDataLoader", () => {
 
 		it("switches to groceries account perspective and updates ledger correctly", async () => {
 			const expectedGroceriesBalanceCents = "7500";
+
+			const accountsResult = await api.accounts.list();
+			const accounts = unwrapOrThrow(accountsResult);
+
 			const { rerender } = render(
 				<AppDataLoader
 					api={api}
-					initialAccounts={toAccounts([
-						unknownExpense,
-						unknownIncome,
-						checking,
-						employer,
-						groceries,
-						clothing,
-					])}
-					selectedAccountId={checking.id}
+					initialAccounts={accounts}
+					selectedAccountId={checkingId}
 					setSelectedAccountId={noOp}
 				/>,
 			);
@@ -294,15 +248,8 @@ describe("AppDataLoader", () => {
 			rerender(
 				<AppDataLoader
 					api={api}
-					initialAccounts={toAccounts([
-						unknownExpense,
-						unknownIncome,
-						checking,
-						employer,
-						groceries,
-						clothing,
-					])}
-					selectedAccountId={groceries.id}
+					initialAccounts={accounts}
+					selectedAccountId={groceriesId}
 					setSelectedAccountId={noOp}
 				/>,
 			);
@@ -332,70 +279,39 @@ describe("AppDataLoader", () => {
 	it("adds a new transaction and updates balances and ledger", async () => {
 		const user = userEvent.setup();
 
-		// Self-contained test data
-		const income: SeedCategory = { id: 1, name: "Income" };
-		const assets: SeedCategory = { id: 2, name: "Assets" };
-		const expenses: SeedCategory = { id: 3, name: "Expenses" };
+		const api = makeTestApi((accId) => [
+			{
+				id: 1,
+				fromAccountId: accId("Checking account"),
+				toAccountId: accId("Groceries"),
+				date: 1,
+				descr: "Initial groceries",
+				cents: 5000,
+				createdAt: clock.now(),
+				updatedAt: clock.now(),
+			},
+		]);
 
-		// System accounts have negative IDs
-		const unknownExpense: SeedAccount = {
-			id: -1,
-			name: "Unknown_EXPENSE",
-			categoryId: expenses.id,
-		};
-		const unknownIncome: SeedAccount = {
-			id: -2,
-			name: "Unknown_INCOME",
-			categoryId: income.id,
-		};
-
-		const checking: SeedAccount = {
-			id: 1,
-			name: "Checking account",
-			categoryId: assets.id,
-		};
-		const groceries: SeedAccount = {
-			id: 2,
-			name: "Groceries",
-			categoryId: expenses.id,
-		};
-
-		const api = ApiFake.init({
-			categories: [income, assets, expenses],
-			accounts: [unknownExpense, unknownIncome, checking, groceries],
-			transactions: [
-				{
-					fromAccountId: checking.id,
-					toAccountId: groceries.id,
-					date: 1,
-					descr: "Initial groceries",
-					cents: 5000,
-				},
-			],
-		});
+		const accountsResult = await api.accounts.list();
+		const accounts = unwrapOrThrow(accountsResult);
 
 		render(
 			<AppDataLoader
 				api={api}
-				initialAccounts={toAccounts([
-					unknownExpense,
-					unknownIncome,
-					checking,
-					groceries,
-				])}
-				selectedAccountId={checking.id}
+				initialAccounts={accounts}
+				selectedAccountId={checkingId}
 				setSelectedAccountId={noOp}
 			/>,
 		);
 
 		// Wait for initial load - should show 1 transaction
-		await screen.findByTestId(`balance-card-${checking.id}`);
+		await screen.findByTestId(`balance-card-${checkingId}`);
 
 		// Verify initial balances
-		const checkingCard = screen.getByTestId(`balance-card-${checking.id}`);
+		const checkingCard = screen.getByTestId(`balance-card-${checkingId}`);
 		expect(checkingCard.getAttribute("data-test--balance")).toBe("-5000"); // Spent 50€
 
-		const groceriesCard = screen.getByTestId(`balance-card-${groceries.id}`);
+		const groceriesCard = screen.getByTestId(`balance-card-${groceriesId}`);
 		expect(groceriesCard.getAttribute("data-test--balance")).toBe("5000");
 
 		// Click "Add Transaction" button
@@ -416,8 +332,8 @@ describe("AppDataLoader", () => {
 		const toSelect = screen.getByTestId("transaction-to-account");
 
 		// Change from default accounts to checking -> groceries
-		await user.selectOptions(fromSelect, "1");
-		await user.selectOptions(toSelect, "2");
+		await user.selectOptions(fromSelect, String(checkingId));
+		await user.selectOptions(toSelect, String(groceriesId));
 
 		// Disable HTML5 validation since happy-dom wrongly flags valid "steps"
 		const form = screen.getByRole("dialog").querySelector("form");
@@ -433,7 +349,7 @@ describe("AppDataLoader", () => {
 
 		// Verify groceries balance also updated
 		const updatedGroceriesCard = screen.getByTestId(
-			`balance-card-${groceries.id}`,
+			`balance-card-${groceriesId}`,
 		);
 		expect(updatedGroceriesCard.getAttribute("data-test--balance")).toBe(
 			"8550",
@@ -444,54 +360,27 @@ describe("AppDataLoader", () => {
 		it("edits an existing transaction and updates balances", async () => {
 			const user = userEvent.setup();
 
-			// Setup: Initial data with one transaction
-			const assets: SeedCategory = { id: 1, name: "Assets" };
-			const expenses: SeedCategory = { id: 2, name: "Expenses" };
-			const unknownExpense: SeedAccount = {
-				id: -1,
-				name: "Unknown_EXPENSE",
-				categoryId: expenses.id,
-			};
-			const unknownIncome: SeedAccount = {
-				id: -2,
-				name: "Unknown_INCOME",
-				categoryId: expenses.id,
-			}; // Note: category doesn't matter here
-			const checking: SeedAccount = {
-				id: 1,
-				name: "Checking",
-				categoryId: assets.id,
-			};
-			const groceries: SeedAccount = {
-				id: 2,
-				name: "Groceries",
-				categoryId: expenses.id,
-			};
+			const api = makeTestApi((accId) => [
+				{
+					id: 1,
+					fromAccountId: accId("Checking account"),
+					toAccountId: accId("Groceries"),
+					date: 1,
+					descr: "Groceries v1",
+					cents: 5000,
+					createdAt: clock.now(),
+					updatedAt: clock.now(),
+				},
+			]);
 
-			const api = ApiFake.init({
-				categories: [assets, expenses],
-				accounts: [checking, groceries, unknownExpense, unknownIncome],
-				transactions: [
-					{
-						fromAccountId: checking.id,
-						toAccountId: groceries.id,
-						date: 1,
-						descr: "Groceries v1",
-						cents: 5000,
-					},
-				],
-			});
+			const accountsResult = await api.accounts.list();
+			const accounts = unwrapOrThrow(accountsResult);
 
 			render(
 				<AppDataLoader
 					api={api}
-					initialAccounts={toAccounts([
-						checking,
-						groceries,
-						unknownExpense,
-						unknownIncome,
-					])}
-					selectedAccountId={checking.id}
+					initialAccounts={accounts}
+					selectedAccountId={checkingId}
 					setSelectedAccountId={noOp}
 				/>,
 			);
@@ -540,14 +429,14 @@ describe("AppDataLoader", () => {
 
 			// Assertion: Balances should be updated correctly
 			const updatedCheckingCard = screen.getByTestId(
-				`balance-card-${checking.id}`,
+				`balance-card-${checkingId}`,
 			);
 			expect(updatedCheckingCard.getAttribute("data-test--balance")).toBe(
 				"-7525",
 			);
 
 			const updatedGroceriesCard = screen.getByTestId(
-				`balance-card-${groceries.id}`,
+				`balance-card-${groceriesId}`,
 			);
 			expect(updatedGroceriesCard.getAttribute("data-test--balance")).toBe(
 				"7525",
@@ -557,54 +446,27 @@ describe("AppDataLoader", () => {
 		it("handles deleting a transaction", async () => {
 			const user = userEvent.setup();
 
-			// Setup: Initial data with one transaction
-			const assets: SeedCategory = { id: 1, name: "Assets" };
-			const expenses: SeedCategory = { id: 2, name: "Expenses" };
-			const unknownExpense: SeedAccount = {
-				id: -1,
-				name: "Unknown_EXPENSE",
-				categoryId: expenses.id,
-			};
-			const unknownIncome: SeedAccount = {
-				id: -2,
-				name: "Unknown_INCOME",
-				categoryId: assets.id,
-			};
-			const checking: SeedAccount = {
-				id: 1,
-				name: "Checking",
-				categoryId: assets.id,
-			};
-			const groceries: SeedAccount = {
-				id: 2,
-				name: "Groceries",
-				categoryId: expenses.id,
-			};
+			const api = makeTestApi((accId) => [
+				{
+					id: 1,
+					fromAccountId: accId("Checking account"),
+					toAccountId: accId("Groceries"),
+					date: 1,
+					descr: "Groceries",
+					cents: 5000,
+					createdAt: clock.now(),
+					updatedAt: clock.now(),
+				},
+			]);
 
-			const api = ApiFake.init({
-				categories: [assets, expenses],
-				accounts: [checking, groceries, unknownExpense, unknownIncome],
-				transactions: [
-					{
-						fromAccountId: checking.id,
-						toAccountId: groceries.id,
-						date: 1,
-						descr: "Groceries",
-						cents: 5000,
-					},
-				],
-			});
+			const accountsResult = await api.accounts.list();
+			const accounts = unwrapOrThrow(accountsResult);
 
 			render(
 				<AppDataLoader
 					api={api}
-					initialAccounts={toAccounts([
-						checking,
-						groceries,
-						unknownExpense,
-						unknownIncome,
-					])}
-					selectedAccountId={checking.id}
+					initialAccounts={accounts}
+					selectedAccountId={checkingId}
 					setSelectedAccountId={noOp}
 				/>,
 			);
@@ -668,12 +530,12 @@ describe("AppDataLoader", () => {
 
 			// Assert: Balances should be updated (back to zero since only transaction was deleted)
 			const updatedCheckingCard = screen.getByTestId(
-				`balance-card-${checking.id}`,
+				`balance-card-${checkingId}`,
 			);
 			expect(updatedCheckingCard.getAttribute("data-test--balance")).toBe("0");
 
 			const updatedGroceriesCard = screen.getByTestId(
-				`balance-card-${groceries.id}`,
+				`balance-card-${groceriesId}`,
 			);
 			expect(updatedGroceriesCard.getAttribute("data-test--balance")).toBe("0");
 		});
@@ -683,35 +545,7 @@ describe("AppDataLoader", () => {
 		it("displays error when save fails and clears error when user edits field", async () => {
 			const user = userEvent.setup();
 
-			// Setup: Basic seed data
-			const assets: SeedCategory = { id: 1, name: "Assets" };
-			const expenses: SeedCategory = { id: 2, name: "Expenses" };
-			const unknownExpense: SeedAccount = {
-				id: -1,
-				name: "Unknown_EXPENSE",
-				categoryId: expenses.id,
-			};
-			const unknownIncome: SeedAccount = {
-				id: -2,
-				name: "Unknown_INCOME",
-				categoryId: assets.id,
-			};
-			const checking: SeedAccount = {
-				id: 1,
-				name: "Checking",
-				categoryId: assets.id,
-			};
-			const groceries: SeedAccount = {
-				id: 2,
-				name: "Groceries",
-				categoryId: expenses.id,
-			};
-
-			const api = ApiFake.init({
-				categories: [assets, expenses],
-				accounts: [checking, groceries, unknownExpense, unknownIncome],
-				transactions: [],
-			});
+			const api = makeTestApi(() => []);
 
 			// Override create to always fail
 			api.transactions.create = () =>
@@ -722,16 +556,14 @@ describe("AppDataLoader", () => {
 					}),
 				);
 
+			const accountsResult = await api.accounts.list();
+			const accounts = unwrapOrThrow(accountsResult);
+
 			render(
 				<AppDataLoader
 					api={api}
-					initialAccounts={toAccounts([
-						checking,
-						groceries,
-						unknownExpense,
-						unknownIncome,
-					])}
-					selectedAccountId={checking.id}
+					initialAccounts={accounts}
+					selectedAccountId={checkingId}
 					setSelectedAccountId={noOp}
 				/>,
 			);

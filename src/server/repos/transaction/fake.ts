@@ -10,18 +10,12 @@ import type {
 import { Maybe } from "../../../shared/utils/maybe";
 import type { AffectedRows, TransactionRepo } from "./interface";
 
-const init = (
-	io: IO,
-	initialTransactions: NewTransaction[],
-): TransactionRepo => {
-	const now = io.now();
-	let transactions: Transaction[] = initialTransactions.map((tx, index) => ({
-		...tx,
-		id: index + 1,
-		createdAt: now,
-		updatedAt: now,
-	}));
-	let nextId = transactions.length + 1;
+const init = (io: IO, initialTransactions: Transaction[]): TransactionRepo => {
+	let transactions: Transaction[] = [...initialTransactions];
+	let nextId =
+		transactions.length === 0
+			? 1
+			: Math.max(...transactions.map((tx) => tx.id)) + 1;
 
 	const createTransaction = (newTx: NewTransaction): Transaction => {
 		const now = io.now();

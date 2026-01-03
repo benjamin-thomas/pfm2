@@ -10,8 +10,20 @@ describe("Account Queries", () => {
 		it("returns all accounts", () => {
 			const { io } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
-				{ name: "Savings", categoryId: 2 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
+				{
+					id: 2,
+					name: "Savings",
+					categoryId: 2,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 			const accountQuery = AccountQuery.init(repo);
 			const accounts = accountQuery.list();
@@ -39,8 +51,20 @@ describe("Account Queries", () => {
 		it("returns account when found", () => {
 			const { io } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
-				{ name: "Savings", categoryId: 2 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
+				{
+					id: 2,
+					name: "Savings",
+					categoryId: 2,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 			const accountQuery = AccountQuery.init(repo);
 			const result = accountQuery.findById(2);
@@ -73,7 +97,13 @@ describe("Account Queries", () => {
 		it("returns none when account not found", () => {
 			const { io } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 			const accountQuery = AccountQuery.init(repo);
 			const result = accountQuery.findById(999);
@@ -92,7 +122,13 @@ describe("Account Queries", () => {
 		it("returns error when account is hidden", () => {
 			const { io, setTime } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, [
-				{ name: "Checking", categoryId: 1 },
+				{
+					id: 1,
+					name: "Checking",
+					categoryId: 1,
+					createdAt: 1000,
+					updatedAt: 1000,
+				},
 			]);
 
 			// Create a hidden account
