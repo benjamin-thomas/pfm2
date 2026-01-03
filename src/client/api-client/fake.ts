@@ -113,7 +113,7 @@ const buildApi = (
 								updatedAt: Math.floor(Date.now() / 1000),
 							};
 							transactions.push(newTx);
-							return Result.ok(newTx);
+							return Result.ok(null);
 						},
 					),
 				);
@@ -138,7 +138,7 @@ const buildApi = (
 								updatedAt: Math.floor(Date.now() / 1000),
 							};
 							transactions[index] = updated;
-							return Result.ok(updated);
+							return Result.ok(null);
 						},
 					),
 				);
@@ -150,7 +150,7 @@ const buildApi = (
 					return Promise.resolve(Result.err(ApiErr.notFound));
 				}
 				transactions.splice(index, 1);
-				return Promise.resolve(Result.ok(undefined));
+				return Promise.resolve(Result.ok(null));
 			},
 		},
 

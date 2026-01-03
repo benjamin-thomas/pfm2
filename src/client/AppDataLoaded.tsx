@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Account, AccountBalance } from "../shared/account";
 import type { LedgerEntry } from "../shared/ledger";
-import type { Transaction } from "../shared/transaction.ts";
 import { isUnknownAccount } from "../shared/utils/accounts";
 import { impossibleBranch } from "../shared/utils/impossibleBranch";
 import { Maybe } from "../shared/utils/maybe";
@@ -215,8 +214,7 @@ const AppDataLoaded = ({
 					};
 
 					const clickedSave = (formData: TransactionData) => {
-						// Determine which API call to make based on mode
-						const save: () => Promise<Result<ApiError, Transaction>> = () => {
+						const save: () => Promise<Result<ApiError, null>> = () => {
 							switch (mode.kind) {
 								case "add":
 									return api.transactions.create(formData);

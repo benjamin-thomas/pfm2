@@ -66,9 +66,9 @@ describe("LedgerRepoSql", () => {
 
 	it("returns ledger entry with correct flow direction (incoming)", () => {
 		const checkingId = getAccountIdOrThrow("Checking account");
-		const employerId = getAccountIdOrThrow("Employer");
+		const employerId = getAccountIdOrThrow("Employer ABC");
 
-		// Insert transaction: Employer -> Checking = 100000 cents (1000€)
+		// Insert transaction: Employer ABC -> Checking = 100000 cents (1000€)
 		db.prepare(
 			"INSERT INTO transactions (from_account_id, to_account_id, date, descr, cents) VALUES (?, ?, ?, ?, ?)",
 		).run(employerId, checkingId, 1700000000, "Salary", 100000);
@@ -79,7 +79,7 @@ describe("LedgerRepoSql", () => {
 		expect(ledger).toHaveLength(1);
 		expect(ledger[0]).toMatchObject({
 			fromAccountId: employerId,
-			fromAccountName: "Employer",
+			fromAccountName: "Employer ABC",
 			toAccountId: checkingId,
 			toAccountName: "Checking account",
 			descr: "Salary",
@@ -90,10 +90,10 @@ describe("LedgerRepoSql", () => {
 
 	it("calculates running balance across multiple transactions", () => {
 		const checkingId = getAccountIdOrThrow("Checking account");
-		const employerId = getAccountIdOrThrow("Employer");
+		const employerId = getAccountIdOrThrow("Employer ABC");
 		const groceriesId = getAccountIdOrThrow("Groceries");
 
-		// Transaction 1: Employer -> Checking = 1000€ (date: day 1)
+		// Transaction 1: Employer ABC -> Checking = 1000€ (date: day 1)
 		db.prepare(
 			"INSERT INTO transactions (from_account_id, to_account_id, date, descr, cents) VALUES (?, ?, ?, ?, ?)",
 		).run(employerId, checkingId, 1700000000, "Salary", 100000);

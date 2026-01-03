@@ -28,13 +28,13 @@ export interface Api {
 			searchTerm: string;
 		}): Promise<Result<ApiError, Transaction[]>>;
 		findById(id: number): Promise<Result<ApiError, Maybe<Transaction>>>;
-		create(transaction: NewTransaction): Promise<Result<ApiError, Transaction>>;
+		create(transaction: NewTransaction): Promise<Result<ApiError, null>>;
 		update(
 			id: number,
 			transaction: UpdateTransaction,
-		): Promise<Result<ApiError, Transaction>>;
+		): Promise<Result<ApiError, null>>;
 		// Returns Result to handle cases where deletion might be forbidden (e.g., permissions, constraints)
-		delete(id: number): Promise<Result<ApiError, void>>;
+		delete(id: number): Promise<Result<ApiError, null>>;
 	};
 	ledger: {
 		getLedgerForAccount(

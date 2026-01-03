@@ -78,8 +78,8 @@ export const registerTransactionRoutes = (
 						.json({ error: "Invalid transaction data", details: error });
 				},
 				(newTransaction: NewTransactionInput) => {
-					const transaction = transactionCommand.create(newTransaction);
-					res.status(201).json(transaction);
+					transactionCommand.create(newTransaction);
+					res.status(201).send();
 				},
 			);
 		} catch (error) {

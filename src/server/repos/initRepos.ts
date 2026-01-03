@@ -1,7 +1,7 @@
 // Repository factory - creates fake or SQL repos based on REPO env var
 
 import { readFileSync } from "node:fs";
-import Database from "better-sqlite3";
+import Database, { type Database as DatabaseType } from "better-sqlite3";
 import * as FakeData from "../../shared/fakeData";
 import { RealIO } from "../../shared/io/real";
 import { impossibleBranch } from "../../shared/utils/impossibleBranch";
@@ -64,18 +64,8 @@ const initFakeRepos = (): Repos => {
 	};
 };
 
-const initSqlRepos = (): Repos => {
-	const dbPath = process.env.DB_PATH;
-	if (!dbPath) {
-		throw new Error(
-			"Missing mandatory env var: DB_PATH (required when REPO=sql)",
-		);
-	}
-
-	const db = new Database(dbPath);
-	db.exec(readFileSync("sql/init.sql", "utf-8"));
-	db.exec(readFileSync("sql/seed.sql", "utf-8"));
-
+// For tests: create SQL repos from an already-initialized Database
+export const makeSqlRepos = (db: DatabaseType): Repos => {
 	const transactionRepo = TransactionRepoSql.init(db);
 	const accountRepo = AccountRepoSql.init(db);
 	const categoryRepo = CategoryRepoSql.init(db);
@@ -89,6 +79,21 @@ const initSqlRepos = (): Repos => {
 		balanceRepo,
 		ledgerRepo,
 	};
+};
+
+const initSqlRepos = (): Repos => {
+	const dbPath = process.env.DB_PATH;
+	if (!dbPath) {
+		throw new Error(
+			"Missing mandatory env var: DB_PATH (required when REPO=sql)",
+		);
+	}
+
+	const db = new Database(dbPath);
+	db.exec(readFileSync("sql/init.sql", "utf-8"));
+	db.exec(readFileSync("sql/seed.sql", "utf-8"));
+
+	return makeSqlRepos(db);
 };
 
 const initRepos = (repoType: RepoVariant): Repos => {

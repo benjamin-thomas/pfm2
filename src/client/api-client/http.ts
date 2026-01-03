@@ -9,13 +9,16 @@ import type { Api } from "./interface";
 import { ApiErr } from "./interface";
 
 // HTTP API that talks to the backend server
+// baseUrl is empty in the browser env (uses relative URLs), but is set for the Node.js test runner.
 
-const init = (): Api => {
+const init = (baseUrl = ""): Api => {
 	return {
 		transactions: {
 			list: async ({ searchTerm }) => {
 				try {
-					const res = await fetch(`/api/transactions?search=${searchTerm}`);
+					const res = await fetch(
+						`${baseUrl}/api/transactions?search=${searchTerm}`,
+					);
 					if (res.status === 200) {
 						const data = await res.json();
 						const decoded = transactionsDecoder.run(data);
@@ -35,7 +38,7 @@ const init = (): Api => {
 
 			findById: async (id: number) => {
 				try {
-					const res = await fetch(`/api/transactions/${id}`);
+					const res = await fetch(`${baseUrl}/api/transactions/${id}`);
 					if (res.status === 200) {
 						const data = await res.json();
 						const decoded = transactionDecoder.run(data);
@@ -58,18 +61,13 @@ const init = (): Api => {
 
 			create: async (transaction) => {
 				try {
-					const res = await fetch("/api/transactions", {
+					const res = await fetch(`${baseUrl}/api/transactions`, {
 						method: "POST",
 						headers: { "Content-Type": "application/json" },
 						body: JSON.stringify(transaction),
 					});
 					if (res.status === 201) {
-						const data = await res.json();
-						const decoded = transactionDecoder.run(data);
-						return DecoderUtil.toResult(decoded, (error) => {
-							console.error("Decode error (transactions.create):", error);
-							return ApiErr.badRequest("Invalid response format");
-						});
+						return Result.ok(null);
 					}
 					if (res.status === 400)
 						return Result.err(ApiErr.badRequest("Invalid transaction data"));
@@ -83,18 +81,13 @@ const init = (): Api => {
 
 			update: async (id, transaction) => {
 				try {
-					const res = await fetch(`/api/transactions/${id}`, {
+					const res = await fetch(`${baseUrl}/api/transactions/${id}`, {
 						method: "PUT",
 						headers: { "Content-Type": "application/json" },
 						body: JSON.stringify(transaction),
 					});
-					if (res.status === 200) {
-						const data = await res.json();
-						const decoded = transactionDecoder.run(data);
-						return DecoderUtil.toResult(decoded, (error) => {
-							console.error("Decode error (transactions.update):", error);
-							return ApiErr.badRequest("Invalid response format");
-						});
+					if (res.status === 204) {
+						return Result.ok(null);
 					}
 					if (res.status === 404) return Result.err(ApiErr.notFound);
 					if (res.status === 400)
@@ -109,10 +102,10 @@ const init = (): Api => {
 
 			delete: async (id) => {
 				try {
-					const res = await fetch(`/api/transactions/${id}`, {
+					const res = await fetch(`${baseUrl}/api/transactions/${id}`, {
 						method: "DELETE",
 					});
-					if (res.status === 204) return Result.ok(undefined);
+					if (res.status === 204) return Result.ok(null);
 					if (res.status === 404) return Result.err(ApiErr.notFound);
 					if (res.status >= 500) return Result.err(ApiErr.serverError);
 					return Result.err(ApiErr.badRequest("Bad request"));
@@ -126,7 +119,7 @@ const init = (): Api => {
 		balances: {
 			getBalances: async () => {
 				try {
-					const res = await fetch("/api/balances");
+					const res = await fetch(`${baseUrl}/api/balances`);
 					if (res.status === 200) {
 						const data = await res.json();
 						return Result.ok(data);
@@ -144,7 +137,7 @@ const init = (): Api => {
 		ledger: {
 			getLedgerForAccount: async (accountId: number) => {
 				try {
-					const res = await fetch(`/api/ledger/${accountId}`);
+					const res = await fetch(`${baseUrl}/api/ledger/${accountId}`);
 					if (res.status === 200) {
 						const data = await res.json();
 						return Result.ok(data);
@@ -162,7 +155,7 @@ const init = (): Api => {
 		accounts: {
 			list: async () => {
 				try {
-					const res = await fetch("/api/accounts");
+					const res = await fetch(`${baseUrl}/api/accounts`);
 					if (res.status === 200) {
 						const data = await res.json();
 						return Result.ok(data);
