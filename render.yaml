@@ -7,7 +7,7 @@ services:
     name: pfm2-api
     runtime: node
     plan: free
-    buildCommand: npm ci --include=dev && npm run build:server
+    buildCommand: npm ci --include=dev && npm run build:server:prod
     startCommand: node dist/server/main.js
     envVars:
       - key: BE_HOST
