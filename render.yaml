@@ -13,7 +13,7 @@ services:
       - key: BE_HOST
         value: 0.0.0.0
       - key: FE_BASE_URL
-        sync: false  # Set via Render's dashboard
+        value: https://pfm2.onrender.com/health
       - key: REPO
         value: sql
       - key: NODE_ENV
@@ -27,7 +27,7 @@ services:
     staticPublishPath: dist/client
     envVars:
       - key: VITE_API_URL
-        sync: false  # Set via Render's dashboard
+        value: https://pfm2-api.onrender.com/health
     headers:
       - path: /*
         name: Cache-Control
