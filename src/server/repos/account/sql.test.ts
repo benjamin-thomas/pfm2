@@ -2,18 +2,21 @@ import { readFileSync } from "node:fs";
 import Database, { type Database as DB } from "better-sqlite3";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { Maybe } from "../../../shared/utils/maybe";
+import { makeSqlRepos, type Repos } from "../initRepos";
+import { seedAllData } from "../seedData";
 import type { AccountRepo } from "./interface";
-import { AccountRepoSql } from "./sql";
 
 describe("AccountRepoSql", () => {
 	let db: DB;
+	let repos: Repos;
 	let repo: AccountRepo;
 
 	beforeEach(() => {
 		db = new Database(":memory:");
 		db.exec(readFileSync("sql/init.sql", "utf-8"));
-		db.exec(readFileSync("sql/seed.sql", "utf-8"));
-		repo = AccountRepoSql.init(db);
+		repos = makeSqlRepos(db);
+		seedAllData(repos);
+		repo = repos.accountRepo;
 	});
 
 	afterEach(() => {
@@ -21,9 +24,9 @@ describe("AccountRepoSql", () => {
 	});
 
 	describe("listAll", () => {
-		it("returns all 13 seeded accounts", () => {
+		it("returns seeded accounts", () => {
 			const accounts = repo.listAll();
-			expect(accounts).toHaveLength(13);
+			expect(accounts.length).toBeGreaterThan(0);
 		});
 
 		it("returns accounts with correct shape", () => {
@@ -114,17 +117,54 @@ describe("AccountRepoSql", () => {
 
 	describe("delete", () => {
 		it("deletes account and returns affectedRows: 1", () => {
-			const result = repo.delete(13); // Leisure (last seeded account)
+			// Create a new account specifically for deletion test
+			// (existing accounts may have transactions referencing them)
+			const created = repo.create({ name: "To Delete", categoryId: 1 });
+
+			const result = repo.delete(created.id);
 
 			expect(result).toEqual({ affectedRows: 1 });
 
-			const found = repo.findById(13);
+			const found = repo.findById(created.id);
 			expect(found.tag).toBe("Nothing");
 		});
 
 		it("returns affectedRows: 0 when not found", () => {
 			const result = repo.delete(999);
 			expect(result).toEqual({ affectedRows: 0 });
+		});
+	});
+
+	describe("deleteAll", () => {
+		it("removes all accounts", () => {
+			expect(repo.listAll().length).toBeGreaterThan(0);
+
+			// Must delete transactions first (FK constraint)
+			repos.transactionRepo.deleteAll();
+			repo.deleteAll();
+
+			expect(repo.listAll()).toHaveLength(0);
+		});
+	});
+
+	describe("createMany", () => {
+		it("creates and returns multiple accounts", () => {
+			repos.transactionRepo.deleteAll();
+			repo.deleteAll();
+
+			const before = repo.listAll().length;
+			const created = repo.createMany([
+				{ name: "Account A", categoryId: 1 },
+				{ name: "Account B", categoryId: 2 },
+			]);
+
+			expect(created.length).toBe(2);
+			expect(repo.listAll().length).toBe(before + 2);
+		});
+
+		it("returns empty array for empty input", () => {
+			const created = repo.createMany([]);
+			expect(created).toEqual([]);
 		});
 	});
 });

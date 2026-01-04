@@ -2,8 +2,9 @@ import { readFileSync } from "node:fs";
 import Database from "better-sqlite3";
 import { Decoder } from "elm-decoders";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { makeSqlRepos, type Repos } from "../initRepos";
+import { seedAllData } from "../seedData";
 import type { LedgerRepo } from "./interface";
-import { LedgerRepoSql } from "./sql";
 
 const accountRowDecoder = Decoder.object({
 	account_id: Decoder.number,
@@ -11,6 +12,7 @@ const accountRowDecoder = Decoder.object({
 
 describe("LedgerRepoSql", () => {
 	let db: Database.Database;
+	let repos: Repos;
 	let repo: LedgerRepo;
 
 	const getAccountIdOrThrow = (name: string): number => {
@@ -23,11 +25,12 @@ describe("LedgerRepoSql", () => {
 
 	beforeEach(() => {
 		db = new Database(":memory:");
-
 		db.exec(readFileSync("sql/init.sql", "utf-8"));
-		db.exec(readFileSync("sql/seed.sql", "utf-8"));
-
-		repo = LedgerRepoSql.init(db);
+		repos = makeSqlRepos(db);
+		seedAllData(repos);
+		repo = repos.ledgerRepo;
+		// Clear seeded transactions so tests start fresh
+		repos.transactionRepo.deleteAll();
 	});
 
 	afterEach(() => {

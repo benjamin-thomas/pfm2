@@ -2,23 +2,28 @@ import { readFileSync } from "node:fs";
 import Database, { type Database as DB } from "better-sqlite3";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { Maybe } from "../../../shared/utils/maybe";
+import { makeSqlRepos, type Repos } from "../initRepos";
+import { seedAllData } from "../seedData";
 import type { TransactionRepo } from "./interface";
-import { TransactionRepoSql } from "./sql";
 
 describe("TransactionRepoSql", () => {
 	let db: DB;
+	let repos: Repos;
 	let repo: TransactionRepo;
 
-	// Account IDs from seed.sql
-	const CHECKING = 2;
-	const EMPLOYER = 5;
-	const GROCERIES = 7;
+	const getAccountId = (name: string): number => {
+		const acc = repos.accountRepo.listAll().find((a) => a.name === name);
+		if (!acc) throw new Error(`Account not found: ${name}`);
+		return acc.id;
+	};
 
 	beforeEach(() => {
 		db = new Database(":memory:");
 		db.exec(readFileSync("sql/init.sql", "utf-8"));
-		db.exec(readFileSync("sql/seed.sql", "utf-8"));
-		repo = TransactionRepoSql.init(db);
+		repos = makeSqlRepos(db);
+		seedAllData(repos);
+		repo = repos.transactionRepo;
+		repo.deleteAll();
 	});
 
 	afterEach(() => {
@@ -28,8 +33,8 @@ describe("TransactionRepoSql", () => {
 	describe("create", () => {
 		it("creates and returns transaction with generated id", () => {
 			const tx = repo.create({
-				fromAccountId: EMPLOYER,
-				toAccountId: CHECKING,
+				fromAccountId: getAccountId("Employer ABC"),
+				toAccountId: getAccountId("Checking account"),
 				date: 1700000000,
 				descr: "Salary",
 				cents: 100000,
@@ -37,8 +42,8 @@ describe("TransactionRepoSql", () => {
 
 			expect(tx).toMatchObject({
 				id: 1,
-				fromAccountId: EMPLOYER,
-				toAccountId: CHECKING,
+				fromAccountId: getAccountId("Employer ABC"),
+				toAccountId: getAccountId("Checking account"),
 				descr: "Salary",
 				cents: 100000,
 			});
@@ -50,8 +55,8 @@ describe("TransactionRepoSql", () => {
 	describe("findById", () => {
 		it("returns Just(transaction) when found", () => {
 			const created = repo.create({
-				fromAccountId: EMPLOYER,
-				toAccountId: CHECKING,
+				fromAccountId: getAccountId("Employer ABC"),
+				toAccountId: getAccountId("Checking account"),
 				date: 1700000000,
 				descr: "Salary",
 				cents: 100000,
@@ -82,22 +87,22 @@ describe("TransactionRepoSql", () => {
 		beforeEach(() => {
 			// Insert test transactions
 			repo.create({
-				fromAccountId: EMPLOYER,
-				toAccountId: CHECKING,
+				fromAccountId: getAccountId("Employer ABC"),
+				toAccountId: getAccountId("Checking account"),
 				date: 1700000000,
 				descr: "Salary January",
 				cents: 100000,
 			});
 			repo.create({
-				fromAccountId: CHECKING,
-				toAccountId: GROCERIES,
+				fromAccountId: getAccountId("Checking account"),
+				toAccountId: getAccountId("Groceries"),
 				date: 1700100000,
 				descr: "Groceries",
 				cents: 5000,
 			});
 			repo.create({
-				fromAccountId: EMPLOYER,
-				toAccountId: CHECKING,
+				fromAccountId: getAccountId("Employer ABC"),
+				toAccountId: getAccountId("Checking account"),
 				date: 1700200000,
 				descr: "Salary February",
 				cents: 100000,
@@ -110,15 +115,21 @@ describe("TransactionRepoSql", () => {
 		});
 
 		it("filters by fromAccountId", () => {
-			const txs = repo.list(Maybe.just({ fromAccountId: EMPLOYER }));
+			const txs = repo.list(
+				Maybe.just({ fromAccountId: getAccountId("Employer ABC") }),
+			);
 			expect(txs).toHaveLength(2);
-			expect(txs.every((tx) => tx.fromAccountId === EMPLOYER)).toBe(true);
+			expect(
+				txs.every((tx) => tx.fromAccountId === getAccountId("Employer ABC")),
+			).toBe(true);
 		});
 
 		it("filters by toAccountId", () => {
-			const txs = repo.list(Maybe.just({ toAccountId: GROCERIES }));
+			const txs = repo.list(
+				Maybe.just({ toAccountId: getAccountId("Groceries") }),
+			);
 			expect(txs).toHaveLength(1);
-			expect(txs[0].toAccountId).toBe(GROCERIES);
+			expect(txs[0].toAccountId).toBe(getAccountId("Groceries"));
 		});
 
 		it("filters by date range", () => {
@@ -138,21 +149,21 @@ describe("TransactionRepoSql", () => {
 	describe("listByAccount", () => {
 		it("returns transactions for account (from or to)", () => {
 			repo.create({
-				fromAccountId: EMPLOYER,
-				toAccountId: CHECKING,
+				fromAccountId: getAccountId("Employer ABC"),
+				toAccountId: getAccountId("Checking account"),
 				date: 1700000000,
 				descr: "Salary",
 				cents: 100000,
 			});
 			repo.create({
-				fromAccountId: CHECKING,
-				toAccountId: GROCERIES,
+				fromAccountId: getAccountId("Checking account"),
+				toAccountId: getAccountId("Groceries"),
 				date: 1700100000,
 				descr: "Groceries",
 				cents: 5000,
 			});
 
-			const txs = repo.listByAccount(CHECKING);
+			const txs = repo.listByAccount(getAccountId("Checking account"));
 
 			expect(txs).toHaveLength(2);
 		});
@@ -161,16 +172,16 @@ describe("TransactionRepoSql", () => {
 	describe("update", () => {
 		it("updates transaction and returns affectedRows: 1", () => {
 			const created = repo.create({
-				fromAccountId: EMPLOYER,
-				toAccountId: CHECKING,
+				fromAccountId: getAccountId("Employer ABC"),
+				toAccountId: getAccountId("Checking account"),
 				date: 1700000000,
 				descr: "Salary",
 				cents: 100000,
 			});
 
 			const result = repo.update(created.id, {
-				fromAccountId: EMPLOYER,
-				toAccountId: CHECKING,
+				fromAccountId: getAccountId("Employer ABC"),
+				toAccountId: getAccountId("Checking account"),
 				date: 1700000000,
 				descr: "Updated Salary",
 				cents: 110000,
@@ -193,8 +204,8 @@ describe("TransactionRepoSql", () => {
 
 		it("returns affectedRows: 0 when not found", () => {
 			const result = repo.update(999, {
-				fromAccountId: EMPLOYER,
-				toAccountId: CHECKING,
+				fromAccountId: getAccountId("Employer ABC"),
+				toAccountId: getAccountId("Checking account"),
 				date: 1700000000,
 				descr: "X",
 				cents: 1000,
@@ -206,8 +217,8 @@ describe("TransactionRepoSql", () => {
 	describe("delete", () => {
 		it("deletes transaction and returns affectedRows: 1", () => {
 			const created = repo.create({
-				fromAccountId: EMPLOYER,
-				toAccountId: CHECKING,
+				fromAccountId: getAccountId("Employer ABC"),
+				toAccountId: getAccountId("Checking account"),
 				date: 1700000000,
 				descr: "Salary",
 				cents: 100000,
@@ -226,58 +237,58 @@ describe("TransactionRepoSql", () => {
 	});
 
 	describe("createMany", () => {
-		it("bulk inserts and returns all transactions", () => {
-			const txs = repo.createMany([
+		it("bulk inserts and returns transactions", () => {
+			const before = repo.list(Maybe.nothing).length;
+
+			const created = repo.createMany([
 				{
-					fromAccountId: EMPLOYER,
-					toAccountId: CHECKING,
+					fromAccountId: getAccountId("Employer ABC"),
+					toAccountId: getAccountId("Checking account"),
 					date: 1700000000,
 					descr: "Salary 1",
 					cents: 100000,
 				},
 				{
-					fromAccountId: EMPLOYER,
-					toAccountId: CHECKING,
+					fromAccountId: getAccountId("Employer ABC"),
+					toAccountId: getAccountId("Checking account"),
 					date: 1700100000,
 					descr: "Salary 2",
 					cents: 100000,
 				},
 			]);
 
-			expect(txs).toHaveLength(2);
-			expect(txs[0].id).toBe(1);
-			expect(txs[1].id).toBe(2);
+			expect(created.length).toBe(2);
+			expect(repo.list(Maybe.nothing).length).toBe(before + 2);
+		});
+
+		it("returns empty array for empty input", () => {
+			const created = repo.createMany([]);
+			expect(created).toEqual([]);
 		});
 	});
 
-	describe("deleteMany", () => {
-		it("bulk deletes and returns count", () => {
-			const tx1 = repo.create({
-				fromAccountId: EMPLOYER,
-				toAccountId: CHECKING,
+	describe("deleteAll", () => {
+		it("removes all transactions", () => {
+			repo.create({
+				fromAccountId: getAccountId("Employer ABC"),
+				toAccountId: getAccountId("Checking account"),
 				date: 1700000000,
 				descr: "Salary 1",
 				cents: 100000,
 			});
-			const tx2 = repo.create({
-				fromAccountId: EMPLOYER,
-				toAccountId: CHECKING,
+			repo.create({
+				fromAccountId: getAccountId("Employer ABC"),
+				toAccountId: getAccountId("Checking account"),
 				date: 1700100000,
 				descr: "Salary 2",
 				cents: 100000,
 			});
-			repo.create({
-				fromAccountId: EMPLOYER,
-				toAccountId: CHECKING,
-				date: 1700200000,
-				descr: "Salary 3",
-				cents: 100000,
-			});
 
-			const count = repo.deleteMany([tx1.id, tx2.id]);
+			expect(repo.list(Maybe.nothing)).toHaveLength(2);
 
-			expect(count).toBe(2);
-			expect(repo.list(Maybe.nothing)).toHaveLength(1);
+			repo.deleteAll();
+
+			expect(repo.list(Maybe.nothing)).toHaveLength(0);
 		});
 	});
 });
