@@ -5,6 +5,7 @@ services:
   # Backend API
   - type: web
     name: pfm2-api
+    region: frankfurt
     runtime: node
     plan: free
     buildCommand: npm ci --include=dev && npm run build:server:prod
