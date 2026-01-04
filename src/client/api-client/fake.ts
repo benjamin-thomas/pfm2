@@ -3,7 +3,7 @@ import type { Category } from "../../shared/category";
 import {
 	makeAccountRows,
 	makeCategoryRows,
-	makeDbDate,
+	makeTransactionRows,
 } from "../../shared/fakeData";
 import type { LedgerEntry } from "../../shared/ledger";
 import type { Transaction, UpdateTransaction } from "../../shared/transaction";
@@ -43,11 +43,24 @@ const buildApi = (
 	accountRows: Account[],
 	seedTransactions: Transaction[],
 ): Api => {
-	const transactions: Transaction[] = [...seedTransactions];
+	// Store original seed data for reset
+	const originalSeedTransactions = [...seedTransactions];
+
+	// Mutable state
+	let transactions: Transaction[] = [...seedTransactions];
 	let nextId =
 		transactions.length === 0
 			? 1
 			: Math.max(...transactions.map((tx) => tx.id)) + 1;
+
+	// Reset function to restore to original state
+	const resetToSeedState = (): void => {
+		transactions = [...originalSeedTransactions];
+		nextId =
+			transactions.length === 0
+				? 1
+				: Math.max(...transactions.map((tx) => tx.id)) + 1;
+	};
 
 	// Helper to compute balances from transactions
 	const computeBalances = (txs: Transaction[]): AccountBalance[] => {
@@ -210,202 +223,14 @@ const buildApi = (
 				return Promise.resolve(Result.ok(balances));
 			},
 		},
-	};
-};
 
-// Demo transactions for the zero-config init()
-const makeDemoTransactions = (
-	clock: Clock,
-	accountNameToId: Map<string, number>,
-): Transaction[] => {
-	const now = clock.now();
-	const accId = (name: string): number => {
-		const id = accountNameToId.get(name);
-		if (!id) throw new Error(`Unknown account: "${name}"`);
-		return id;
+		admin: {
+			resetData: () => {
+				resetToSeedState();
+				return Promise.resolve(Result.ok(null));
+			},
+		},
 	};
-	return [
-		{
-			id: 1,
-			fromAccountId: accId("OpeningBalance"),
-			toAccountId: accId("Checking account"),
-			date: makeDbDate("2025-01-01"),
-			descr: "Opening Balance",
-			cents: 150000,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 2,
-			fromAccountId: accId("Checking account"),
-			toAccountId: accId("Transport"),
-			date: makeDbDate("2025-01-02"),
-			descr: "Metro Monthly Pass",
-			cents: 7500,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 3,
-			fromAccountId: accId("Checking account"),
-			toAccountId: accId("Groceries"),
-			date: makeDbDate("2025-01-05"),
-			descr: "Weekly Groceries - SuperMart",
-			cents: 6247,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 4,
-			fromAccountId: accId("Checking account"),
-			toAccountId: accId("Groceries"),
-			date: makeDbDate("2025-01-08"),
-			descr: "Fresh Produce Market",
-			cents: 3418,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 5,
-			fromAccountId: accId("Checking account"),
-			toAccountId: accId("Energy"),
-			date: makeDbDate("2025-01-10"),
-			descr: "Electricity Bill",
-			cents: 8543,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 6,
-			fromAccountId: accId("Checking account"),
-			toAccountId: accId("Groceries"),
-			date: makeDbDate("2025-01-12"),
-			descr: "Weekly Groceries - SuperMart",
-			cents: 5832,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 7,
-			fromAccountId: accId("Checking account"),
-			toAccountId: accId("Communications"),
-			date: makeDbDate("2025-01-15"),
-			descr: "Internet & Phone Bill",
-			cents: 6500,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 8,
-			fromAccountId: accId("Checking account"),
-			toAccountId: accId("Transport"),
-			date: makeDbDate("2025-01-16"),
-			descr: "Gas Station Fill-up",
-			cents: 4527,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 9,
-			fromAccountId: accId("Checking account"),
-			toAccountId: accId("Clothing"),
-			date: makeDbDate("2025-01-17"),
-			descr: "Electronics Store - Headphones",
-			cents: 8949,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 10,
-			fromAccountId: accId("Checking account"),
-			toAccountId: accId("Groceries"),
-			date: makeDbDate("2025-01-19"),
-			descr: "Weekly Groceries - SuperMart",
-			cents: 6891,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 11,
-			fromAccountId: accId("Checking account"),
-			toAccountId: accId("Health"),
-			date: makeDbDate("2025-01-20"),
-			descr: "Pharmacy - Prescriptions",
-			cents: 3265,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 12,
-			fromAccountId: accId("Clothing"),
-			toAccountId: accId("Checking account"),
-			date: makeDbDate("2025-01-22"),
-			descr: "Electronics Store - Headphones Refund",
-			cents: 8949,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 13,
-			fromAccountId: accId("Checking account"),
-			toAccountId: accId("Unknown_EXPENSE"),
-			date: makeDbDate("2025-01-25"),
-			descr: "Monthly Rent",
-			cents: 95000,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 14,
-			fromAccountId: accId("Checking account"),
-			toAccountId: accId("Groceries"),
-			date: makeDbDate("2025-01-26"),
-			descr: "Weekly Groceries - SuperMart",
-			cents: 5523,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 15,
-			fromAccountId: accId("Checking account"),
-			toAccountId: accId("Clothing"),
-			date: makeDbDate("2025-01-28"),
-			descr: "Work Clothes",
-			cents: 12345,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 16,
-			fromAccountId: accId("Unknown_INCOME"),
-			toAccountId: accId("Checking account"),
-			date: makeDbDate("2025-01-29"),
-			descr: "Side hustle",
-			cents: 35000,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 17,
-			fromAccountId: accId("Employer ABC"),
-			toAccountId: accId("Checking account"),
-			date: makeDbDate("2025-01-31"),
-			descr: "Monthly Salary",
-			cents: 250000,
-			createdAt: now,
-			updatedAt: now,
-		},
-		{
-			id: 18,
-			fromAccountId: accId("Checking account"),
-			toAccountId: accId("Leisure"),
-			date: makeDbDate("2025-01-31"),
-			descr: "Dinner & Movie",
-			cents: 7582,
-			createdAt: now,
-			updatedAt: now,
-		},
-	];
 };
 
 // Zero-config init for demo use
@@ -416,7 +241,7 @@ const init = (): Api => {
 		clock,
 		categoryNameToId,
 	);
-	const transactionRows = makeDemoTransactions(clock, accountNameToId);
+	const transactionRows = makeTransactionRows(clock, accountNameToId);
 
 	return buildApi(categoryRows, accountRows, transactionRows);
 };

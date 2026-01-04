@@ -7,6 +7,7 @@ import Database from "better-sqlite3";
 import { describe, expect, it } from "vitest";
 import createServer from "../../server/createServer.ts";
 import { makeSqlRepos } from "../../server/repos/initRepos";
+import { seedAllData } from "../../server/repos/seedData";
 import type { Account } from "../../shared/account";
 import type { Transaction } from "../../shared/transaction";
 import { Result } from "../../shared/utils/result";
@@ -28,9 +29,8 @@ const onServerCreate = <T>(
 ): Promise<T> => {
 	const db = new Database(":memory:");
 	db.exec(readFileSync("sql/init.sql", "utf-8"));
-	db.exec(readFileSync("sql/seed.sql", "utf-8"));
-
 	const repos = makeSqlRepos(db);
+	seedAllData(repos);
 	const app = createServer({ corsOrigin: "*" }, repos);
 	const server = app.listen(0);
 	const port = (server.address() as AddressInfo).port;
@@ -150,5 +150,34 @@ describe("HTTP Client against Real Server", () => {
 			const txsAfter = await listTransactions(api);
 			expect(txsAfter.length).toBe(countBefore - 1);
 			expect(txsAfter.find((t) => t.id === tx.id)).toBeUndefined();
+		}));
+
+	it("admin.resetData returns Ok on 204 and restores demo data", () =>
+		onServerCreate(async ({ api, accountNameToId }) => {
+			// Get the initial count
+			const initialTxs = await listTransactions(api);
+			const initialCount = initialTxs.length;
+			expect(initialCount).toBeGreaterThan(0);
+
+			// Add a custom transaction
+			await api.transactions.create({
+				fromAccountId: accountNameToId("Employer ABC"),
+				toAccountId: accountNameToId("Checking account"),
+				date: 1700000000,
+				descr: "Custom transaction before reset",
+				cents: 12345,
+			});
+
+			// Verify we have one more transaction now
+			const txsAfterCreate = await listTransactions(api);
+			expect(txsAfterCreate.length).toBe(initialCount + 1);
+
+			// Reset
+			const result = await api.admin.resetData();
+			expect(result).toEqual({ tag: "Ok", value: null });
+
+			// Verify we're back to the initial count
+			const txsAfterReset = await listTransactions(api);
+			expect(txsAfterReset.length).toBe(initialCount);
 		}));
 });
