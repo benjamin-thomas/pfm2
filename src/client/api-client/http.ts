@@ -169,6 +169,22 @@ const init = (baseUrl = ""): Api => {
 				}
 			},
 		},
+
+		admin: {
+			resetData: async () => {
+				try {
+					const res = await fetch(`${baseUrl}/api/admin/reset`, {
+						method: "POST",
+					});
+					if (res.status === 204) return Result.ok(null);
+					if (res.status >= 500) return Result.err(ApiErr.serverError);
+					return Result.err(ApiErr.badRequest("Bad request"));
+				} catch (error) {
+					console.error("API error (admin.resetData):", error);
+					return Result.err(ApiErr.serverError);
+				}
+			},
+		},
 	};
 };
 

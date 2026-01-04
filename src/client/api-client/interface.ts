@@ -47,6 +47,9 @@ export interface Api {
 	balances: {
 		getBalances(): Promise<Result<ApiError, AccountBalance[]>>;
 	};
+	admin: {
+		resetData(): Promise<Result<ApiError, null>>;
+	};
 }
 
 export type { ApiError };

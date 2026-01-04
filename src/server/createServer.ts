@@ -7,6 +7,7 @@ import { TransactionCommand } from "./cqs/transaction/commands";
 import { TransactionQuery } from "./cqs/transaction/queries";
 import type { Repos } from "./repos/initRepos";
 import { registerAccountRoutes } from "./routes/accountRoutes";
+import { registerAdminRoutes } from "./routes/adminRoutes";
 import { registerBalanceRoutes } from "./routes/balanceRoutes";
 import { registerLedgerRoutes } from "./routes/ledgerRoutes";
 import { registerTransactionRoutes } from "./routes/transactionRoutes";
@@ -124,6 +125,7 @@ export default (options: CreateServerOptions, repos: Repos): Express => {
 	registerBalanceRoutes(app, balanceQuery);
 	registerAccountRoutes(app, accountQuery, accountCommand);
 	registerLedgerRoutes(app, ledgerQuery);
+	registerAdminRoutes(app, repos);
 
 	return app;
 };
