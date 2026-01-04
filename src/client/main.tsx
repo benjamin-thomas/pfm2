@@ -8,7 +8,12 @@ import "./main.css";
 
 // Choose the API implementation based on URL param: ?api=fake
 const params = new URLSearchParams(window.location.search);
-const api = params.get("api") === "fake" ? ApiFake.init() : ApiHttp.init();
+
+// In dev, Vite proxies /api/* to the backend (see vite.config.ts)
+// In prod, VITE_API_URL must be set at build time to the backend URL
+const apiBaseUrl = import.meta.env.VITE_API_URL || "";
+const api =
+	params.get("api") === "fake" ? ApiFake.init() : ApiHttp.init(apiBaseUrl);
 
 const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Root element not found");

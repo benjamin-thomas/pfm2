@@ -1,0 +1,41 @@
+# Render.com blueprint for PFM2
+# https://render.com/docs/blueprint-spec
+
+services:
+  # Backend API
+  - type: web
+    name: pfm2-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build:server
+    startCommand: node dist/server/main.js
+    envVars:
+      - key: BE_PORT
+        value: 10000
+      - key: BE_HOST
+        value: 0.0.0.0
+      - key: FE_BASE_URL
+        sync: false  # Set via Render's dashboard
+      - key: REPO
+        value: fake
+      - key: NODE_ENV
+        value: production
+
+  # Frontend static site
+  - type: web
+    name: pfm2-frontend
+    runtime: static
+    plan: free
+    buildCommand: npm ci && npm run build:client
+    staticPublishPath: dist/client
+    envVars:
+      - key: VITE_API_URL
+        sync: false  # Set via Render's dashboard
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=0, must-revalidate
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
