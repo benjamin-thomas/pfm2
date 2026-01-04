@@ -9,4 +9,6 @@ export interface AccountRepo {
 	create(account: NewAccount): Account;
 	update(id: number, account: NewAccount): AffectedRows;
 	delete(id: number): AffectedRows;
+	deleteAll(): AffectedRows;
+	createMany(accounts: NewAccount[]): Account[];
 }

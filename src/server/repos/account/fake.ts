@@ -52,6 +52,24 @@ const init = (io: IO, initialAccounts: Account[]): AccountRepo => {
 			accounts.splice(index, 1);
 			return { affectedRows: 1 };
 		},
+
+		deleteAll: () => {
+			const count = accounts.length;
+			accounts.length = 0;
+			return { affectedRows: count };
+		},
+
+		createMany: (newAccounts: NewAccount[]): Account[] => {
+			const now = io.now();
+			const created: Account[] = newAccounts.map((acc) => ({
+				...acc,
+				id: nextId++,
+				createdAt: now,
+				updatedAt: now,
+			}));
+			accounts.push(...created);
+			return created;
+		},
 	};
 };
 

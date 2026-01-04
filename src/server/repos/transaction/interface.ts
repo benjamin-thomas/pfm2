@@ -27,5 +27,5 @@ export interface TransactionRepo {
 
 	// Bulk operations
 	createMany(transactions: NewTransaction[]): Transaction[];
-	deleteMany(ids: number[]): number; // Returns count deleted
+	deleteAll(): AffectedRows;
 }

@@ -121,20 +121,12 @@ const init = (db: Database): TransactionRepo => {
 	};
 
 	const createMany = (txs: NewTransaction[]): Transaction[] => {
-		const insertStmt = db.prepare(`
-			INSERT INTO transactions
-				( from_account_id
-				, to_account_id
-				, date
-				, descr
-				, cents
-				)
-			VALUES ( ?
-				   , ?
-				   , ?
-				   , ?
-				   , ?
-				   )
+		if (txs.length === 0) return [];
+
+		const placeholders = txs.map(() => "(?, ?, ?, ?, ?)").join(", ");
+		const query = `
+			INSERT INTO transactions (from_account_id, to_account_id, date, descr, cents)
+			VALUES ${placeholders}
 			RETURNING transaction_id AS id
 			        , from_account_id AS fromAccountId
 			        , to_account_id AS toAccountId
@@ -143,32 +135,21 @@ const init = (db: Database): TransactionRepo => {
 			        , cents
 			        , created_at AS createdAt
 			        , updated_at AS updatedAt
-		`);
-
-		const insertAll = db.transaction((transactions: NewTransaction[]) => {
-			return transactions.map((tx) =>
-				transactionDecoder.guard(
-					insertStmt.get(
-						tx.fromAccountId,
-						tx.toAccountId,
-						tx.date,
-						tx.descr,
-						tx.cents,
-					),
-				),
-			);
-		});
-
-		return insertAll(txs);
+		`;
+		const params = txs.flatMap((tx) => [
+			tx.fromAccountId,
+			tx.toAccountId,
+			tx.date,
+			tx.descr,
+			tx.cents,
+		]);
+		return transactionsDecoder.guard(db.prepare(query).all(...params));
 	};
 
-	const deleteMany = (ids: number[]): number => {
-		if (ids.length === 0) return 0;
-
-		const placeholders = ids.map(() => "?").join(", ");
-		const query = `DELETE FROM transactions WHERE transaction_id IN (${placeholders})`;
-		const result = db.prepare(query).run(...ids);
-		return result.changes;
+	const deleteAll = (): AffectedRows => {
+		// noinspection SqlWithoutWhere
+		const result = db.prepare("DELETE FROM transactions").run();
+		return { affectedRows: result.changes };
 	};
 
 	return {
@@ -179,7 +160,7 @@ const init = (db: Database): TransactionRepo => {
 		update,
 		delete: del,
 		createMany,
-		deleteMany,
+		deleteAll,
 	};
 };
 

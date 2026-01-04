@@ -103,11 +103,10 @@ const init = (io: IO, initialTransactions: Transaction[]): TransactionRepo => {
 			return created;
 		},
 
-		deleteMany: (ids: number[]): number => {
-			const idSet = new Set(ids);
-			const before = transactions.length;
-			transactions = transactions.filter((tx) => !idSet.has(tx.id));
-			return before - transactions.length;
+		deleteAll: () => {
+			const count = transactions.length;
+			transactions = [];
+			return { affectedRows: count };
 		},
 	};
 };

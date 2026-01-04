@@ -69,7 +69,38 @@ const init = (db: Database): AccountRepo => {
 		return { affectedRows: result.changes };
 	};
 
-	return { listAll, findById, create, update, delete: del };
+	const deleteAll = (): AffectedRows => {
+		// noinspection SqlWithoutWhere
+		const result = db.prepare("DELETE FROM accounts").run();
+		return { affectedRows: result.changes };
+	};
+
+	const createMany = (accounts: NewAccount[]): Account[] => {
+		if (accounts.length === 0) return [];
+
+		const placeholders = accounts.map(() => "(?, ?)").join(", ");
+		const query = `
+			INSERT INTO accounts (category_id, name)
+			VALUES ${placeholders}
+			RETURNING account_id AS id
+			        , category_id AS categoryId
+			        , name
+			        , created_at AS createdAt
+			        , updated_at AS updatedAt
+		`;
+		const params = accounts.flatMap((a) => [a.categoryId, a.name]);
+		return accountsDecoder.guard(db.prepare(query).all(...params));
+	};
+
+	return {
+		listAll,
+		findById,
+		create,
+		update,
+		delete: del,
+		deleteAll,
+		createMany,
+	};
 };
 
 export const AccountRepoSql = { init } as const;

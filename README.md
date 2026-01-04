@@ -137,6 +137,10 @@ data (for reads).
 - Writes: shouldn't contain ID, createdAt, updatedAt columns
 - Reads: may contain aggregated/joined data, etc.
 
+**Command Return Types:**
+- `create` / `createMany` → return the created resource(s) (useful for getting generated IDs)
+- `update` / `delete` / `deleteAll` → return `AffectedRows` (count of modified rows)
+
 ---
 
 ## Testing

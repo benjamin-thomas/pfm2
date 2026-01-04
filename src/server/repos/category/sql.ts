@@ -3,6 +3,7 @@
 import type { Database } from "better-sqlite3";
 import {
 	type Category,
+	type NewCategory,
 	categoriesDecoder,
 	categoryDecoder,
 } from "../../../shared/category";
@@ -33,6 +34,28 @@ const init = (db: Database): CategoryRepo => {
 			`;
 			const row = db.prepare(query).get(id);
 			return row ? Maybe.just(categoryDecoder.guard(row)) : Maybe.nothing;
+		},
+
+		deleteAll: () => {
+			// noinspection SqlWithoutWhere
+			const result = db.prepare("DELETE FROM categories").run();
+			return { affectedRows: result.changes };
+		},
+
+		createMany: (categories: NewCategory[]): Category[] => {
+			if (categories.length === 0) return [];
+
+			const placeholders = categories.map(() => "(?)").join(", ");
+			const query = `
+				INSERT INTO categories (name)
+				VALUES ${placeholders}
+				RETURNING category_id AS id
+				        , name
+				        , created_at AS createdAt
+				        , updated_at AS updatedAt
+			`;
+			const params = categories.map((c) => c.name);
+			return categoriesDecoder.guard(db.prepare(query).all(...params));
 		},
 	};
 };
