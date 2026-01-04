@@ -5,13 +5,12 @@ services:
   # Backend API
   - type: web
     name: pfm2-api
+    region: frankfurt
     runtime: node
     plan: free
     buildCommand: npm ci --include=dev && npm run build:server
     startCommand: node dist/server/main.js
     envVars:
-      - key: BE_PORT
-        value: 10000
       - key: BE_HOST
         value: 0.0.0.0
       - key: FE_BASE_URL

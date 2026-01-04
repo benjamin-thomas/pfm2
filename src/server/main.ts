@@ -6,7 +6,8 @@ if (!process.env.BE_HOST) throw new Error("Missing mandatory env var: BE_HOST");
 if (!process.env.FE_BASE_URL)
 	throw new Error("Missing mandatory env var: FE_BASE_URL");
 
-const BE_PORT = parseInt(process.env.BE_PORT, 10);
+// Render provides PORT, we use BE_PORT for local dev
+const BE_PORT = parseInt(process.env.PORT || process.env.BE_PORT, 10);
 const BE_HOST = process.env.BE_HOST;
 const FE_BASE_URL = process.env.FE_BASE_URL;
 
