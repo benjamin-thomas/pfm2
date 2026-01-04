@@ -15,6 +15,33 @@ type CreateServerOptions = {
 	corsOrigin: string;
 };
 
+const wakingUpHtml = (redirectUrl: string) => `
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta http-equiv="refresh" content="1;url=${redirectUrl}">
+      <title>Waking up...</title>
+    </head>
+    <body>
+      <p>Server is waking up. Redirecting...</p>
+    </body>
+</html>
+`;
+
+const wakingUpErrorHtml = () => `
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <title>Backend unavailable</title>
+    </head>
+    <body>
+      <p>Backend unavailable. Please try again later.</p>
+    </body>
+</html>
+`;
+
 export default (options: CreateServerOptions, repos: Repos): Express => {
 	const app = express();
 
@@ -51,6 +78,42 @@ export default (options: CreateServerOptions, repos: Repos): Express => {
 	// Routes
 	app.get("/health", (_req, res) => {
 		res.json({ status: "ok", timestamp: Date.now() });
+	});
+
+	// Waking-up endpoint: redirects back to the frontend after a (render.com) cold start
+	const isValidReferer = (referer: string): boolean => {
+		try {
+			const refererOrigin = new URL(referer).origin;
+			const allowedOrigins = options.corsOrigin.split(",").map((o) => o.trim());
+			return allowedOrigins.includes(refererOrigin);
+		} catch {
+			return false;
+		}
+	};
+
+	app.get("/waking-up", (req, res) => {
+		let validatedReferer: string;
+		{
+			const refererRaw = req.get("Referer");
+			if (!refererRaw || !isValidReferer(refererRaw)) {
+				res.status(400).send("Invalid referer");
+				return;
+			}
+			validatedReferer = refererRaw;
+		}
+
+		const attempt = parseInt(
+			typeof req.query.attempt === "string" ? req.query.attempt : "0",
+			10,
+		);
+
+		if (attempt >= 3) {
+			res.status(503).send(wakingUpErrorHtml());
+		} else {
+			const redirectUrl = new URL(validatedReferer);
+			redirectUrl.searchParams.set("_attempt", String(attempt + 1));
+			res.send(wakingUpHtml(redirectUrl.toString()));
+		}
 	});
 
 	app.get("/hello/:name", (req, res) => {
