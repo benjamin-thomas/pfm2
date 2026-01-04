@@ -82,53 +82,27 @@ export default (options: CreateServerOptions, repos: Repos): Express => {
 	});
 
 	// Waking-up endpoint: redirects back to the frontend after a (render.com) cold start
-	const isValidReferer = (referer: string): boolean => {
-		try {
-			const refererOrigin = new URL(referer).origin;
-			const allowedOrigins = options.corsOrigin.split(",").map((o) => o.trim());
-			console.log("[waking-up] Validating referer:", {
-				referer,
-				refererOrigin,
-				corsOrigin: options.corsOrigin,
-				allowedOrigins,
-			});
-			const isValid = allowedOrigins.includes(refererOrigin);
-			console.log("[waking-up] Validation result:", isValid);
-			return isValid;
-		} catch (err) {
-			console.log("[waking-up] Failed to parse referer URL:", referer, err);
-			return false;
-		}
-	};
-
 	app.get("/waking-up", (req, res) => {
-		let validatedReferer: string;
-		{
-			const refererRaw = req.get("Referer");
-			console.log("[waking-up] Request received, Referer header:", refererRaw);
-			if (!refererRaw) {
-				console.log("[waking-up] Rejecting: No Referer header");
-				res.status(400).send("Invalid referer");
-				return;
-			}
-			if (!isValidReferer(refererRaw)) {
-				console.log("[waking-up] Rejecting: Referer not in allowed origins");
-				res.status(400).send("Invalid referer");
-				return;
-			}
-			validatedReferer = refererRaw;
+		const feBaseUrl = process.env.FE_BASE_URL;
+		if (!feBaseUrl) {
+			console.log("[waking-up] FE_BASE_URL not set");
+			res.status(500).send("FE_BASE_URL not configured");
+			return;
 		}
 
 		const attempt = parseInt(
 			typeof req.query.attempt === "string" ? req.query.attempt : "0",
 			10,
 		);
+		console.log(`[waking-up] Request received, attempt=${attempt}`);
 
 		if (attempt >= 3) {
+			console.log("[waking-up] Max attempts reached, showing error");
 			res.status(503).send(wakingUpErrorHtml());
 		} else {
-			const redirectUrl = new URL(validatedReferer);
+			const redirectUrl = new URL(feBaseUrl);
 			redirectUrl.searchParams.set("_attempt", String(attempt + 1));
+			console.log(`[waking-up] Redirecting to: ${redirectUrl.toString()}`);
 			res.send(wakingUpHtml(redirectUrl.toString()));
 		}
 	});
