@@ -17,6 +17,7 @@ import { CategoryRepoSql } from "./category/sql";
 import { LedgerRepoFake } from "./ledger/fake";
 import type { LedgerRepo } from "./ledger/interface";
 import { LedgerRepoSql } from "./ledger/sql";
+import { seedAllData } from "./seedData";
 import { TransactionRepoFake } from "./transaction/fake";
 import type { TransactionRepo } from "./transaction/interface";
 import { TransactionRepoSql } from "./transaction/sql";
@@ -91,9 +92,10 @@ const initSqlRepos = (): Repos => {
 
 	const db = new Database(dbPath);
 	db.exec(readFileSync("sql/init.sql", "utf-8"));
-	db.exec(readFileSync("sql/seed.sql", "utf-8"));
 
-	return makeSqlRepos(db);
+	const repos = makeSqlRepos(db);
+	seedAllData(repos);
+	return repos;
 };
 
 const initRepos = (repoType: RepoVariant): Repos => {

@@ -30,7 +30,6 @@ export const makeAccountRepoOrThrow = (repoType: REPO_VARIANT): AccountRepo => {
 			}
 			const db = new Database(dbPath);
 			db.exec(readFileSync("sql/init.sql", "utf-8"));
-			db.exec(readFileSync("sql/seed.sql", "utf-8"));
 			return AccountRepoSql.init(db);
 		}
 		/* v8 ignore next 2 */
