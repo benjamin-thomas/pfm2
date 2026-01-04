@@ -7,7 +7,7 @@ services:
     name: pfm2-api
     runtime: node
     plan: free
-    buildCommand: npm ci && npm run build:server
+    buildCommand: npm ci --include=dev && npm run build:server
     startCommand: node dist/server/main.js
     envVars:
       - key: BE_PORT
@@ -17,7 +17,7 @@ services:
       - key: FE_BASE_URL
         sync: false  # Set via Render's dashboard
       - key: REPO
-        value: fake
+        value: sql
       - key: NODE_ENV
         value: production
 
@@ -25,7 +25,7 @@ services:
   - type: web
     name: pfm2-frontend
     runtime: static
-    buildCommand: npm ci && npm run build:client
+    buildCommand: npm ci --include=dev && npm run build:client
     staticPublishPath: dist/client
     envVars:
       - key: VITE_API_URL
