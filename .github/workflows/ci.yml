@@ -33,3 +33,11 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Deploy Backend to Render
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        run: curl -s "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}"
+
+      - name: Deploy Frontend to Render
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        run: curl -s "${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}"
