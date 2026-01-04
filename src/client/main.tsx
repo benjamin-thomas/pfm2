@@ -14,7 +14,12 @@ const ensureBackendAwake = async (apiBaseUrl: string) => {
 	const href = `${apiBaseUrl}/waking-up?attempt=${attempt}`;
 
 	try {
-		const res = await fetch(`${apiBaseUrl}/health`);
+		const controller = new AbortController();
+		const timeout = setTimeout(() => controller.abort(), 3000);
+		const res = await fetch(`${apiBaseUrl}/health`, {
+			signal: controller.signal,
+		});
+		clearTimeout(timeout);
 		const contentType = res.headers.get("content-type");
 		if (!contentType?.includes("application/json")) {
 			window.location.href = href;
