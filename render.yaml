@@ -5,7 +5,6 @@ services:
   # Backend API
   - type: web
     name: pfm2-api
-    region: frankfurt
     runtime: node
     plan: free
     buildCommand: npm ci --include=dev && npm run build:server
@@ -22,7 +21,7 @@ services:
 
   # Frontend static site
   - type: web
-    name: pfm2-frontend
+    name: pfm2
     runtime: static
     buildCommand: npm ci --include=dev && npm run build:client
     staticPublishPath: dist/client
