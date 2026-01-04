@@ -17,7 +17,7 @@ import { CategoryRepoSql } from "./category/sql";
 import { LedgerRepoFake } from "./ledger/fake";
 import type { LedgerRepo } from "./ledger/interface";
 import { LedgerRepoSql } from "./ledger/sql";
-import { seedAllData } from "./seedData";
+import { resetAllData } from "./seedData";
 import { TransactionRepoFake } from "./transaction/fake";
 import type { TransactionRepo } from "./transaction/interface";
 import { TransactionRepoSql } from "./transaction/sql";
@@ -90,11 +90,15 @@ const initSqlRepos = (): Repos => {
 		);
 	}
 
+	console.log(`[initSqlRepos] Opening database: ${dbPath}`);
 	const db = new Database(dbPath);
 	db.exec(readFileSync("sql/init.sql", "utf-8"));
 
 	const repos = makeSqlRepos(db);
-	seedAllData(repos);
+
+	// Always reset to demo state on startup (this is a demo app)
+	resetAllData(repos);
+
 	return repos;
 };
 

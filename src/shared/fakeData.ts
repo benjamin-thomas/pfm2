@@ -47,18 +47,19 @@ export const makeAccountRows = (
 		if (!id) throw new Error(`Unknown category: "${name}"`);
 		return id;
 	};
+	// Note: "Checking account" is first so it becomes the default selected account
 	const accountRows: Account[] = [
 		{
 			id: 1,
-			name: "OpeningBalance",
-			categoryId: catId("Equity"),
+			name: "Checking account",
+			categoryId: catId("Assets"),
 			createdAt: now,
 			updatedAt: now,
 		},
 		{
 			id: 2,
-			name: "Checking account",
-			categoryId: catId("Assets"),
+			name: "OpeningBalance",
+			categoryId: catId("Equity"),
 			createdAt: now,
 			updatedAt: now,
 		},

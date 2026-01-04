@@ -33,10 +33,11 @@ describe("AccountRepoSql", () => {
 			const accounts = repo.listAll();
 			const first = accounts[0];
 
+			// First account is "Checking account" (the default)
 			expect(first).toMatchObject({
 				id: 1,
-				name: "OpeningBalance",
-				categoryId: 1,
+				name: "Checking account",
+				categoryId: 2, // Assets
 			});
 			expect(first.createdAt).toBeTypeOf("number");
 			expect(first.updatedAt).toBeTypeOf("number");
@@ -56,8 +57,8 @@ describe("AccountRepoSql", () => {
 				(account) => {
 					expect(account).toMatchObject({
 						id: 2,
-						name: "Checking account",
-						categoryId: 2,
+						name: "OpeningBalance",
+						categoryId: 1, // Equity
 					});
 				},
 			);

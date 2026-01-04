@@ -86,8 +86,17 @@ export default (options: CreateServerOptions, repos: Repos): Express => {
 		try {
 			const refererOrigin = new URL(referer).origin;
 			const allowedOrigins = options.corsOrigin.split(",").map((o) => o.trim());
-			return allowedOrigins.includes(refererOrigin);
-		} catch {
+			console.log("[waking-up] Validating referer:", {
+				referer,
+				refererOrigin,
+				corsOrigin: options.corsOrigin,
+				allowedOrigins,
+			});
+			const isValid = allowedOrigins.includes(refererOrigin);
+			console.log("[waking-up] Validation result:", isValid);
+			return isValid;
+		} catch (err) {
+			console.log("[waking-up] Failed to parse referer URL:", referer, err);
 			return false;
 		}
 	};
@@ -96,7 +105,14 @@ export default (options: CreateServerOptions, repos: Repos): Express => {
 		let validatedReferer: string;
 		{
 			const refererRaw = req.get("Referer");
-			if (!refererRaw || !isValidReferer(refererRaw)) {
+			console.log("[waking-up] Request received, Referer header:", refererRaw);
+			if (!refererRaw) {
+				console.log("[waking-up] Rejecting: No Referer header");
+				res.status(400).send("Invalid referer");
+				return;
+			}
+			if (!isValidReferer(refererRaw)) {
+				console.log("[waking-up] Rejecting: Referer not in allowed origins");
 				res.status(400).send("Invalid referer");
 				return;
 			}
