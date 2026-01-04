@@ -541,6 +541,61 @@ describe("AppDataLoader", () => {
 		});
 	});
 
+	describe("reset data button", () => {
+		it("resets data to demo state when clicked", async () => {
+			const user = userEvent.setup();
+
+			// Start with one seed transaction
+			const api = makeTestApi((accId) => [
+				{
+					id: 1,
+					fromAccountId: accId("Checking account"),
+					toAccountId: accId("Groceries"),
+					date: 1,
+					descr: "Seed transaction",
+					cents: 5000,
+					createdAt: clock.now(),
+					updatedAt: clock.now(),
+				},
+			]);
+
+			const accountsResult = await api.accounts.list();
+			const accounts = unwrapOrThrow(accountsResult);
+
+			render(
+				<AppDataLoader
+					api={api}
+					initialAccounts={accounts}
+					selectedAccountId={checkingId}
+					setSelectedAccountId={noOp}
+				/>,
+			);
+
+			// Wait for the seed transaction to appear
+			await screen.findByText(/Seed transaction/);
+			expect(screen.getByText(/1 of 1 transactions/)).toBeTruthy();
+
+			// Add a new transaction via API (simulating user adding data)
+			await api.transactions.create({
+				fromAccountId: checkingId,
+				toAccountId: groceriesId,
+				date: 2,
+				descr: "Added by user",
+				cents: 1000,
+			});
+
+			// Click reset button
+			const resetButton = screen.getByTestId("reset-data-button");
+			await user.click(resetButton);
+
+			// After reset, the added transaction should be gone
+			// and we should be back to just the seed transaction
+			await screen.findByText(/1 of 1 transactions/);
+			expect(screen.getByText(/Seed transaction/)).toBeTruthy();
+			expect(screen.queryByText(/Added by user/)).toBeNull();
+		});
+	});
+
 	describe("error handling", () => {
 		it("displays error when save fails and clears error when user edits field", async () => {
 			const user = userEvent.setup();

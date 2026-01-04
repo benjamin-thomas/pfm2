@@ -58,7 +58,41 @@ const AppDataLoaded = ({
 	const [apiCallError, setApiCallError] = useState<Maybe<string>>(
 		Maybe.nothing,
 	);
+	const [isResetting, setIsResetting] = useState(false);
+	const [isSpinning, setIsSpinning] = useState(false);
+	const resetButtonRef = useRef<HTMLButtonElement>(null);
+	const shouldStopSpinningRef = useRef(false);
 	const lastFocusedElement = useRef<Maybe<HTMLElement>>(Maybe.nothing);
+
+	// Handle the spinning animation lifecycle
+	useEffect(() => {
+		if (isResetting) {
+			setIsSpinning(true);
+			shouldStopSpinningRef.current = false;
+		} else {
+			shouldStopSpinningRef.current = true;
+		}
+	}, [isResetting]);
+
+	// Stop spinning cleanly at the end of the rotation cycle
+	useEffect(() => {
+		if (!isSpinning) return;
+
+		const button = resetButtonRef.current;
+		if (!button) {
+			// Should never happen
+			console.warn("Reset button ref is null while spinning");
+			return;
+		}
+
+		const handleIteration = () => {
+			if (shouldStopSpinningRef.current) setIsSpinning(false);
+		};
+
+		button.addEventListener("animationiteration", handleIteration);
+		return () =>
+			button.removeEventListener("animationiteration", handleIteration);
+	}, [isSpinning]);
 
 	useEffect(() => {
 		if (isDarkMode) {
@@ -71,8 +105,27 @@ const AppDataLoaded = ({
 
 	const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
+	const handleResetData = async () => {
+		setIsResetting(true);
+		try {
+			const result = await api.admin.resetData();
+			Result.match(
+				result,
+				(error) => {
+					console.error("Failed to reset data:", error);
+					setApiCallError(Maybe.just("Failed to reset data"));
+				},
+				() => {
+					refetchAllData();
+				},
+			);
+		} finally {
+			setIsResetting(false);
+		}
+	};
+
 	const restoreFocusedRow: () => void = () => {
-		// Restore on next tick to ensure we restore focus after dialog close
+		// Restore on the next tick to ensure we restore focus after dialog close
 		setTimeout(() => {
 			Maybe.match(
 				lastFocusedElement.current,
@@ -83,8 +136,8 @@ const AppDataLoaded = ({
 	};
 
 	const restoreFocusAfterDelete: () => void = () => {
-		// After delete, the focused row no longer exists
-		// Try to focus on a nearby row, or fallback to Add Transaction button
+		// After delete, the focused row no longer exists.
+		// Try to focus on a nearby row or fallback to the "Add Transaction" button
 		setTimeout(() => {
 			Maybe.match(
 				lastFocusedElement.current,
@@ -96,19 +149,19 @@ const AppDataLoaded = ({
 					addButton?.focus();
 				},
 				(deletedElement) => {
-					// Check if element still exists in DOM
+					// Check if the element still exists in DOM
 					if (document.contains(deletedElement)) {
 						deletedElement.focus();
 						return;
 					}
 
-					// Element was deleted, try to find next or previous sibling
+					// Element was deleted, try to find the next or previous sibling
 					const transactionRows = Array.from(
 						document.querySelectorAll('[data-testid^="transaction-item-"]'),
 					) as HTMLElement[];
 
 					if (transactionRows.length > 0) {
-						// Focus on first available transaction
+						// Focus on the first available transaction
 						transactionRows[0].focus();
 					} else {
 						// No transactions left, focus Add Transaction button
@@ -122,7 +175,7 @@ const AppDataLoaded = ({
 		}, 0);
 	};
 
-	// Sanity check: must have valid selected account
+	// Sanity check: must have a valid selected account
 	const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
 	if (!selectedAccount) {
 		throw new Error(
@@ -179,15 +232,29 @@ const AppDataLoaded = ({
 
 	return (
 		<>
-			{/* Dark Mode Toggle */}
-			<button
-				type="button"
-				className="theme-toggle"
-				onClick={toggleTheme}
-				title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-			>
-				{isDarkMode ? "🌙" : "☀️"}
-			</button>
+			{/* Header buttons */}
+			<div className="header-buttons">
+				<button
+					ref={resetButtonRef}
+					type="button"
+					className={`header-button${isSpinning ? " header-button--spinning" : ""}`}
+					onClick={handleResetData}
+					disabled={isResetting}
+					title="Reset to demo data"
+					data-testid="reset-data-button"
+				>
+					↻
+				</button>
+
+				<button
+					type="button"
+					className="theme-toggle"
+					onClick={toggleTheme}
+					title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+				>
+					{isDarkMode ? "🌙" : "☀️"}
+				</button>
+			</div>
 
 			{Maybe.match(
 				dialogMode,
