@@ -7,6 +7,7 @@ import { Maybe } from "../shared/utils/maybe";
 import { Result } from "../shared/utils/result";
 import type { Api, ApiError } from "./api-client/interface";
 import { BalanceCards } from "./components/BalanceCards";
+import { BalanceChart } from "./components/BalanceChart";
 import {
 	type DialogMode,
 	type TransactionData,
@@ -230,6 +231,24 @@ const AppDataLoaded = ({
 		});
 	};
 
+	const handleChartPointClick = (transactionId: number) => {
+		const row = document.querySelector(
+			`[data-testid="transaction-item--${transactionId}"]`,
+		);
+		if (!row) {
+			alert("Transaction not visible (filtered out)");
+			return;
+		}
+
+		// Scroll to the row
+		row.scrollIntoView({ behavior: "smooth", block: "center" });
+
+		// Add highlight class and remove after animation
+		row.classList.add("transaction-item--highlighted");
+		setTimeout(() => {
+			row.classList.remove("transaction-item--highlighted");
+		}, 1500);
+	};
 	return (
 		<>
 			{/* Header buttons */}
@@ -335,6 +354,14 @@ const AppDataLoaded = ({
 					balances={balances}
 					selectedAccountId={selectedAccountId}
 					onSelectAccount={setSelectedAccountId}
+				/>
+			</div>
+
+			<div className="section">
+				<BalanceChart
+					ledgerEntries={ledgerEntries}
+					accountName={selectedAccount.name}
+					onPointClick={handleChartPointClick}
 				/>
 			</div>
 

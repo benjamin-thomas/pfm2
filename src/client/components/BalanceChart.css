@@ -1,0 +1,57 @@
+/* Balance Chart Section */
+
+.balance-chart-section {
+	margin-bottom: var(--space-lg);
+}
+
+/* Chart Title */
+.balance-chart-title {
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--color-text-secondary);
+	margin: 0 0 var(--space-sm) 0;
+}
+
+/* Chart Container */
+.balance-chart-container {
+	background-color: var(--color-card-bg);
+	border: 1px solid var(--color-border);
+	border-radius: 6px;
+	padding: var(--space-md);
+}
+
+/* Custom Tooltip */
+.balance-chart-tooltip {
+	background-color: var(--color-card-bg);
+	border: 1px solid var(--color-border);
+	border-radius: 6px;
+	padding: var(--space-sm) var(--space-md);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dark-theme .balance-chart-tooltip {
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.balance-chart-tooltip__date {
+	margin: 0 0 var(--space-xs) 0;
+	font-size: 12px;
+	color: var(--color-text-secondary);
+}
+
+.balance-chart-tooltip__value {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--color-text-bright);
+}
+
+/* Recharts overrides for theme consistency */
+.balance-chart-container .recharts-cartesian-grid-horizontal line,
+.balance-chart-container .recharts-cartesian-grid-vertical line {
+	stroke: var(--color-border);
+}
+
+.balance-chart-container .recharts-text {
+	fill: var(--color-text-secondary);
+}
