@@ -8,7 +8,7 @@ languages (most interestingly Elm+Haskell, fullstack PureScript), see the [origi
 The goal of this project is to demonstrate code organization patterns, by implementing a central slice of a typical
 finance manager app
 
-[🔗 Live Demo](#) (TODO)
+[🔗 Live Demo](https://pfm2.onrender.com/)
 
 ## In action
 
@@ -29,7 +29,7 @@ finance manager app
 **Fullstack TypeScript:**
 - React frontend with hooks
 - Express REST API
-- SQLite database integration (planned)
+- SQLite database integration
 - End-to-end type safety, see the "shared" directory
 
 **Testing & Quality:**
@@ -44,7 +44,7 @@ finance manager app
 - **Onion Architecture**: Dependency injection makes all layers testable without mocking
 - **Double-Entry Bookkeeping**: A way to view "money flow" from "any angle".
 
-**Tech Stack**: TypeScript • React • Node.js • Express • Vitest • SQLite (planned)
+**Tech Stack**: TypeScript • React • Node.js • Express • Vitest • SQLite
 
 ---
 
@@ -103,7 +103,7 @@ The frontend uses an API client interface with two implementations:
 
 The backend uses a Repository interface with two implementations:
 - **Fake**: In-memory data store
-- **SQL**: Real database (planned)
+- **SQL**: Real SQLite database
 
 ```typescript
 // Frontend: Can swap API client implementations
