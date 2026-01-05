@@ -6,10 +6,109 @@
 	gap: var(--space-md);
 }
 
-/* Legacy balance card styles (for backward compatibility) */
+/* Legacy balance card styles (for backward compatibility - fewer cards than carousel threshold) */
 .balances {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 	gap: var(--space-md);
 	margin-bottom: var(--space-xl);
+}
+
+/* Carousel Styles */
+
+.carousel-viewport {
+	overflow: hidden;
+	margin-bottom: var(--space-md);
+}
+
+.carousel-track {
+	display: flex;
+	transition: transform 0.7s ease-out;
+}
+
+.carousel-card {
+	flex: 0 0 calc(100% / 3);
+	padding: 0 var(--space-sm);
+	box-sizing: border-box;
+}
+
+.carousel-card--mobile {
+	flex: 0 0 100%;
+}
+
+/* First card doesn't need left padding */
+.carousel-card:first-child {
+	padding-left: 0;
+}
+
+/* Last card doesn't need right padding */
+.carousel-card:last-child {
+	padding-right: 0;
+}
+
+/* Dot Indicators */
+
+.carousel-dots {
+	display: flex;
+	justify-content: center;
+	gap: var(--space-sm);
+	margin-top: var(--space-md);
+}
+
+.carousel-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--color-border);
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	transition:
+		background 0.2s,
+		transform 0.2s;
+}
+
+.carousel-dot:hover {
+	background: var(--color-text-secondary);
+	transform: scale(1.2);
+}
+
+.carousel-dot--active {
+	background: var(--color-primary);
+}
+
+.carousel-dot--active:hover {
+	background: var(--color-primary);
+}
+
+/* Off-screen Selected Indicator */
+
+.carousel-selected-indicator {
+	display: block;
+	width: 100%;
+	text-align: center;
+	margin-top: var(--space-sm);
+	padding: var(--space-sm) var(--space-md);
+	color: var(--color-text-secondary);
+	font-size: 13px;
+	cursor: pointer;
+	background: none;
+	border: 1px dashed var(--color-border);
+	border-radius: 4px;
+	transition:
+		color 0.2s,
+		border-color 0.2s;
+}
+
+.carousel-selected-indicator:hover {
+	color: var(--color-primary);
+	border-color: var(--color-primary);
+}
+
+/* Responsive: Mobile */
+@media (max-width: 640px) {
+	.carousel-card {
+		flex: 0 0 100%;
+		padding: 0;
+	}
 }
