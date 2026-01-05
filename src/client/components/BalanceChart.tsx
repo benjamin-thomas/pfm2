@@ -19,6 +19,8 @@ type ChartDataPoint = {
 	date: string;
 	balance: number;
 	transactionId: number;
+	// Unique key for Recharts to distinguish points with the same date
+	uniqueKey: string;
 };
 
 const formatDate = (timestampSeconds: number): string => {
@@ -49,10 +51,12 @@ const toChartData = (entries: LedgerEntry[]): ChartDataPoint[] => {
 	// We need chronological order for the chart (oldest first)
 	const sortedEntries = [...entries].sort((a, b) => a.date - b.date);
 
-	return sortedEntries.map((entry) => ({
+	return sortedEntries.map((entry, index) => ({
 		date: formatDate(entry.date),
 		balance: entry.runningBalanceCents / 100,
 		transactionId: entry.id,
+		// Unique key for Recharts to distinguish points with the same date
+		uniqueKey: `${entry.id}-${index}`,
 	}));
 };
 
@@ -117,11 +121,12 @@ export const BalanceChart = ({
 						onClick={handleChartClick}
 					>
 						<XAxis
-							dataKey="date"
+							dataKey="uniqueKey"
 							stroke="var(--color-text-secondary)"
 							fontSize={12}
 							tickLine={false}
 							axisLine={{ stroke: "var(--color-border)" }}
+							tickFormatter={(_, index) => chartData[index].date}
 						/>
 						<YAxis
 							stroke="var(--color-text-secondary)"
