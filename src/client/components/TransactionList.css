@@ -80,46 +80,42 @@
 	outline-offset: -2px;
 }
 
-.transaction-item__row {
-	display: flex;
-	justify-content: space-between;
+/* Desktop: Grid layout - description/accounts on left, date, amount, balance on right */
+.transaction-item__grid {
+	display: grid;
+	grid-template-columns: 1fr auto auto auto;
+	grid-template-rows: auto auto;
+	column-gap: var(--space-md);
+	row-gap: 2px;
 	align-items: center;
-}
-
-.transaction-item__main-content {
-	display: flex;
-	flex: 1;
-	gap: var(--space-md);
-	align-items: center;
-}
-
-.transaction-item__details {
-	display: flex;
-	flex-direction: column;
-	flex: 1;
 }
 
 .transaction-item__description {
+	grid-column: 1;
+	grid-row: 1;
 	font-weight: 500;
-	margin-bottom: 4px;
 	white-space: pre; /* some OFX descriptions insert many whitespaces to separate related data */
 }
 
 .transaction-item__accounts {
+	grid-column: 1;
+	grid-row: 2;
 	font-size: 13px;
 	color: var(--color-text-secondary);
 }
 
 .transaction-item__date {
+	grid-column: 2;
+	grid-row: 1 / 3;
 	font-size: 13px;
 	color: var(--color-text-tertiary);
-	align-self: center;
 }
 
 .transaction-item__amount {
+	grid-column: 3;
+	grid-row: 1 / 3;
 	font-weight: 600;
 	text-align: right;
-	align-self: center;
 	min-width: 100px;
 }
 
@@ -131,19 +127,15 @@
 	color: var(--color-negative);
 }
 
-.transaction-item__balance-column {
-	margin-left: var(--space-md);
-	min-width: 180px;
-	text-align: right;
-}
-
-.transaction-item__balance-movement {
+.transaction-item__balance {
+	grid-column: 4;
+	grid-row: 1 / 3;
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
 	font-size: 13px;
 	color: var(--color-text-secondary);
-	padding-left: var(--space-md);
+	min-width: 180px;
 }
 
 .balance-before,
@@ -308,5 +300,56 @@ html.dark-theme .transaction-item:hover .suggestion-container {
 	}
 	100% {
 		box-shadow: inset 0 0 0 2px transparent;
+	}
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 640px) {
+	/* Hide header buttons on mobile - moved to filters area */
+	.transaction-list__header-buttons {
+		display: none;
+	}
+
+	/* Even vertical padding for transaction items on mobile */
+	.transaction-item__button {
+		padding: var(--space-lg) var(--space-lg);
+	}
+
+	/* Mobile: 4 rows with extra space before date/amount row */
+	.transaction-item__grid {
+		grid-template-columns: 1fr auto;
+		grid-template-rows: auto auto auto auto;
+		row-gap: var(--space-sm);
+	}
+
+	.transaction-item__description {
+		grid-column: 1 / -1;
+		grid-row: 1;
+	}
+
+	.transaction-item__accounts {
+		grid-column: 1 / -1;
+		grid-row: 2;
+	}
+
+	.transaction-item__date {
+		grid-column: 1;
+		grid-row: 3;
+		margin-top: var(--space-md);
+	}
+
+	.transaction-item__amount {
+		grid-column: 2;
+		grid-row: 3;
+		min-width: unset;
+		margin-top: var(--space-md);
+	}
+
+	.transaction-item__balance {
+		grid-column: 1 / -1;
+		grid-row: 4;
+		justify-content: flex-start;
+		min-width: unset;
+		margin-top: var(--space-md);
 	}
 }

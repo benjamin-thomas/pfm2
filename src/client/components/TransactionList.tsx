@@ -42,19 +42,16 @@ export const TransactionList = ({
 							data-test--balance-before={entry.priorBalanceCents}
 							data-test--balance-after={entry.runningBalanceCents}
 						>
-							<div className="transaction-item__row">
-								<div className="transaction-item__main-content">
-									<div className="transaction-item__details">
-										<div className="transaction-item__description">
-											{entry.descr}
-										</div>
-										<div className="transaction-item__accounts">
-											{entry.fromAccountName} → {entry.toAccountName}
-										</div>
-									</div>
-									<div className="transaction-item__date">
-										{formatDate(entry.date)}
-									</div>
+							{/* Desktop: single row layout, Mobile: stacked rows via CSS Grid */}
+							<div className="transaction-item__grid">
+								<div className="transaction-item__description">
+									{entry.descr}
+								</div>
+								<div className="transaction-item__accounts">
+									{entry.fromAccountName} → {entry.toAccountName}
+								</div>
+								<div className="transaction-item__date">
+									{formatDate(entry.date)}
 								</div>
 								<div
 									className={`transaction-item__amount ${amountClass}`}
@@ -63,18 +60,16 @@ export const TransactionList = ({
 									{isPositive ? "+" : "-"}
 									{formatMoney(entry.cents)}
 								</div>
-								<div className="transaction-item__balance-column">
-									<div className="transaction-item__balance-movement">
-										<span className="balance-before">
-											{formatMoney(entry.priorBalanceCents)}
-										</span>
-										<span className="arrow-icon">→</span>
-										<span
-											className={`balance-after ${entry.runningBalanceCents < 0 ? "balance-after--negative" : ""}`}
-										>
-											{formatMoney(entry.runningBalanceCents)}
-										</span>
-									</div>
+								<div className="transaction-item__balance">
+									<span className="balance-before">
+										{formatMoney(entry.priorBalanceCents)}
+									</span>
+									<span className="arrow-icon">→</span>
+									<span
+										className={`balance-after ${entry.runningBalanceCents < 0 ? "balance-after--negative" : ""}`}
+									>
+										{formatMoney(entry.runningBalanceCents)}
+									</span>
 								</div>
 							</div>
 						</button>

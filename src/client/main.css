@@ -557,15 +557,6 @@ html.dark-theme .transaction-item:hover .suggestion-container {
 	margin: 0;
 }
 
-.transaction-list__header-buttons {
-	display: flex;
-	align-items: center;
-}
-
-.transaction-list__header-buttons button:not(:first-child) {
-	margin-left: var(--space-md);
-}
-
 .transaction-count {
 	margin-left: var(--space-md);
 	font-size: 0.9rem;
