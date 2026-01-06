@@ -53,3 +53,10 @@ button.card {
 	font-weight: 600;
 	color: var(--color-text-bright);
 }
+
+/* Mobile: Hide selected outline since only one card is visible at a time */
+@media (max-width: 640px) {
+	.card.selected {
+		outline: none;
+	}
+}
