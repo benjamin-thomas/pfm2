@@ -19,11 +19,18 @@
 .carousel-viewport {
 	overflow: hidden;
 	margin-bottom: var(--space-md);
+	/* Prevent browser's swipe-to-navigate gesture while allowing vertical scroll */
+	touch-action: pan-y pinch-zoom;
 }
 
 .carousel-track {
 	display: flex;
-	transition: transform 0.7s ease-out;
+	transition: transform 0.3s linear;
+}
+
+/* Disable transition during active swipe for immediate finger-following */
+.carousel-track--swiping {
+	transition: none;
 }
 
 .carousel-card {
