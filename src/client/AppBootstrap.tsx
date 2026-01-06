@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { Account } from "../shared/account";
 import type { Status } from "../shared/async";
@@ -33,13 +33,13 @@ export const AppBootstrap = ({ api }: AppBootstrapProps) => {
 						setAccountsStatus({ kind: "Error", error: errMsg });
 					},
 					(accounts) => {
-						const accountParam = searchParams.get("account");
-						if (!accountParam && accounts.length > 0) {
-							setSearchParams((params) => {
+						// Set default account if none selected (read inside callback to avoid stale closure)
+						setSearchParams((params) => {
+							if (!params.get("account") && accounts.length > 0) {
 								params.set("account", String(accounts[0].id));
-								return params;
-							});
-						}
+							}
+							return params;
+						});
 
 						setAccountsStatus({ kind: "Loaded", accounts });
 					},
@@ -51,17 +51,20 @@ export const AppBootstrap = ({ api }: AppBootstrapProps) => {
 					error: err?.message || "Unknown error",
 				}),
 			);
-	}, [api, searchParams, setSearchParams]);
+	}, [api, setSearchParams]);
 
 	const accountParam = searchParams.get("account");
 	const selectedAccountId = accountParam ? parseInt(accountParam, 10) : 0;
 
-	const setSelectedAccountId = (accountId: number) => {
-		setSearchParams((params) => {
-			params.set("account", accountId.toString());
-			return params;
-		});
-	};
+	const setSelectedAccountId = useCallback(
+		(accountId: number) => {
+			setSearchParams((params) => {
+				params.set("account", accountId.toString());
+				return params;
+			});
+		},
+		[setSearchParams],
+	);
 
 	switch (accountsStatus.kind) {
 		case "Loading":

@@ -113,7 +113,7 @@ const AppDataLoader = ({
 
 	return (
 		<div className="container">
-			<h1>PFM2 - Personal Finance Manager</h1>
+			<h1>PFM2 - A Simple Personal Finance Manager Demo</h1>
 
 			{(() => {
 				switch (financialData.kind) {

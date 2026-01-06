@@ -50,7 +50,10 @@ const init = async () => {
 	// Choose the transport-agnostic data retrieval client: real (HTTP) or fake (in-memory)
 	const params = new URLSearchParams(window.location.search);
 	const useFakeApi = params.get("api") === "fake";
-	if (!useFakeApi) await ensureBackendAwake(apiBaseUrl);
+	// Only check for backend wake-up in production (for Render.com cold starts)
+	if (!useFakeApi && import.meta.env.PROD) {
+		await ensureBackendAwake(apiBaseUrl);
+	}
 
 	const api: Api = useFakeApi ? ApiFake.init() : ApiHttp.init(apiBaseUrl);
 	return api;
