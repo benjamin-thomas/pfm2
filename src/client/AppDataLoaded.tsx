@@ -413,6 +413,15 @@ const AppDataLoaded = ({
 							setFilters({ ...filters, unknownExpenses: value })
 						}
 						onClear={handleClearFilters}
+						onAddTransaction={() =>
+							setDialogMode(
+								Maybe.just({
+									kind: "add",
+									defaultFromAccountId: selectedAccountId,
+									defaultToAccountId: unknownExpenseAccount.id,
+								}),
+							)
+						}
 					/>
 					<TransactionList
 						transactions={filteredLedgerEntries}

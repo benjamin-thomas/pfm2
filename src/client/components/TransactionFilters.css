@@ -86,3 +86,34 @@
 	outline: none;
 	border-color: var(--color-primary);
 }
+
+/* Mobile-only Add Transaction button - hidden on desktop */
+.transaction-search__mobile-action {
+	display: none;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 640px) {
+	.transaction-search__field {
+		min-width: 100%;
+	}
+
+	.transaction-search__field--button {
+		margin-left: 0;
+		width: 100%;
+	}
+
+	.search-clear-button {
+		width: 100%;
+	}
+
+	/* Show mobile Add Transaction button */
+	.transaction-search__mobile-action {
+		display: block;
+		margin-top: var(--space-lg);
+	}
+
+	.transaction-search__mobile-action button {
+		width: 100%;
+	}
+}

@@ -10,6 +10,7 @@ type TransactionFiltersProps = {
 	onMaxAmountChange: (value: string) => void;
 	onUnknownExpensesChange: (value: boolean) => void;
 	onClear: () => void;
+	onAddTransaction: () => void;
 };
 
 const TransactionFilters = ({
@@ -22,6 +23,7 @@ const TransactionFilters = ({
 	onMaxAmountChange,
 	onUnknownExpensesChange,
 	onClear,
+	onAddTransaction,
 }: TransactionFiltersProps): React.JSX.Element => {
 	return (
 		<div className="transaction-search">
@@ -85,6 +87,17 @@ const TransactionFilters = ({
 						Unknown expenses
 					</label>
 				</div>
+			</div>
+
+			{/* Mobile-only Add Transaction button */}
+			<div className="transaction-search__mobile-action">
+				<button
+					type="button"
+					className="button button--primary"
+					onClick={onAddTransaction}
+				>
+					Add Transaction
+				</button>
 			</div>
 		</div>
 	);
