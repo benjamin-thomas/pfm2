@@ -1,4 +1,5 @@
 import type { LedgerEntry } from "../../../shared/ledger";
+import { compareLedgerEntry } from "../../../shared/ledger";
 import type { AccountRepo } from "../account/interface";
 import type { TransactionRepo } from "../transaction/interface";
 import type { LedgerRepo } from "./interface";
@@ -33,11 +34,7 @@ const init = (
 				};
 			});
 
-			// Sort by date ASC, id ASC (matches SQL ORDER BY)
-			entries.sort((a, b) => {
-				if (a.date !== b.date) return a.date - b.date;
-				return a.id - b.id;
-			});
+			entries.sort(compareLedgerEntry);
 
 			// Calculate running balance
 			let runningBalance = 0;
@@ -47,7 +44,7 @@ const init = (
 				entry.runningBalanceCents = runningBalance;
 			}
 
-			return entries;
+			return entries.reverse();
 		},
 	};
 };

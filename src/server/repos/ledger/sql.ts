@@ -54,7 +54,7 @@ const init = (db: Database.Database): LedgerRepo => {
 			    INNER JOIN accounts AS b ON t.to_account_id = b.account_id
 			    WHERE t.to_account_id = ? OR t.from_account_id = ?
 			) x
-			ORDER BY x.date ASC, x.id ASC
+			ORDER BY x.date DESC, x.id DESC
 		`;
 
 		const rows = db.prepare(query).all(accountId, accountId, accountId);

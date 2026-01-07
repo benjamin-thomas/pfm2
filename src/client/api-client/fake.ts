@@ -10,6 +10,7 @@ import type { Transaction, UpdateTransaction } from "../../shared/transaction";
 import { validateTransaction } from "../../shared/transactionValidation";
 import { Maybe } from "../../shared/utils/maybe";
 import { Result } from "../../shared/utils/result";
+import { compareLedgerEntry } from "../../shared/ledger";
 import type { Api } from "./interface";
 import { ApiErr } from "./interface";
 
@@ -176,15 +177,12 @@ const buildApi = (
 						tx.toAccountId === selectedAccountId,
 				);
 
-				// Sort by date ascending
-				const sorted = [...relevantTransactions].sort(
-					(a, b) => a.date - b.date,
-				);
+				relevantTransactions.sort(compareLedgerEntry);
 
 				// Transform to ledger entries with flow and running balance
 				let runningBalance = 0;
-				const ledgerEntries: LedgerEntry[] = sorted.map((tx) => {
-					// Calculate flow from perspective of selected account
+				const ledgerEntries: LedgerEntry[] = relevantTransactions.map((tx) => {
+					// Calculate flow from the perspective of the selected account
 					const flowCents =
 						tx.cents * (tx.fromAccountId === selectedAccountId ? -1 : 1);
 					const priorBalance = runningBalance;

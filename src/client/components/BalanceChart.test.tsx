@@ -1,29 +1,40 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import { buildApi } from "../api-client/fake.ts";
+import { makeAccountRows, makeCategoryRows } from "../../shared/fakeData";
 import type { LedgerEntry } from "../../shared/ledger";
-import { BalanceChart } from "./BalanceChart";
+import type { Transaction } from "../../shared/transaction";
+import { Result } from "../../shared/utils/result";
+import { BalanceChart, toChartData } from "./BalanceChart";
 
-// Helper to create ledger entries for testing
-// Note: date is in seconds (Unix timestamp), not milliseconds
-const makeLedgerEntry = (
-	id: number,
-	dateSeconds: number,
-	runningBalanceCents: number,
-): LedgerEntry => ({
-	id,
-	fromAccountId: 1,
-	toAccountId: 2,
-	date: dateSeconds,
-	descr: `Transaction ${id}`,
-	cents: 1000,
-	createdAt: 1000,
-	updatedAt: 1000,
-	fromAccountName: "Checking",
-	toAccountName: "Groceries",
-	flowCents: -1000,
-	priorBalanceCents: runningBalanceCents + 1000,
-	runningBalanceCents,
-});
+const clock = { now: () => 0 };
+const { categoryRows, categoryNameToId } = makeCategoryRows(clock);
+const { accountRows, accountNameToId } = makeAccountRows(
+	clock,
+	categoryNameToId,
+);
+
+const accId = (name: string): number => {
+	const id = accountNameToId.get(name);
+	if (!id) throw new Error(`Unknown account: "${name}"`);
+	return id;
+};
+
+// Helper to get ledger entries from transactions using the fake API
+const getLedgerEntries = async (
+	transactions: Transaction[],
+	accountName: string,
+): Promise<LedgerEntry[]> => {
+	const api = buildApi(categoryRows, accountRows, transactions);
+	const result = await api.ledger.getLedgerForAccount(accId(accountName));
+	return Result.match(
+		result,
+		() => {
+			throw new Error("Failed to get ledger entries");
+		},
+		(entries) => entries,
+	);
+};
 
 describe("BalanceChart", () => {
 	afterEach(() => {
@@ -33,40 +44,134 @@ describe("BalanceChart", () => {
 	describe("visibility based on data", () => {
 		it("renders nothing when there are 0 ledger entries", () => {
 			const { container } = render(
-				<BalanceChart ledgerEntries={[]} accountName="Checking" />,
+				<BalanceChart ledgerEntries={[]} accountName="Checking account" />,
 			);
 
 			expect(container.firstChild).toBeNull();
 		});
 
-		it("renders the chart when there is 1 ledger entry", () => {
-			// Jan 1, 2024 00:00:00 UTC in seconds
-			const entries = [makeLedgerEntry(1, 1704067200, 10000)];
-
-			render(<BalanceChart ledgerEntries={entries} accountName="Checking" />);
-
-			expect(screen.getByText(/balance history for checking/i)).toBeTruthy();
-		});
-
-		it("renders the chart when there are 2+ ledger entries", () => {
-			const entries = [
-				makeLedgerEntry(1, 1704067200, 10000),
-				makeLedgerEntry(2, 1704153600, 9000),
+		it("renders the chart when there is 1 ledger entry", async () => {
+			const transactions: Transaction[] = [
+				{
+					id: 1,
+					fromAccountId: accId("OpeningBalance"),
+					toAccountId: accId("Checking account"),
+					date: 100,
+					descr: "Opening Balance",
+					cents: 100000,
+					createdAt: 0,
+					updatedAt: 0,
+				},
 			];
 
-			render(<BalanceChart ledgerEntries={entries} accountName="Checking" />);
+			const entries = await getLedgerEntries(transactions, "Checking account");
 
-			expect(screen.getByText(/balance history for checking/i)).toBeTruthy();
+			render(
+				<BalanceChart ledgerEntries={entries} accountName="Checking account" />,
+			);
+
+			expect(
+				screen.getByText(/balance history for checking account/i),
+			).toBeTruthy();
+		});
+
+		it("renders the chart when there are 2+ ledger entries", async () => {
+			const transactions: Transaction[] = [
+				{
+					id: 1,
+					fromAccountId: accId("OpeningBalance"),
+					toAccountId: accId("Checking account"),
+					date: 100,
+					descr: "Opening Balance",
+					cents: 100000,
+					createdAt: 0,
+					updatedAt: 0,
+				},
+				{
+					id: 2,
+					fromAccountId: accId("Checking account"),
+					toAccountId: accId("Groceries"),
+					date: 200,
+					descr: "Groceries",
+					cents: 5000,
+					createdAt: 0,
+					updatedAt: 0,
+				},
+			];
+
+			const entries = await getLedgerEntries(transactions, "Checking account");
+
+			render(
+				<BalanceChart ledgerEntries={entries} accountName="Checking account" />,
+			);
+
+			expect(
+				screen.getByText(/balance history for checking account/i),
+			).toBeTruthy();
+		});
+	});
+
+	describe("toChartData", () => {
+		it("sorts same-day transactions by id for correct chart order", async () => {
+			// Same date, different IDs
+			// id=1: Opening Balance (+1000€)
+			// id=2: Groceries (-50€)
+			// Entries come in DESC order from the API (id=2 first, id=1 second)
+			const transactions: Transaction[] = [
+				{
+					id: 1,
+					fromAccountId: accId("OpeningBalance"),
+					toAccountId: accId("Checking account"),
+					date: 100,
+					descr: "Opening Balance",
+					cents: 100000, // +1000€
+					createdAt: 0,
+					updatedAt: 0,
+				},
+				{
+					id: 2,
+					fromAccountId: accId("Checking account"),
+					toAccountId: accId("Groceries"),
+					date: 100, // SAME DATE
+					descr: "Groceries",
+					cents: 5000, // -50€
+					createdAt: 0,
+					updatedAt: 0,
+				},
+			];
+
+			const entries = await getLedgerEntries(transactions, "Checking account");
+
+			// Entries come in DESC order (id=2 first)
+			expect(entries[0].id).toBe(2);
+			expect(entries[1].id).toBe(1);
+
+			const chartData = toChartData(entries);
+
+			// Chart should sort ASC by date, then by id
+			// So id=1 (Opening Balance) should come first
+			expect(chartData[0].transactionId).toBe(1);
+			expect(chartData[1].transactionId).toBe(2);
 		});
 	});
 
 	describe("account name display", () => {
-		const entries = [
-			makeLedgerEntry(1, 1704067200, 10000),
-			makeLedgerEntry(2, 1704153600, 9000),
-		];
+		it("displays the account name in the title", async () => {
+			const transactions: Transaction[] = [
+				{
+					id: 1,
+					fromAccountId: accId("OpeningBalance"),
+					toAccountId: accId("Savings account"),
+					date: 100,
+					descr: "Opening Balance",
+					cents: 100000,
+					createdAt: 0,
+					updatedAt: 0,
+				},
+			];
 
-		it("displays the account name in the title", () => {
+			const entries = await getLedgerEntries(transactions, "Savings account");
+
 			render(
 				<BalanceChart ledgerEntries={entries} accountName="Savings account" />,
 			);
@@ -76,12 +181,29 @@ describe("BalanceChart", () => {
 			).toBeTruthy();
 		});
 
-		it("updates when account name changes", () => {
+		it("updates when account name changes", async () => {
+			const transactions: Transaction[] = [
+				{
+					id: 1,
+					fromAccountId: accId("OpeningBalance"),
+					toAccountId: accId("Checking account"),
+					date: 100,
+					descr: "Opening Balance",
+					cents: 100000,
+					createdAt: 0,
+					updatedAt: 0,
+				},
+			];
+
+			const entries = await getLedgerEntries(transactions, "Checking account");
+
 			const { rerender } = render(
-				<BalanceChart ledgerEntries={entries} accountName="Checking" />,
+				<BalanceChart ledgerEntries={entries} accountName="Checking account" />,
 			);
 
-			expect(screen.getByText(/balance history for checking/i)).toBeTruthy();
+			expect(
+				screen.getByText(/balance history for checking account/i),
+			).toBeTruthy();
 
 			rerender(
 				<BalanceChart ledgerEntries={entries} accountName="Groceries" />,

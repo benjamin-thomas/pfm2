@@ -99,41 +99,117 @@ describe("LedgerRepoSql", () => {
 		// Transaction 1: Employer ABC -> Checking = 1000€ (date: day 1)
 		db.prepare(
 			"INSERT INTO transactions (from_account_id, to_account_id, date, descr, cents) VALUES (?, ?, ?, ?, ?)",
-		).run(employerId, checkingId, 1700000000, "Salary", 100000);
+		).run(employerId, checkingId, 1, "Salary", 100000);
 
 		// Transaction 2: Checking -> Groceries = 50€ (date: day 2)
 		db.prepare(
 			"INSERT INTO transactions (from_account_id, to_account_id, date, descr, cents) VALUES (?, ?, ?, ?, ?)",
-		).run(checkingId, groceriesId, 1700100000, "Food shopping", 5000);
+		).run(checkingId, groceriesId, 2, "Food shopping", 5000);
 
 		// Transaction 3: Checking -> Groceries = 30€ (date: day 3)
 		db.prepare(
 			"INSERT INTO transactions (from_account_id, to_account_id, date, descr, cents) VALUES (?, ?, ?, ?, ?)",
-		).run(checkingId, groceriesId, 1700200000, "More food", 3000);
+		).run(checkingId, groceriesId, 3, "More food", 3000);
 
 		const ledger = repo.getLedgerForAccount(checkingId);
 
 		expect(ledger).toHaveLength(3);
 
-		// First: +1000€, prior = 0, running = 1000€
+		// Results are in DESC order (newest first), but balances calculated in ASC order
+		// Third (newest): -30€, prior = 950€, running = 920€
 		expect(ledger[0]).toMatchObject({
-			flowCents: 100000,
-			priorBalanceCents: 0,
-			runningBalanceCents: 100000,
+			descr: "More food",
+			flowCents: -3000,
+			priorBalanceCents: 95000,
+			runningBalanceCents: 92000,
 		});
 
 		// Second: -50€, prior = 1000€, running = 950€
 		expect(ledger[1]).toMatchObject({
+			descr: "Food shopping",
 			flowCents: -5000,
 			priorBalanceCents: 100000,
 			runningBalanceCents: 95000,
 		});
 
-		// Third: -30€, prior = 950€, running = 920€
+		// First (oldest): +1000€, prior = 0, running = 1000€
 		expect(ledger[2]).toMatchObject({
+			descr: "Salary",
+			flowCents: 100000,
+			priorBalanceCents: 0,
+			runningBalanceCents: 100000,
+		});
+	});
+
+	it("returns ledger entries in reverse chronological order (newest first)", () => {
+		const checkingId = getAccountIdOrThrow("Checking account");
+		const openingBalanceId = getAccountIdOrThrow("OpeningBalance");
+		const groceriesId = getAccountIdOrThrow("Groceries");
+
+		// Insert in random order to verify sorting
+		db.prepare(
+			"INSERT INTO transactions (from_account_id, to_account_id, date, descr, cents) VALUES (?, ?, ?, ?, ?)",
+		).run(checkingId, groceriesId, 2, "Expense 1", 5000); // middle
+
+		db.prepare(
+			"INSERT INTO transactions (from_account_id, to_account_id, date, descr, cents) VALUES (?, ?, ?, ?, ?)",
+		).run(openingBalanceId, checkingId, 1, "Opening Balance", 100000); // oldest
+
+		db.prepare(
+			"INSERT INTO transactions (from_account_id, to_account_id, date, descr, cents) VALUES (?, ?, ?, ?, ?)",
+		).run(checkingId, groceriesId, 3, "Expense 2", 3000); // newest
+
+		const ledger = repo.getLedgerForAccount(checkingId);
+
+		expect(ledger).toHaveLength(3);
+		// Should be DESC order (newest first)
+		expect(ledger[0].descr).toBe("Expense 2"); // date: 3
+		expect(ledger[1].descr).toBe("Expense 1"); // date: 2
+		expect(ledger[2].descr).toBe("Opening Balance"); // date: 1
+	});
+
+	it("maintains correct balance flow when returned in DESC order", () => {
+		const checkingId = getAccountIdOrThrow("Checking account");
+		const openingBalanceId = getAccountIdOrThrow("OpeningBalance");
+		const groceriesId = getAccountIdOrThrow("Groceries");
+
+		db.prepare(
+			"INSERT INTO transactions (from_account_id, to_account_id, date, descr, cents) VALUES (?, ?, ?, ?, ?)",
+		).run(openingBalanceId, checkingId, 1, "Opening Balance", 100000);
+
+		db.prepare(
+			"INSERT INTO transactions (from_account_id, to_account_id, date, descr, cents) VALUES (?, ?, ?, ?, ?)",
+		).run(checkingId, groceriesId, 2, "Food", 5000);
+
+		db.prepare(
+			"INSERT INTO transactions (from_account_id, to_account_id, date, descr, cents) VALUES (?, ?, ?, ?, ?)",
+		).run(checkingId, groceriesId, 3, "More food", 3000);
+
+		const ledger = repo.getLedgerForAccount(checkingId);
+
+		// DESC order but balance calculation was done in ASC
+		// Entry 0: Most recent (More food) - should show final state
+		expect(ledger[0]).toMatchObject({
+			descr: "More food",
 			flowCents: -3000,
-			priorBalanceCents: 95000,
-			runningBalanceCents: 92000,
+			priorBalanceCents: 95000, // after opening balance and food
+			runningBalanceCents: 92000, // final balance
+		});
+
+		// Entry 1: Middle (Food)
+		expect(ledger[1]).toMatchObject({
+			descr: "Food",
+			flowCents: -5000,
+			priorBalanceCents: 100000,
+			runningBalanceCents: 95000,
+		});
+
+		// Entry 2: Oldest (Opening Balance)
+		expect(ledger[2]).toMatchObject({
+			descr: "Opening Balance",
+			flowCents: 100000,
+			priorBalanceCents: 0,
+			runningBalanceCents: 100000,
 		});
 	});
 });

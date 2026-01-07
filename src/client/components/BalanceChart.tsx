@@ -7,6 +7,7 @@ import {
 	YAxis,
 } from "recharts";
 import type { LedgerEntry } from "../../shared/ledger";
+import { compareLedgerEntry } from "../../shared/ledger";
 import "./BalanceChart.css";
 
 type BalanceChartProps = {
@@ -15,7 +16,7 @@ type BalanceChartProps = {
 	onPointClick?: (transactionId: number) => void;
 };
 
-type ChartDataPoint = {
+export type ChartDataPoint = {
 	date: string;
 	balance: number;
 	transactionId: number;
@@ -46,10 +47,9 @@ const formatYAxisLabel = (euros: number): string => {
 	return `${euros.toLocaleString("fr-FR", { maximumFractionDigits: 0 })} €`;
 };
 
-const toChartData = (entries: LedgerEntry[]): ChartDataPoint[] => {
-	// Entries come in reverse chronological order (newest first)
-	// We need chronological order for the chart (oldest first)
-	const sortedEntries = [...entries].sort((a, b) => a.date - b.date);
+// Exported for testing
+export const toChartData = (entries: LedgerEntry[]): ChartDataPoint[] => {
+	const sortedEntries = [...entries].sort(compareLedgerEntry);
 
 	return sortedEntries.map((entry, index) => ({
 		date: formatDate(entry.date),
