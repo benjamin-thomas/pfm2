@@ -8,6 +8,7 @@ import {
 } from "recharts";
 import type { LedgerEntry } from "../../shared/ledger";
 import { compareLedgerEntry } from "../../shared/ledger";
+import { useTranslation } from "../i18n/context";
 import "./BalanceChart.css";
 
 type BalanceChartProps = {
@@ -24,35 +25,15 @@ export type ChartDataPoint = {
 	uniqueKey: string;
 };
 
-const formatDate = (timestampSeconds: number): string => {
-	// Convert seconds to milliseconds for Date constructor
-	const date = new Date(timestampSeconds * 1000);
-	return date.toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
-};
-
-const formatCurrency = (cents: number): string => {
-	const euros = cents / 100;
-	return euros.toLocaleString("fr-FR", {
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	});
-};
-
-// Format euros for Y-axis (no decimals, with € symbol)
-const formatYAxisLabel = (euros: number): string => {
-	return `${euros.toLocaleString("fr-FR", { maximumFractionDigits: 0 })} €`;
-};
-
 // Exported for testing
-export const toChartData = (entries: LedgerEntry[]): ChartDataPoint[] => {
+export const toChartData = (
+	entries: LedgerEntry[],
+	fDate: (ts: number) => string,
+): ChartDataPoint[] => {
 	const sortedEntries = [...entries].sort(compareLedgerEntry);
 
 	return sortedEntries.map((entry, index) => ({
-		date: formatDate(entry.date),
+		date: fDate(entry.date),
 		balance: entry.runningBalanceCents / 100,
 		transactionId: entry.id,
 		// Unique key for Recharts to distinguish points with the same date
@@ -63,9 +44,10 @@ export const toChartData = (entries: LedgerEntry[]): ChartDataPoint[] => {
 type CustomTooltipProps = {
 	active?: boolean;
 	payload?: Array<{ value: number; payload: ChartDataPoint }>;
+	fMoney: (cents: number) => string;
 };
 
-const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
+const CustomTooltip = ({ active, payload, fMoney }: CustomTooltipProps) => {
 	if (!active || !payload || payload.length === 0) {
 		return null;
 	}
@@ -74,9 +56,7 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
 	return (
 		<div className="balance-chart-tooltip">
 			<p className="balance-chart-tooltip__date">{data.payload.date}</p>
-			<p className="balance-chart-tooltip__value">
-				{formatCurrency(data.value * 100)} €
-			</p>
+			<p className="balance-chart-tooltip__value">{fMoney(data.value * 100)}</p>
 		</div>
 	);
 };
@@ -86,10 +66,17 @@ export const BalanceChart = ({
 	accountName,
 	onPointClick,
 }: BalanceChartProps) => {
+	const { t, fMoney, fDate, fNumber } = useTranslation();
+
 	// Don't render if no data
 	if (!ledgerEntries.length) return null;
 
-	const chartData = toChartData(ledgerEntries);
+	const chartData = toChartData(ledgerEntries, fDate);
+
+	// Format euros for Y-axis (no decimals, with € symbol)
+	const formatYAxisLabel = (euros: number): string => {
+		return `${fNumber(euros, 0)} €`;
+	};
 
 	// Recharts LineChart onClick receives { activeIndex, ... } and event
 	const handleChartClick = (data: unknown) => {
@@ -112,7 +99,9 @@ export const BalanceChart = ({
 
 	return (
 		<div className="balance-chart-section">
-			<h3 className="balance-chart-title">Balance History for {accountName}</h3>
+			<h3 className="balance-chart-title">
+				{t.balanceHistoryFor(accountName)}
+			</h3>
 			<div className="balance-chart-container">
 				<ResponsiveContainer width="100%" height={220}>
 					<LineChart
@@ -135,7 +124,7 @@ export const BalanceChart = ({
 							axisLine={{ stroke: "var(--color-border)" }}
 							tickFormatter={formatYAxisLabel}
 						/>
-						<Tooltip content={<CustomTooltip />} />
+						<Tooltip content={<CustomTooltip fMoney={fMoney} />} />
 						<Line
 							type="linear"
 							dataKey="balance"

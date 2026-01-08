@@ -6,6 +6,7 @@ import { impossibleBranch } from "../shared/utils/impossibleBranch";
 import { Result } from "../shared/utils/result";
 import AppDataLoaded from "./AppDataLoaded";
 import type { Api } from "./api-client/interface";
+import { useTranslation } from "./i18n/context";
 import "./components/Buttons.css";
 
 type FinancialData = {
@@ -27,6 +28,7 @@ const AppDataLoader = ({
 	selectedAccountId,
 	setSelectedAccountId,
 }: AppDataLoaderProps) => {
+	const { t } = useTranslation();
 	const [financialData, setFinancialData] = useState<Status<FinancialData>>({
 		kind: "Loading",
 	});
@@ -45,7 +47,7 @@ const AppDataLoader = ({
 							const errMsg =
 								error.tag === "BadRequest"
 									? error.reason
-									: "Failed to load ledger";
+									: t.failedToLoadLedger;
 							setFinancialData({ kind: "Error", error: errMsg });
 						},
 						(ledgerEntries) => {
@@ -55,7 +57,7 @@ const AppDataLoader = ({
 									const errMsg =
 										error.tag === "BadRequest"
 											? error.reason
-											: "Failed to load balances";
+											: t.failedToLoadBalances;
 									setFinancialData({ kind: "Error", error: errMsg });
 								},
 								(balances) => {
@@ -77,7 +79,7 @@ const AppDataLoader = ({
 					}),
 				);
 		},
-		[api.ledger, api.balances],
+		[api.ledger, api.balances, t.failedToLoadLedger, t.failedToLoadBalances],
 	);
 
 	useEffect(() => {
@@ -113,14 +115,14 @@ const AppDataLoader = ({
 
 	return (
 		<div className="container">
-			<h1>PFM2 - A Simple Personal Finance Manager Demo</h1>
+			<h1>{t.appTitle}</h1>
 
 			{(() => {
 				switch (financialData.kind) {
 					case "Loading": {
 						return (
 							<div className="section">
-								<div>Loading financial data...</div>
+								<div>{t.loadingFinancialData}</div>
 							</div>
 						);
 					}
@@ -128,7 +130,9 @@ const AppDataLoader = ({
 					case "Error": {
 						return (
 							<div className="section">
-								<div>Error loading financial data: {financialData.error}</div>
+								<div>
+									{t.errorLoadingFinancialData} {financialData.error}
+								</div>
 							</div>
 						);
 					}

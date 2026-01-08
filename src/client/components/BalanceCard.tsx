@@ -6,21 +6,19 @@ type BalanceCardProps = {
 	balance: AccountBalance;
 	isSelected: boolean;
 	onClick: () => void;
+	tAccount: (accountName: string) => string;
+	tCategory: (categoryName: string) => string;
+	fMoney: (cents: number) => string;
 };
 
 export const BalanceCard: React.FC<BalanceCardProps> = ({
 	balance,
 	isSelected,
 	onClick,
+	tAccount,
+	tCategory,
+	fMoney,
 }) => {
-	const formatAmount = (cents: number): string => {
-		const intPart = Math.floor(Math.abs(cents) / 100);
-		const decPart = Math.abs(cents) % 100;
-		const decStr = decPart < 10 ? `0${decPart}` : decPart.toString();
-		const sign = cents < 0 ? "-" : "";
-		return `${sign}${intPart}.${decStr} €`;
-	};
-
 	const getColorAccent = (categoryName: string): string => {
 		if (categoryName === "Assets") {
 			return "#3498db";
@@ -40,9 +38,9 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
 			data-testid={`balance-card-${balance.accountId}`}
 			data-test--balance={balance.balance}
 		>
-			<div className={styles.category}>{balance.categoryName}</div>
-			<div className={styles.account}>{balance.accountName}</div>
-			<div className={styles.amount}>{formatAmount(balance.balance)}</div>
+			<div className={styles.category}>{tCategory(balance.categoryName)}</div>
+			<div className={styles.account}>{tAccount(balance.accountName)}</div>
+			<div className={styles.amount}>{fMoney(balance.balance)}</div>
 		</button>
 	);
 };

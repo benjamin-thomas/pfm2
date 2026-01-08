@@ -1,5 +1,5 @@
 import type { LedgerEntry } from "../../shared/ledger";
-import { formatDate, formatMoney } from "../../shared/money";
+import { useTranslation } from "../i18n/context";
 import "./TransactionList.css";
 
 type TransactionListProps = {
@@ -13,11 +13,11 @@ export const TransactionList = ({
 	selectedAccountName,
 	onTransactionSelect,
 }: TransactionListProps) => {
+	const { t, tAccount, tDescription, fMoney, fDate } = useTranslation();
+
 	if (transactions.length === 0) {
 		return (
-			<div className="empty">
-				No transactions found for {selectedAccountName}.
-			</div>
+			<div className="empty">{t.noTransactionsFound(selectedAccountName)}</div>
 		);
 	}
 
@@ -45,30 +45,31 @@ export const TransactionList = ({
 							{/* Desktop: single row layout, Mobile: stacked rows via CSS Grid */}
 							<div className="transaction-item__grid">
 								<div className="transaction-item__description">
-									{entry.descr}
+									{tDescription(entry.descr)}
 								</div>
 								<div className="transaction-item__accounts">
-									{entry.fromAccountName} → {entry.toAccountName}
+									{tAccount(entry.fromAccountName)} →{" "}
+									{tAccount(entry.toAccountName)}
 								</div>
 								<div className="transaction-item__date">
-									{formatDate(entry.date)}
+									{fDate(entry.date)}
 								</div>
 								<div
 									className={`transaction-item__amount ${amountClass}`}
 									data-test--amount={entry.cents}
 								>
 									{isPositive ? "+" : "-"}
-									{formatMoney(entry.cents)}
+									{fMoney(entry.cents)}
 								</div>
 								<div className="transaction-item__balance">
 									<span className="balance-before">
-										{formatMoney(entry.priorBalanceCents)}
+										{fMoney(entry.priorBalanceCents)}
 									</span>
 									<span className="arrow-icon">→</span>
 									<span
 										className={`balance-after ${entry.runningBalanceCents < 0 ? "balance-after--negative" : ""}`}
 									>
-										{formatMoney(entry.runningBalanceCents)}
+										{fMoney(entry.runningBalanceCents)}
 									</span>
 								</div>
 							</div>

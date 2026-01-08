@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import "./TransactionFilters.css";
 
 type TransactionFiltersProps = {
@@ -25,16 +26,18 @@ const TransactionFilters = ({
 	onClear,
 	onAddTransaction,
 }: TransactionFiltersProps): React.JSX.Element => {
+	const { t } = useTranslation();
+
 	return (
 		<div className="transaction-search">
 			<div className="transaction-search__row">
 				<div className="transaction-search__field">
 					<label>
-						Description
+						{t.description}
 						<input
 							type="text"
 							className="transaction-search__input"
-							placeholder="Search by description"
+							placeholder={t.searchByDescription}
 							value={description}
 							onChange={(e) => onDescriptionChange(e.target.value)}
 						/>
@@ -43,7 +46,7 @@ const TransactionFilters = ({
 
 				<div className="transaction-search__field">
 					<label>
-						Min Amount
+						{t.minAmount}
 						<input
 							type="number"
 							className="transaction-search__input"
@@ -55,7 +58,7 @@ const TransactionFilters = ({
 
 				<div className="transaction-search__field">
 					<label>
-						Max Amount
+						{t.maxAmount}
 						<input
 							type="number"
 							className="transaction-search__input"
@@ -71,7 +74,7 @@ const TransactionFilters = ({
 						className="search-clear-button"
 						onClick={onClear}
 					>
-						Clear
+						{t.clear}
 					</button>
 				</div>
 			</div>
@@ -84,7 +87,7 @@ const TransactionFilters = ({
 							checked={unknownExpenses}
 							onChange={(e) => onUnknownExpensesChange(e.target.checked)}
 						/>{" "}
-						Unknown expenses
+						{t.unknownExpenses}
 					</label>
 				</div>
 			</div>
@@ -96,7 +99,7 @@ const TransactionFilters = ({
 					className="button button--primary"
 					onClick={onAddTransaction}
 				>
-					Add Transaction
+					{t.addTransaction}
 				</button>
 			</div>
 		</div>

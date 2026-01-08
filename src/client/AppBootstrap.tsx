@@ -6,12 +6,14 @@ import { impossibleBranch } from "../shared/utils/impossibleBranch";
 import { Result } from "../shared/utils/result";
 import AppDataLoader from "./AppDataLoader";
 import type { Api } from "./api-client/interface";
+import { useTranslation } from "./i18n/context";
 
 type AppBootstrapProps = {
 	api: Api;
 };
 
 export const AppBootstrap = ({ api }: AppBootstrapProps) => {
+	const { t } = useTranslation();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const [accountsStatus, setAccountsStatus] = useState<
 		Status<{ accounts: Account[] }>
@@ -68,9 +70,13 @@ export const AppBootstrap = ({ api }: AppBootstrapProps) => {
 
 	switch (accountsStatus.kind) {
 		case "Loading":
-			return <div>Loading accounts...</div>;
+			return <div>{t.loadingAccounts}</div>;
 		case "Error":
-			return <div>Error loading accounts: {accountsStatus.error}</div>;
+			return (
+				<div>
+					{t.errorLoadingAccounts} {accountsStatus.error}
+				</div>
+			);
 		case "Loaded":
 			return (
 				<AppDataLoader

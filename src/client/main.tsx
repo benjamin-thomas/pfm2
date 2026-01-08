@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { AppBootstrap } from "./AppBootstrap";
 import { ApiFake } from "./api-client/fake.ts";
 import { ApiHttp } from "./api-client/http.ts";
+import { I18nProvider } from "./i18n/context.tsx";
 import "./main.css";
 import type { Api } from "./api-client/interface.ts";
 
@@ -36,7 +37,9 @@ const renderRoot = (api: Api) => {
 	ReactDOM.createRoot(rootElement).render(
 		<React.StrictMode>
 			<BrowserRouter>
-				<AppBootstrap api={api} />
+				<I18nProvider>
+					<AppBootstrap api={api} />
+				</I18nProvider>
 			</BrowserRouter>
 		</React.StrictMode>,
 	);

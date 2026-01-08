@@ -6,6 +6,7 @@ import type { Transaction } from "../shared/transaction";
 import { Result } from "../shared/utils/result";
 import AppDataLoader from "./AppDataLoader";
 import { buildTestApi } from "./api-client/fake";
+import { I18nProvider } from "./i18n/context";
 
 // Helper to unwrap Result or throw
 const unwrapOrThrow = <X, A>(result: Result<X, A>): A => {
@@ -84,12 +85,14 @@ describe("AppDataLoader", () => {
 		const accounts = unwrapOrThrow(accountsResult);
 
 		render(
-			<AppDataLoader
-				api={api}
-				initialAccounts={accounts}
-				selectedAccountId={checkingId}
-				setSelectedAccountId={noOp}
-			/>,
+			<I18nProvider>
+				<AppDataLoader
+					api={api}
+					initialAccounts={accounts}
+					selectedAccountId={checkingId}
+					setSelectedAccountId={noOp}
+				/>
+			</I18nProvider>,
 		);
 
 		// Should show loading state initially
@@ -188,12 +191,14 @@ describe("AppDataLoader", () => {
 			const accounts = unwrapOrThrow(accountsResult);
 
 			render(
-				<AppDataLoader
-					api={api}
-					initialAccounts={accounts}
-					selectedAccountId={checkingId}
-					setSelectedAccountId={noOp}
-				/>,
+				<I18nProvider>
+					<AppDataLoader
+						api={api}
+						initialAccounts={accounts}
+						selectedAccountId={checkingId}
+						setSelectedAccountId={noOp}
+					/>
+				</I18nProvider>,
 			);
 
 			// Wait for initial data to load - viewing from Checking account perspective
@@ -227,12 +232,14 @@ describe("AppDataLoader", () => {
 			const accounts = unwrapOrThrow(accountsResult);
 
 			const { rerender } = render(
-				<AppDataLoader
-					api={api}
-					initialAccounts={accounts}
-					selectedAccountId={checkingId}
-					setSelectedAccountId={noOp}
-				/>,
+				<I18nProvider>
+					<AppDataLoader
+						api={api}
+						initialAccounts={accounts}
+						selectedAccountId={checkingId}
+						setSelectedAccountId={noOp}
+					/>
+				</I18nProvider>,
 			);
 
 			// Wait for initial load
@@ -246,12 +253,14 @@ describe("AppDataLoader", () => {
 
 			// Switch to Groceries account perspective
 			rerender(
-				<AppDataLoader
-					api={api}
-					initialAccounts={accounts}
-					selectedAccountId={groceriesId}
-					setSelectedAccountId={noOp}
-				/>,
+				<I18nProvider>
+					<AppDataLoader
+						api={api}
+						initialAccounts={accounts}
+						selectedAccountId={groceriesId}
+						setSelectedAccountId={noOp}
+					/>
+				</I18nProvider>,
 			);
 
 			// Wait for ledger to update (Groceries only appears in 2 transactions)
@@ -296,12 +305,14 @@ describe("AppDataLoader", () => {
 		const accounts = unwrapOrThrow(accountsResult);
 
 		render(
-			<AppDataLoader
-				api={api}
-				initialAccounts={accounts}
-				selectedAccountId={checkingId}
-				setSelectedAccountId={noOp}
-			/>,
+			<I18nProvider>
+				<AppDataLoader
+					api={api}
+					initialAccounts={accounts}
+					selectedAccountId={checkingId}
+					setSelectedAccountId={noOp}
+				/>
+			</I18nProvider>,
 		);
 
 		// Wait for initial load - should show 1 transaction
@@ -377,12 +388,14 @@ describe("AppDataLoader", () => {
 			const accounts = unwrapOrThrow(accountsResult);
 
 			render(
-				<AppDataLoader
-					api={api}
-					initialAccounts={accounts}
-					selectedAccountId={checkingId}
-					setSelectedAccountId={noOp}
-				/>,
+				<I18nProvider>
+					<AppDataLoader
+						api={api}
+						initialAccounts={accounts}
+						selectedAccountId={checkingId}
+						setSelectedAccountId={noOp}
+					/>
+				</I18nProvider>,
 			);
 
 			// Wait for the transaction to appear (first transaction gets ID 1)
@@ -463,12 +476,14 @@ describe("AppDataLoader", () => {
 			const accounts = unwrapOrThrow(accountsResult);
 
 			render(
-				<AppDataLoader
-					api={api}
-					initialAccounts={accounts}
-					selectedAccountId={checkingId}
-					setSelectedAccountId={noOp}
-				/>,
+				<I18nProvider>
+					<AppDataLoader
+						api={api}
+						initialAccounts={accounts}
+						selectedAccountId={checkingId}
+						setSelectedAccountId={noOp}
+					/>
+				</I18nProvider>,
 			);
 
 			// Wait for transaction to appear and click it
@@ -563,12 +578,14 @@ describe("AppDataLoader", () => {
 			const accounts = unwrapOrThrow(accountsResult);
 
 			render(
-				<AppDataLoader
-					api={api}
-					initialAccounts={accounts}
-					selectedAccountId={checkingId}
-					setSelectedAccountId={noOp}
-				/>,
+				<I18nProvider>
+					<AppDataLoader
+						api={api}
+						initialAccounts={accounts}
+						selectedAccountId={checkingId}
+						setSelectedAccountId={noOp}
+					/>
+				</I18nProvider>,
 			);
 
 			// Wait for the seed transaction to appear
@@ -615,12 +632,14 @@ describe("AppDataLoader", () => {
 			const accounts = unwrapOrThrow(accountsResult);
 
 			render(
-				<AppDataLoader
-					api={api}
-					initialAccounts={accounts}
-					selectedAccountId={checkingId}
-					setSelectedAccountId={noOp}
-				/>,
+				<I18nProvider>
+					<AppDataLoader
+						api={api}
+						initialAccounts={accounts}
+						selectedAccountId={checkingId}
+						setSelectedAccountId={noOp}
+					/>
+				</I18nProvider>,
 			);
 
 			// Wait for initial load (wait for button that always renders)

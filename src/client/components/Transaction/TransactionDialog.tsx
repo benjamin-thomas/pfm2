@@ -4,6 +4,7 @@ import { dateToUnix, unixToDate } from "../../../shared/datetime";
 import type { LedgerEntry } from "../../../shared/ledger";
 import { impossibleBranch } from "../../../shared/utils/impossibleBranch";
 import { Maybe } from "../../../shared/utils/maybe";
+import { useTranslation } from "../../i18n/context";
 import { DeleteDialogBody } from "./DeleteDialogBody";
 import "./TransactionDialog.css";
 
@@ -55,6 +56,7 @@ export const TransactionDialog = ({
 	accounts,
 	mode,
 }: TransactionDialogProps) => {
+	const { t, tAccount } = useTranslation();
 	const descriptionId = useId();
 	const fromAccountId = useId();
 	const toAccountId = useId();
@@ -75,7 +77,7 @@ export const TransactionDialog = ({
 		switch (mode.kind) {
 			case "add":
 				return {
-					title: "Add Transaction",
+					title: t.addTransactionTitle,
 					initialDescription: "",
 					initialAmount: "",
 					initialFromAccount: mode.defaultFromAccountId.toString(),
@@ -84,7 +86,7 @@ export const TransactionDialog = ({
 				};
 			case "edit":
 				return {
-					title: "Edit Transaction",
+					title: t.editTransactionTitle,
 					initialDescription: mode.transaction.descr,
 					initialAmount: (mode.transaction.cents / 100).toFixed(2),
 					initialFromAccount: mode.transaction.fromAccountId.toString(),
@@ -114,7 +116,7 @@ export const TransactionDialog = ({
 
 		const decimalPlaces = (amountValue.split(".")[1] || "").length;
 		if (decimalPlaces > 2) {
-			return Maybe.just("Amount can have at most 2 decimal places");
+			return Maybe.just(t.amountDecimalError);
 		}
 
 		return Maybe.nothing;
@@ -269,7 +271,7 @@ export const TransactionDialog = ({
 				{deleteConfirmationDialogBody || (
 					<form onSubmit={clickedSavePre}>
 						<div className="form-field">
-							<label htmlFor={descriptionId}>Description</label>
+							<label htmlFor={descriptionId}>{t.description}</label>
 							<input
 								ref={descriptionRef}
 								id={descriptionId}
@@ -285,7 +287,7 @@ export const TransactionDialog = ({
 						</div>
 
 						<div className="form-field">
-							<label htmlFor={fromAccountId}>From Account</label>
+							<label htmlFor={fromAccountId}>{t.fromAccount}</label>
 							<select
 								id={fromAccountId}
 								value={fromAccount}
@@ -299,14 +301,14 @@ export const TransactionDialog = ({
 									.filter((acc) => acc.id.toString() !== toAccount)
 									.map((acc) => (
 										<option key={acc.id} value={acc.id}>
-											{acc.name}
+											{tAccount(acc.name)}
 										</option>
 									))}
 							</select>
 						</div>
 
 						<div className="form-field">
-							<label htmlFor={toAccountId}>To Account</label>
+							<label htmlFor={toAccountId}>{t.toAccount}</label>
 							<select
 								id={toAccountId}
 								value={toAccount}
@@ -320,14 +322,14 @@ export const TransactionDialog = ({
 									.filter((acc) => acc.id.toString() !== fromAccount)
 									.map((acc) => (
 										<option key={acc.id} value={acc.id}>
-											{acc.name}
+											{tAccount(acc.name)}
 										</option>
 									))}
 							</select>
 						</div>
 
 						<div className="form-field">
-							<label htmlFor={amountId}>Amount</label>
+							<label htmlFor={amountId}>{t.amount}</label>
 							<input
 								id={amountId}
 								type="number"
@@ -347,7 +349,7 @@ export const TransactionDialog = ({
 						</div>
 
 						<div className="form-field">
-							<label htmlFor={dateId}>Date</label>
+							<label htmlFor={dateId}>{t.date}</label>
 							<input
 								id={dateId}
 								type="date"
@@ -375,7 +377,7 @@ export const TransactionDialog = ({
 													onClick={clickedDelete}
 													data-testid="transaction-delete"
 												>
-													Delete
+													{t.delete}
 												</button>
 											);
 										default:
@@ -390,7 +392,7 @@ export const TransactionDialog = ({
 									onClick={clickedCancel}
 									data-testid="transaction-cancel"
 								>
-									Cancel
+									{t.cancel}
 								</button>
 								<button
 									type="submit"
@@ -398,7 +400,7 @@ export const TransactionDialog = ({
 									disabled={Maybe.isJust(amountError)}
 									data-testid="transaction-save"
 								>
-									Save
+									{t.save}
 								</button>
 							</div>
 						</div>

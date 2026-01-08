@@ -5,6 +5,8 @@ import { makeAccountRows, makeCategoryRows } from "../../shared/fakeData";
 import type { LedgerEntry } from "../../shared/ledger";
 import type { Transaction } from "../../shared/transaction";
 import { Result } from "../../shared/utils/result";
+import { I18nProvider } from "../i18n/context";
+import { formatDateLocale } from "../i18n/translations";
 import { BalanceChart, toChartData } from "./BalanceChart";
 
 const clock = { now: () => 0 };
@@ -44,7 +46,9 @@ describe("BalanceChart", () => {
 	describe("visibility based on data", () => {
 		it("renders nothing when there are 0 ledger entries", () => {
 			const { container } = render(
-				<BalanceChart ledgerEntries={[]} accountName="Checking account" />,
+				<I18nProvider>
+					<BalanceChart ledgerEntries={[]} accountName="Checking account" />
+				</I18nProvider>,
 			);
 
 			expect(container.firstChild).toBeNull();
@@ -67,7 +71,12 @@ describe("BalanceChart", () => {
 			const entries = await getLedgerEntries(transactions, "Checking account");
 
 			render(
-				<BalanceChart ledgerEntries={entries} accountName="Checking account" />,
+				<I18nProvider>
+					<BalanceChart
+						ledgerEntries={entries}
+						accountName="Checking account"
+					/>
+				</I18nProvider>,
 			);
 
 			expect(
@@ -102,7 +111,12 @@ describe("BalanceChart", () => {
 			const entries = await getLedgerEntries(transactions, "Checking account");
 
 			render(
-				<BalanceChart ledgerEntries={entries} accountName="Checking account" />,
+				<I18nProvider>
+					<BalanceChart
+						ledgerEntries={entries}
+						accountName="Checking account"
+					/>
+				</I18nProvider>,
 			);
 
 			expect(
@@ -146,7 +160,9 @@ describe("BalanceChart", () => {
 			expect(entries[0].id).toBe(2);
 			expect(entries[1].id).toBe(1);
 
-			const chartData = toChartData(entries);
+			const chartData = toChartData(entries, (ts) =>
+				formatDateLocale("en", ts),
+			);
 
 			// Chart should sort ASC by date, then by id
 			// So id=1 (Opening Balance) should come first
@@ -173,7 +189,9 @@ describe("BalanceChart", () => {
 			const entries = await getLedgerEntries(transactions, "Savings account");
 
 			render(
-				<BalanceChart ledgerEntries={entries} accountName="Savings account" />,
+				<I18nProvider>
+					<BalanceChart ledgerEntries={entries} accountName="Savings account" />
+				</I18nProvider>,
 			);
 
 			expect(
@@ -198,7 +216,12 @@ describe("BalanceChart", () => {
 			const entries = await getLedgerEntries(transactions, "Checking account");
 
 			const { rerender } = render(
-				<BalanceChart ledgerEntries={entries} accountName="Checking account" />,
+				<I18nProvider>
+					<BalanceChart
+						ledgerEntries={entries}
+						accountName="Checking account"
+					/>
+				</I18nProvider>,
 			);
 
 			expect(
@@ -206,7 +229,9 @@ describe("BalanceChart", () => {
 			).toBeTruthy();
 
 			rerender(
-				<BalanceChart ledgerEntries={entries} accountName="Groceries" />,
+				<I18nProvider>
+					<BalanceChart ledgerEntries={entries} accountName="Groceries" />
+				</I18nProvider>,
 			);
 
 			expect(screen.getByText(/balance history for groceries/i)).toBeTruthy();

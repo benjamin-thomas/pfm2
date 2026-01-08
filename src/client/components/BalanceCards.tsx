@@ -2,6 +2,7 @@ import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useSwipeable } from "react-swipeable";
 import type { AccountBalance } from "../../shared/account";
+import { useTranslation } from "../i18n/context";
 import { BalanceCard } from "./BalanceCard";
 import "./BalanceCards.css";
 
@@ -24,6 +25,7 @@ export const BalanceCards: React.FC<BalanceCardsProps> = ({
 	selectedAccountId,
 	onSelectAccount,
 }) => {
+	const { t, tAccount, tCategory, fMoney } = useTranslation();
 	const [currentPage, setCurrentPage] = useState(0);
 	const [isMobile, setIsMobile] = useState(
 		window.innerWidth < MOBILE_BREAKPOINT,
@@ -194,7 +196,7 @@ export const BalanceCards: React.FC<BalanceCardsProps> = ({
 	if (balances.length <= cardsPerPage) {
 		return (
 			<div>
-				<h2 className="section-title">Balances</h2>
+				<h2 className="section-title">{t.balances}</h2>
 				<div className="balances">
 					{balances.map((balance) => (
 						<BalanceCard
@@ -202,6 +204,9 @@ export const BalanceCards: React.FC<BalanceCardsProps> = ({
 							balance={balance}
 							isSelected={balance.accountId === selectedAccountId}
 							onClick={() => onSelectAccount(balance.accountId)}
+							tAccount={tAccount}
+							tCategory={tCategory}
+							fMoney={fMoney}
 						/>
 					))}
 				</div>
@@ -211,14 +216,14 @@ export const BalanceCards: React.FC<BalanceCardsProps> = ({
 
 	return (
 		<div {...handlers}>
-			<h2 className="section-title">Balances</h2>
+			<h2 className="section-title">{t.balances}</h2>
 
 			{/* Scroll hint - always rendered to prevent layout shift, visibility controlled by CSS */}
 			{!isMobile && totalPages > 1 && (
 				<div
 					className={`carousel-wheel-hint ${isWheelActive ? "carousel-wheel-hint--visible" : ""}`}
 				>
-					Scroll to cycle
+					{t.scrollToCycle}
 				</div>
 			)}
 
@@ -245,6 +250,9 @@ export const BalanceCards: React.FC<BalanceCardsProps> = ({
 								balance={balance}
 								isSelected={balance.accountId === selectedAccountId}
 								onClick={() => onSelectAccount(balance.accountId)}
+								tAccount={tAccount}
+								tCategory={tCategory}
+								fMoney={fMoney}
 							/>
 						</div>
 					))}
@@ -276,7 +284,7 @@ export const BalanceCards: React.FC<BalanceCardsProps> = ({
 					className="carousel-selected-indicator"
 					onClick={scrollToSelected}
 				>
-					Selected: {selectedAccountName} (click to view)
+					{t.selectedClickToView(tAccount(selectedAccountName))}
 				</button>
 			)}
 		</div>

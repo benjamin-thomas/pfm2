@@ -15,6 +15,7 @@ import {
 } from "./components/Transaction/TransactionDialog";
 import TransactionFilters from "./components/TransactionFilters";
 import { TransactionList } from "./components/TransactionList";
+import { useTranslation } from "./i18n/context";
 import "./AppDataLoaded.css";
 
 type AppDataLoadedProps = {
@@ -43,6 +44,7 @@ const AppDataLoaded = ({
 	setSelectedAccountId,
 	refetchAllData,
 }: AppDataLoadedProps) => {
+	const { locale, setLocale, t, tAccount } = useTranslation();
 	const [isDarkMode, setIsDarkMode] = useState(() => {
 		const saved = localStorage.getItem("theme");
 		return saved ? saved === "dark" : true;
@@ -114,7 +116,7 @@ const AppDataLoaded = ({
 				result,
 				(error) => {
 					console.error("Failed to reset data:", error);
-					setApiCallError(Maybe.just("Failed to reset data"));
+					setApiCallError(Maybe.just(t.failedToResetData));
 				},
 				() => {
 					refetchAllData();
@@ -236,7 +238,7 @@ const AppDataLoaded = ({
 			`[data-testid="transaction-item--${transactionId}"]`,
 		);
 		if (!row) {
-			alert("Transaction not visible (filtered out)");
+			alert(t.transactionNotVisible);
 			return;
 		}
 
@@ -253,13 +255,37 @@ const AppDataLoaded = ({
 		<>
 			{/* Header buttons */}
 			<div className="header-buttons">
+				{/* Language flags - separated from other buttons */}
+				<div className="locale-buttons">
+					<button
+						type="button"
+						className={`locale-flag${locale === "fr" ? " locale-flag--active" : ""}`}
+						onClick={() => setLocale("fr")}
+						title={t.switchToFrench}
+						data-testid="locale-fr-button"
+						aria-label={t.switchToFrench}
+					>
+						🇫🇷
+					</button>
+					<button
+						type="button"
+						className={`locale-flag${locale === "en" ? " locale-flag--active" : ""}`}
+						onClick={() => setLocale("en")}
+						title={t.switchToEnglish}
+						data-testid="locale-en-button"
+						aria-label={t.switchToEnglish}
+					>
+						🇺🇸
+					</button>
+				</div>
+
 				<button
 					ref={resetButtonRef}
 					type="button"
 					className={`header-button${isSpinning ? " header-button--spinning" : ""}`}
 					onClick={handleResetData}
 					disabled={isResetting}
-					title="Reset to demo data"
+					title={t.resetToDemo}
 					data-testid="reset-data-button"
 				>
 					↻
@@ -269,7 +295,7 @@ const AppDataLoaded = ({
 					type="button"
 					className="theme-toggle"
 					onClick={toggleTheme}
-					title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+					title={isDarkMode ? t.switchToLightMode : t.switchToDarkMode}
 				>
 					{isDarkMode ? "🌙" : "☀️"}
 				</button>
@@ -287,7 +313,7 @@ const AppDataLoaded = ({
 									const errMsg =
 										error.tag === "BadRequest"
 											? error.reason
-											: `Failed to delete: ${error.tag}`;
+											: `${t.failedToDelete} ${error.tag}`;
 									setApiCallError(Maybe.just(errMsg));
 								},
 								() => {
@@ -318,7 +344,7 @@ const AppDataLoaded = ({
 									const errMsg =
 										error.tag === "BadRequest"
 											? error.reason
-											: `Failed to save: ${error.tag}`;
+											: `${t.failedToSave} ${error.tag}`;
 									setApiCallError(Maybe.just(errMsg));
 								},
 								() => {
@@ -369,10 +395,12 @@ const AppDataLoaded = ({
 				<div className="transaction-list">
 					<div className="transaction-list__header">
 						<div className="transaction-list__header-title">
-							<h3>Transactions</h3>
+							<h3>{t.transactions}</h3>
 							<span className="transaction-count">
-								{filteredLedgerEntries.length} of {ledgerEntries.length}{" "}
-								transactions
+								{t.transactionCount(
+									filteredLedgerEntries.length,
+									ledgerEntries.length,
+								)}
 							</span>
 						</div>
 
@@ -391,7 +419,7 @@ const AppDataLoaded = ({
 								}
 								data-testid="add-transaction-button"
 							>
-								Add Transaction
+								{t.addTransaction}
 							</button>
 						</div>
 					</div>
@@ -425,7 +453,7 @@ const AppDataLoaded = ({
 					/>
 					<TransactionList
 						transactions={filteredLedgerEntries}
-						selectedAccountName={selectedAccount.name}
+						selectedAccountName={tAccount(selectedAccount.name)}
 						onTransactionSelect={(transaction) => {
 							// Store currently focused element to restore focus after modal closes
 							const activeEl = document.activeElement;

@@ -1,4 +1,5 @@
 import type { LedgerEntry } from "../../../shared/ledger";
+import { useTranslation } from "../../i18n/context";
 
 type DeleteDialogBodyProps = {
 	transaction: LedgerEntry;
@@ -15,24 +16,26 @@ export const DeleteDialogBody = ({
 	onCancel,
 	onConfirm,
 }: DeleteDialogBodyProps) => {
+	const { t } = useTranslation();
+
 	return (
 		<div className="delete-confirmation">
-			<p className="confirmation-question">Delete this transaction?</p>
+			<p className="confirmation-question">{t.deleteQuestion}</p>
 			<div className="transaction-recap">
 				<div className="recap-row">
-					<span className="recap-label">Description:</span>
+					<span className="recap-label">{t.description}:</span>
 					<span className="recap-value" data-testid="delete-recap-description">
 						{description}
 					</span>
 				</div>
 				<div className="recap-row">
-					<span className="recap-label">Amount:</span>
+					<span className="recap-label">{t.amount}:</span>
 					<span className="recap-value" data-testid="delete-recap-amount">
 						{(parseFloat(amount) || 0).toFixed(2)}
 					</span>
 				</div>
 			</div>
-			<p className="confirmation-warning">This action cannot be undone.</p>
+			<p className="confirmation-warning">{t.deleteWarning}</p>
 			<div className="modal-actions">
 				<div className="modal-actions__left" />
 				<div className="modal-actions__right">
@@ -42,7 +45,7 @@ export const DeleteDialogBody = ({
 						onClick={onCancel}
 						data-testid="delete-cancel"
 					>
-						Cancel
+						{t.cancel}
 					</button>
 					<button
 						type="button"
@@ -50,7 +53,7 @@ export const DeleteDialogBody = ({
 						onClick={() => onConfirm(transaction.id)}
 						data-testid="transaction-delete-confirm"
 					>
-						Confirm Delete
+						{t.confirmDelete}
 					</button>
 				</div>
 			</div>
