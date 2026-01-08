@@ -34,6 +34,12 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
       - name: Deploy Backend to Render
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         run: curl -s "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}"
