@@ -8,7 +8,7 @@ import { AccountCommand } from "./commands";
 describe("Account Commands", () => {
 	describe("create", () => {
 		it("creates a new account", () => {
-			const { io } = makeFakeIO({ now: 1000 });
+			const { io } = makeFakeIO({ now: 1000000 });
 			const repo = AccountRepoFake.init(io, []);
 			const accountCommand = AccountCommand.init(repo);
 			const account = accountCommand.create({
@@ -28,7 +28,7 @@ describe("Account Commands", () => {
 
 	describe("update", () => {
 		it("updates an existing account", () => {
-			const { io, setTime } = makeFakeIO({ now: 1000 });
+			const { io, setTime } = makeFakeIO({ now: 1000000 });
 			const repo = AccountRepoFake.init(io, [
 				{
 					id: 1,
@@ -47,7 +47,7 @@ describe("Account Commands", () => {
 			]);
 			const accountCommand = AccountCommand.init(repo);
 
-			setTime(2000);
+			setTime(2000000);
 			const { affectedRows } = accountCommand.update(2, {
 				name: "Updated Name",
 				categoryId: 3,
@@ -75,7 +75,7 @@ describe("Account Commands", () => {
 		});
 
 		it("returns 0 affected rows when account not found", () => {
-			const { io } = makeFakeIO({ now: 1000 });
+			const { io } = makeFakeIO({ now: 1000000 });
 			const repo = AccountRepoFake.init(io, [
 				{
 					id: 1,
@@ -97,7 +97,7 @@ describe("Account Commands", () => {
 
 	describe("delete", () => {
 		it("deletes an existing account", () => {
-			const { io } = makeFakeIO({ now: 1000 });
+			const { io } = makeFakeIO({ now: 1000000 });
 			const repo = AccountRepoFake.init(io, [
 				{
 					id: 1,
@@ -133,7 +133,7 @@ describe("Account Commands", () => {
 		});
 
 		it("returns 0 affected rows when account not found", () => {
-			const { io } = makeFakeIO({ now: 1000 });
+			const { io } = makeFakeIO({ now: 1000000 });
 			const repo = AccountRepoFake.init(io, [
 				{
 					id: 1,
@@ -158,7 +158,7 @@ describe("Account Commands", () => {
 		});
 
 		it("returns error when account is locked", () => {
-			const { io, setTime } = makeFakeIO({ now: 1000 });
+			const { io, setTime } = makeFakeIO({ now: 1000000 });
 			const repo = AccountRepoFake.init(io, [
 				{
 					id: 1,
@@ -170,7 +170,7 @@ describe("Account Commands", () => {
 			]);
 
 			// Create a locked account
-			setTime(2000);
+			setTime(2000000);
 			const account = repo.create({
 				name: "SYSTEM_Admin",
 				categoryId: 2,

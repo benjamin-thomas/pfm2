@@ -4,6 +4,7 @@ import { Maybe } from "../../../shared/utils/maybe";
 import type { AccountRepo, AffectedRows } from "./interface";
 
 const init = (io: IO, initialAccounts: Account[]): AccountRepo => {
+	const nowSecs = () => Math.floor(io.now() / 1000);
 	const accounts: Account[] = [...initialAccounts];
 	let nextId =
 		accounts.length === 0 ? 1 : Math.max(...accounts.map((a) => a.id)) + 1;
@@ -19,7 +20,7 @@ const init = (io: IO, initialAccounts: Account[]): AccountRepo => {
 		},
 
 		create: (newAccount: NewAccount): Account => {
-			const now = io.now();
+			const now = nowSecs();
 			const account: Account = {
 				...newAccount,
 				id: nextId++,
@@ -39,7 +40,7 @@ const init = (io: IO, initialAccounts: Account[]): AccountRepo => {
 				...updates,
 				id: existing.id,
 				createdAt: existing.createdAt,
-				updatedAt: io.now(),
+				updatedAt: nowSecs(),
 			};
 			accounts[index] = updated;
 			return { affectedRows: 1 };
@@ -60,7 +61,7 @@ const init = (io: IO, initialAccounts: Account[]): AccountRepo => {
 		},
 
 		createMany: (newAccounts: NewAccount[]): Account[] => {
-			const now = io.now();
+			const now = nowSecs();
 			const created: Account[] = newAccounts.map((acc) => ({
 				...acc,
 				id: nextId++,

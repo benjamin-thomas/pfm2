@@ -14,8 +14,8 @@ export const makeFakeIO = ({ now }: FakeIO_Options) => {
 		now: () => now,
 	};
 
-	const advanceTime = (seconds: number) => {
-		now += seconds;
+	const advanceTime = (ms: number) => {
+		now += ms;
 	};
 
 	const setTime = (newTime: number) => {

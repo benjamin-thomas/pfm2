@@ -11,6 +11,7 @@ import { Maybe } from "../../../shared/utils/maybe";
 import type { AffectedRows, TransactionRepo } from "./interface";
 
 const init = (io: IO, initialTransactions: Transaction[]): TransactionRepo => {
+	const nowSecs = () => Math.floor(io.now() / 1000);
 	let transactions: Transaction[] = [...initialTransactions];
 	let nextId =
 		transactions.length === 0
@@ -18,7 +19,7 @@ const init = (io: IO, initialTransactions: Transaction[]): TransactionRepo => {
 			: Math.max(...transactions.map((tx) => tx.id)) + 1;
 
 	const createTransaction = (newTx: NewTransaction): Transaction => {
-		const now = io.now();
+		const now = nowSecs();
 		return {
 			...newTx,
 			id: nextId++,
@@ -83,7 +84,7 @@ const init = (io: IO, initialTransactions: Transaction[]): TransactionRepo => {
 				...updates,
 				id: existing.id,
 				createdAt: existing.createdAt,
-				updatedAt: io.now(),
+				updatedAt: nowSecs(),
 			};
 			transactions[index] = updated;
 			return { affectedRows: 1 };

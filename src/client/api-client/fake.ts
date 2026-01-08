@@ -233,7 +233,7 @@ const buildApi = (
 
 // Zero-config init for demo use
 const init = (): Api => {
-	const clock = { now: () => Math.floor(Date.now() / 1000) };
+	const clock = { now: () => Date.now() };
 	const { categoryRows, categoryNameToId } = makeCategoryRows(clock);
 	const { accountRows, accountNameToId } = makeAccountRows(
 		clock,

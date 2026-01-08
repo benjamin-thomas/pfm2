@@ -4,6 +4,7 @@ import { Maybe } from "../../../shared/utils/maybe";
 import type { CategoryRepo } from "./interface";
 
 const init = (io: IO, initialCategories: Category[]): CategoryRepo => {
+	const nowSecs = () => Math.floor(io.now() / 1000);
 	const categories: Category[] = [...initialCategories];
 	let nextId =
 		categories.length === 0 ? 1 : Math.max(...categories.map((c) => c.id)) + 1;
@@ -25,7 +26,7 @@ const init = (io: IO, initialCategories: Category[]): CategoryRepo => {
 		},
 
 		createMany: (newCategories: NewCategory[]): Category[] => {
-			const now = io.now();
+			const now = nowSecs();
 			const created: Category[] = newCategories.map((cat) => ({
 				id: nextId++,
 				name: cat.name,
