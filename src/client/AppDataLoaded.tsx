@@ -256,27 +256,33 @@ const AppDataLoaded = ({
 			{/* Header buttons */}
 			<div className="header-buttons">
 				{/* Language flags - separated from other buttons */}
-				<div className="locale-buttons">
+				{/* Language Menu */}
+				<div className="locale-menu-container">
 					<button
 						type="button"
-						className={`locale-flag${locale === "fr" ? " locale-flag--active" : ""}`}
-						onClick={() => setLocale("fr")}
-						title={t.switchToFrench}
-						data-testid="locale-fr-button"
-						aria-label={t.switchToFrench}
+						className="header-button locale-menu-trigger"
+						aria-label="Change Language"
 					>
-						🇫🇷
+						🌐&#xFE0E;
 					</button>
-					<button
-						type="button"
-						className={`locale-flag${locale === "en" ? " locale-flag--active" : ""}`}
-						onClick={() => setLocale("en")}
-						title={t.switchToEnglish}
-						data-testid="locale-en-button"
-						aria-label={t.switchToEnglish}
-					>
-						🇺🇸
-					</button>
+					<div className="locale-menu-dropdown">
+						<button
+							type="button"
+							className={`locale-menu-item${locale === "fr" ? " locale-menu-item--active" : ""}`}
+							onClick={() => setLocale("fr")}
+							data-testid="locale-fr-button"
+						>
+							<span className="locale-menu-flag">🇫🇷</span> Français
+						</button>
+						<button
+							type="button"
+							className={`locale-menu-item${locale === "en" ? " locale-menu-item--active" : ""}`}
+							onClick={() => setLocale("en")}
+							data-testid="locale-en-button"
+						>
+							<span className="locale-menu-flag">🇺🇸</span> English
+						</button>
+					</div>
 				</div>
 
 				<button

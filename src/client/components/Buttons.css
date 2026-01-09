@@ -98,6 +98,7 @@
 	from {
 		transform: rotate(0deg);
 	}
+
 	to {
 		transform: rotate(360deg);
 	}
@@ -124,33 +125,107 @@
 }
 
 /* Locale flag buttons container */
-.locale-buttons {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	margin-right: 12px;
+/* Locale Menu */
+.locale-menu-container {
+	position: relative;
+	/* Removed margin-right to ensure even spacing with other buttons (gap is handled by parent) */
 }
 
-/* Locale flag button base */
-.locale-flag {
-	background: none;
-	border: none;
-	cursor: pointer;
-	transition: all 0.2s ease;
-	font-size: 22px;
-	line-height: 1;
-	padding: 2px;
-	opacity: 0.4;
+/* Ensure the dropdown appears on hover or focus-within (for mobile tap) */
+.locale-menu-container:hover .locale-menu-dropdown,
+.locale-menu-container:focus-within .locale-menu-dropdown {
+	display: flex;
+	opacity: 1;
+	transform: translateY(0);
+	pointer-events: auto;
+}
+
+.locale-menu-trigger {
+	/* Inherits from header-button */
+	font-size: 20px;
+}
+
+/* Locale Menu Triggers */
+.header-button.locale-menu-trigger {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
 
-.locale-flag:hover {
-	transform: scale(1.1);
-	opacity: 1;
+/* Override the default red hover for the locale button to keep it neutral */
+/* We include the .dark-theme selector to match specificity of the global dark theme rule */
+.header-button.locale-menu-trigger:hover,
+.dark-theme .header-button.locale-menu-trigger:hover {
+	background-color: var(--color-hover);
+	border-color: var(--color-border);
+	color: var(--color-text);
 }
 
-.locale-flag--active {
-	opacity: 1;
+.locale-menu-dropdown {
+	position: absolute;
+	top: 120%;
+	right: 0;
+	background-color: var(--color-card-bg);
+	border: 1px solid var(--color-border);
+	border-radius: 8px;
+	padding: 8px;
+	display: none;
+	/* Hidden by default */
+	flex-direction: column;
+	gap: 4px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	min-width: 140px;
+	z-index: 200;
+	/* Animation hooks */
+	opacity: 0;
+	transform: translateY(-10px);
+	transition:
+		opacity 0.2s ease,
+		transform 0.2s ease;
+}
+
+/* Add a transparent bridge to prevent menu from closing when crossing the gap */
+.locale-menu-dropdown::before {
+	content: "";
+	position: absolute;
+	top: -30px;
+	/* Covers the gap + overlap with button */
+	left: 0;
+	width: 100%;
+	height: 30px;
+}
+
+.dark-theme .locale-menu-dropdown {
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.locale-menu-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 12px;
+	background: none;
+	border: none;
+	color: var(--color-text);
+	cursor: pointer;
+	border-radius: 4px;
+	text-align: left;
+	font-size: 14px;
+	font-weight: 500;
+	transition: background-color 0.2s;
+	white-space: nowrap;
+}
+
+.locale-menu-item:hover {
+	background-color: var(--color-hover);
+}
+
+.locale-menu-item--active {
+	background-color: var(--color-hover);
+	color: var(--color-primary);
+}
+
+.locale-menu-flag {
+	font-size: 18px;
+	line-height: 1;
 }
