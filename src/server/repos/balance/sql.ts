@@ -13,6 +13,7 @@ const init = (db: Database.Database): BalanceRepo => {
 			     , a.category_id AS categoryId
 			     , c.name AS categoryName
 			     , a.name AS accountName
+			     , a.position AS position
 			     , COALESCE(x.added, 0) - COALESCE(x.removed, 0) AS balance
 			FROM accounts AS a
 			INNER JOIN categories AS c ON a.category_id = c.category_id
@@ -36,6 +37,7 @@ const init = (db: Database.Database): BalanceRepo => {
 			    GROUP BY account_id
 			) x ON a.account_id = x.account_id
 			WHERE COALESCE(x.added, 0) - COALESCE(x.removed, 0) != 0
+			ORDER BY a.position ASC
 		`;
 
 		return accountBalancesDecoder.guard(db.prepare(query).all());

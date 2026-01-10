@@ -14,12 +14,14 @@ describe("Account Commands", () => {
 			const account = accountCommand.create({
 				name: "New Account",
 				categoryId: 2,
+				position: 0,
 			});
 
 			assert.deepEqual(account, {
 				id: 1,
 				name: "New Account",
 				categoryId: 2,
+				position: 0,
 				createdAt: 1000,
 				updatedAt: 1000,
 			});
@@ -34,6 +36,7 @@ describe("Account Commands", () => {
 					id: 1,
 					name: "Checking",
 					categoryId: 1,
+					position: 0,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
@@ -41,6 +44,7 @@ describe("Account Commands", () => {
 					id: 2,
 					name: "Savings",
 					categoryId: 2,
+					position: 1,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
@@ -51,6 +55,7 @@ describe("Account Commands", () => {
 			const { affectedRows } = accountCommand.update(2, {
 				name: "Updated Name",
 				categoryId: 3,
+				position: 2,
 			});
 
 			assert.equal(affectedRows, 1);
@@ -67,6 +72,7 @@ describe("Account Commands", () => {
 						id: 2,
 						name: "Updated Name",
 						categoryId: 3,
+						position: 2,
 						createdAt: 1000,
 						updatedAt: 2000,
 					});
@@ -81,6 +87,7 @@ describe("Account Commands", () => {
 					id: 1,
 					name: "Checking",
 					categoryId: 1,
+					position: 0,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
@@ -89,6 +96,7 @@ describe("Account Commands", () => {
 			const { affectedRows } = accountCommand.update(999, {
 				name: "Updated Name",
 				categoryId: 3,
+				position: 2,
 			});
 
 			assert.equal(affectedRows, 0);
@@ -103,6 +111,7 @@ describe("Account Commands", () => {
 					id: 1,
 					name: "Checking",
 					categoryId: 1,
+					position: 0,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
@@ -110,6 +119,7 @@ describe("Account Commands", () => {
 					id: 2,
 					name: "Savings",
 					categoryId: 2,
+					position: 1,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
@@ -139,6 +149,7 @@ describe("Account Commands", () => {
 					id: 1,
 					name: "Checking",
 					categoryId: 1,
+					position: 0,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
@@ -164,6 +175,7 @@ describe("Account Commands", () => {
 					id: 1,
 					name: "Checking",
 					categoryId: 1,
+					position: 0,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
@@ -174,12 +186,14 @@ describe("Account Commands", () => {
 			const account = repo.create({
 				name: "SYSTEM_Admin",
 				categoryId: 2,
+				position: 1,
 			});
 
 			assert.deepEqual(account, {
 				id: 2,
 				name: "SYSTEM_Admin",
 				categoryId: 2,
+				position: 1,
 				createdAt: 2000,
 				updatedAt: 2000,
 			});

@@ -12,6 +12,7 @@ describe("CLI account commands", () => {
 					id: 1,
 					name: "Checking",
 					categoryId: 1,
+					position: 0,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
@@ -19,6 +20,7 @@ describe("CLI account commands", () => {
 					id: 2,
 					name: "Savings",
 					categoryId: 2,
+					position: 1,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
@@ -28,8 +30,8 @@ describe("CLI account commands", () => {
 
 			assert.deepEqual(logInfoLines, [
 				["Accounts:"],
-				["  [1] Checking (category: 1)"],
-				["  [2] Savings (category: 2)"],
+				["  [1] Checking (category: 1, position: 0)"],
+				["  [2] Savings (category: 2, position: 1)"],
 			]);
 		});
 
@@ -69,6 +71,7 @@ describe("CLI account commands", () => {
 					id: 1,
 					name: "Checking",
 					categoryId: 1,
+					position: 0,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
@@ -86,6 +89,7 @@ describe("CLI account commands", () => {
 					id: 1,
 					name: "Checking",
 					categoryId: 1,
+					position: 0,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
@@ -93,6 +97,7 @@ describe("CLI account commands", () => {
 					id: 2,
 					name: "Savings",
 					categoryId: 2,
+					position: 1,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
@@ -104,6 +109,7 @@ describe("CLI account commands", () => {
 				["Account [2]:"],
 				["  Name: Savings"],
 				["  Category ID: 2"],
+				["  Position: 1"],
 			]);
 		});
 	});
@@ -116,7 +122,7 @@ describe("CLI account commands", () => {
 			run(io, repo, ["create"]);
 
 			assert.deepEqual(logErrLines, [
-				["Usage: pfm account create <name> <categoryId>"],
+				["Usage: pfm account create <name> <categoryId> <position>"],
 			]);
 		});
 
@@ -127,7 +133,7 @@ describe("CLI account commands", () => {
 			run(io, repo, ["create", "Test Account"]);
 
 			assert.deepEqual(logErrLines, [
-				["Usage: pfm account create <name> <categoryId>"],
+				["Usage: pfm account create <name> <categoryId> <position>"],
 			]);
 		});
 
@@ -135,16 +141,18 @@ describe("CLI account commands", () => {
 			const { io, logErrLines } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, []);
 
-			run(io, repo, ["create", "Test Account", "abc"]);
+			run(io, repo, ["create", "Test Account", "abc", "1"]);
 
-			assert.deepEqual(logErrLines, [["Error: categoryId must be a number"]]);
+			assert.deepEqual(logErrLines, [
+				["Error: categoryId and position must be numbers"],
+			]);
 		});
 
 		it("creates account successfully", () => {
 			const { io, logInfoLines } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, []);
 
-			run(io, repo, ["create", "New Account", "2"]);
+			run(io, repo, ["create", "New Account", "2", "0"]);
 
 			assert.deepEqual(logInfoLines, [["Created account [1]: New Account"]]);
 		});
@@ -156,12 +164,13 @@ describe("CLI account commands", () => {
 					id: 1,
 					name: "Existing",
 					categoryId: 1,
+					position: 0,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
 			]);
 
-			run(io, repo, ["create", "New Account", "2"]);
+			run(io, repo, ["create", "New Account", "2", "1"]);
 
 			assert.deepEqual(logInfoLines, [["Created account [2]: New Account"]]);
 		});
@@ -175,7 +184,7 @@ describe("CLI account commands", () => {
 			run(io, repo, ["update"]);
 
 			assert.deepEqual(logErrLines, [
-				["Usage: pfm account update <id> <name> <categoryId>"],
+				["Usage: pfm account update <id> <name> <categoryId> <position>"],
 			]);
 		});
 
@@ -186,7 +195,7 @@ describe("CLI account commands", () => {
 			run(io, repo, ["update", "1"]);
 
 			assert.deepEqual(logErrLines, [
-				["Usage: pfm account update <id> <name> <categoryId>"],
+				["Usage: pfm account update <id> <name> <categoryId> <position>"],
 			]);
 		});
 
@@ -197,7 +206,7 @@ describe("CLI account commands", () => {
 			run(io, repo, ["update", "1", "New Name"]);
 
 			assert.deepEqual(logErrLines, [
-				["Usage: pfm account update <id> <name> <categoryId>"],
+				["Usage: pfm account update <id> <name> <categoryId> <position>"],
 			]);
 		});
 
@@ -205,10 +214,10 @@ describe("CLI account commands", () => {
 			const { io, logErrLines } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, []);
 
-			run(io, repo, ["update", "abc", "New Name", "2"]);
+			run(io, repo, ["update", "abc", "New Name", "2", "0"]);
 
 			assert.deepEqual(logErrLines, [
-				["Error: id and categoryId must be numbers"],
+				["Error: id, categoryId, and position must be numbers"],
 			]);
 		});
 
@@ -216,10 +225,10 @@ describe("CLI account commands", () => {
 			const { io, logErrLines } = makeFakeIO({ now: 1000 });
 			const repo = AccountRepoFake.init(io, []);
 
-			run(io, repo, ["update", "1", "New Name", "abc"]);
+			run(io, repo, ["update", "1", "New Name", "abc", "0"]);
 
 			assert.deepEqual(logErrLines, [
-				["Error: id and categoryId must be numbers"],
+				["Error: id, categoryId, and position must be numbers"],
 			]);
 		});
 
@@ -230,12 +239,13 @@ describe("CLI account commands", () => {
 					id: 1,
 					name: "Checking",
 					categoryId: 1,
+					position: 0,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
 			]);
 
-			run(io, repo, ["update", "999", "New Name", "2"]);
+			run(io, repo, ["update", "999", "New Name", "2", "1"]);
 
 			assert.deepEqual(logInfoLines, [["Account not found"]]);
 		});
@@ -247,12 +257,13 @@ describe("CLI account commands", () => {
 					id: 1,
 					name: "Checking",
 					categoryId: 1,
+					position: 0,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
 			]);
 
-			run(io, repo, ["update", "1", "Updated Name", "3"]);
+			run(io, repo, ["update", "1", "Updated Name", "3", "1"]);
 
 			assert.deepEqual(logInfoLines, [["Updated account 1"]]);
 		});
@@ -284,6 +295,7 @@ describe("CLI account commands", () => {
 					id: 1,
 					name: "Checking",
 					categoryId: 1,
+					position: 0,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
@@ -301,12 +313,13 @@ describe("CLI account commands", () => {
 					id: 1,
 					name: "Checking",
 					categoryId: 1,
+					position: 0,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
 			]);
 			// Create a locked account (name starts with SYSTEM_)
-			repo.create({ name: "SYSTEM_Admin", categoryId: 1 });
+			repo.create({ name: "SYSTEM_Admin", categoryId: 1, position: 1 });
 
 			run(io, repo, ["delete", "2"]);
 
@@ -320,6 +333,7 @@ describe("CLI account commands", () => {
 					id: 1,
 					name: "Checking",
 					categoryId: 1,
+					position: 0,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
@@ -327,6 +341,7 @@ describe("CLI account commands", () => {
 					id: 2,
 					name: "Savings",
 					categoryId: 2,
+					position: 1,
 					createdAt: 1000,
 					updatedAt: 1000,
 				},
@@ -350,8 +365,8 @@ describe("CLI account commands", () => {
 				["Commands:"],
 				["  list                          - List all accounts"],
 				["  find <id>                     - Find account by ID"],
-				["  create <name> <categoryId>    - Create new account"],
-				["  update <id> <name> <categoryId> - Update account"],
+				["  create <name> <categoryId> <position>    - Create new account"],
+				["  update <id> <name> <categoryId> <position> - Update account"],
 				["  delete <id>                   - Remove account"],
 			]);
 		});
@@ -367,8 +382,8 @@ describe("CLI account commands", () => {
 				["Commands:"],
 				["  list                          - List all accounts"],
 				["  find <id>                     - Find account by ID"],
-				["  create <name> <categoryId>    - Create new account"],
-				["  update <id> <name> <categoryId> - Update account"],
+				["  create <name> <categoryId> <position>    - Create new account"],
+				["  update <id> <name> <categoryId> <position> - Update account"],
 				["  delete <id>                   - Remove account"],
 			]);
 		});

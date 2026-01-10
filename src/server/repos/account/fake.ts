@@ -8,10 +8,20 @@ const init = (io: IO, initialAccounts: Account[]): AccountRepo => {
 	const accounts: Account[] = [...initialAccounts];
 	let nextId =
 		accounts.length === 0 ? 1 : Math.max(...accounts.map((a) => a.id)) + 1;
+	const hasPositionConflict = (
+		position: number,
+		ignoreId?: number,
+	): boolean => {
+		const accountsToCheck =
+			ignoreId === undefined
+				? accounts
+				: accounts.filter((account) => account.id !== ignoreId);
+		return accountsToCheck.some((account) => account.position === position);
+	};
 
 	return {
 		listAll: (): Account[] => {
-			return accounts;
+			return [...accounts].sort((a, b) => a.position - b.position);
 		},
 
 		findById: (id: number): Maybe<Account> => {
@@ -20,6 +30,11 @@ const init = (io: IO, initialAccounts: Account[]): AccountRepo => {
 		},
 
 		create: (newAccount: NewAccount): Account => {
+			if (hasPositionConflict(newAccount.position)) {
+				throw new Error(
+					`Account position ${newAccount.position} already exists`,
+				);
+			}
 			const now = nowSecs();
 			const account: Account = {
 				...newAccount,
@@ -34,6 +49,9 @@ const init = (io: IO, initialAccounts: Account[]): AccountRepo => {
 		update: (id: number, updates: NewAccount): AffectedRows => {
 			const index = accounts.findIndex((a) => a.id === id);
 			if (index === -1) return { affectedRows: 0 };
+			if (hasPositionConflict(updates.position, id)) {
+				throw new Error(`Account position ${updates.position} already exists`);
+			}
 
 			const existing = accounts[index];
 			const updated: Account = {
@@ -62,6 +80,18 @@ const init = (io: IO, initialAccounts: Account[]): AccountRepo => {
 
 		createMany: (newAccounts: NewAccount[]): Account[] => {
 			const now = nowSecs();
+			const usedPositions = new Set<number>();
+			for (const account of newAccounts) {
+				if (
+					hasPositionConflict(account.position) ||
+					usedPositions.has(account.position)
+				) {
+					throw new Error(
+						`Account position ${account.position} already exists`,
+					);
+				}
+				usedPositions.add(account.position);
+			}
 			const created: Account[] = newAccounts.map((acc) => ({
 				...acc,
 				id: nextId++,

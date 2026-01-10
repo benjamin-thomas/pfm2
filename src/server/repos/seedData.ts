@@ -31,10 +31,13 @@ export const seedAllData = (repos: Repos): void => {
 
 	// Get account definitions
 	const { accountRows } = FakeData.makeAccountRows(clock, categoryNameToId);
-	const newAccounts: NewAccount[] = accountRows.map(({ name, categoryId }) => ({
-		name,
-		categoryId,
-	}));
+	const newAccounts: NewAccount[] = accountRows.map(
+		({ name, categoryId, position }) => ({
+			name,
+			categoryId,
+			position,
+		}),
+	);
 
 	// Create accounts and build the name-to-id map
 	const createdAccounts = repos.accountRepo.createMany(newAccounts);

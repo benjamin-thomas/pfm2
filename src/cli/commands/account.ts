@@ -15,7 +15,9 @@ export const run = (io: IO, repo: AccountRepo, args: string[]) => {
 			const accounts = accountQuery.list();
 			io.logInfo("Accounts:");
 			accounts.forEach((acc) => {
-				io.logInfo(`  [${acc.id}] ${acc.name} (category: ${acc.categoryId})`);
+				io.logInfo(
+					`  [${acc.id}] ${acc.name} (category: ${acc.categoryId}, position: ${acc.position})`,
+				);
 			});
 			break;
 		}
@@ -50,6 +52,7 @@ export const run = (io: IO, repo: AccountRepo, args: string[]) => {
 							io.logInfo(`Account [${account.id}]:`);
 							io.logInfo(`  Name: ${account.name}`);
 							io.logInfo(`  Category ID: ${account.categoryId}`);
+							io.logInfo(`  Position: ${account.position}`);
 						},
 					);
 				},
@@ -60,19 +63,21 @@ export const run = (io: IO, repo: AccountRepo, args: string[]) => {
 		case "create": {
 			const name = args[1];
 			const categoryIdStr = args[2];
+			const positionStr = args[3];
 
-			if (!name || !categoryIdStr) {
-				io.logErr("Usage: pfm account create <name> <categoryId>");
+			if (!name || !categoryIdStr || !positionStr) {
+				io.logErr("Usage: pfm account create <name> <categoryId> <position>");
 				return;
 			}
 
 			const categoryId = parseInt(categoryIdStr, 10);
-			if (Number.isNaN(categoryId)) {
-				io.logErr("Error: categoryId must be a number");
+			const position = parseInt(positionStr, 10);
+			if (Number.isNaN(categoryId) || Number.isNaN(position)) {
+				io.logErr("Error: categoryId and position must be numbers");
 				return;
 			}
 
-			const account = accountCommand.create({ name, categoryId });
+			const account = accountCommand.create({ name, categoryId, position });
 			io.logInfo(`Created account [${account.id}]: ${account.name}`);
 			break;
 		}
@@ -81,22 +86,31 @@ export const run = (io: IO, repo: AccountRepo, args: string[]) => {
 			const idStr = args[1];
 			const name = args[2];
 			const categoryIdStr = args[3];
+			const positionStr = args[4];
 
-			if (!idStr || !name || !categoryIdStr) {
-				io.logErr("Usage: pfm account update <id> <name> <categoryId>");
+			if (!idStr || !name || !categoryIdStr || !positionStr) {
+				io.logErr(
+					"Usage: pfm account update <id> <name> <categoryId> <position>",
+				);
 				return;
 			}
 
 			const id = parseInt(idStr, 10);
 			const categoryId = parseInt(categoryIdStr, 10);
-			if (Number.isNaN(id) || Number.isNaN(categoryId)) {
-				io.logErr("Error: id and categoryId must be numbers");
+			const position = parseInt(positionStr, 10);
+			if (
+				Number.isNaN(id) ||
+				Number.isNaN(categoryId) ||
+				Number.isNaN(position)
+			) {
+				io.logErr("Error: id, categoryId, and position must be numbers");
 				return;
 			}
 
 			const { affectedRows } = accountCommand.update(id, {
 				name,
 				categoryId,
+				position,
 			});
 			if (affectedRows === 0) {
 				io.logInfo("Account not found");
@@ -142,8 +156,12 @@ export const run = (io: IO, repo: AccountRepo, args: string[]) => {
 			io.logInfo("Commands:");
 			io.logInfo("  list                          - List all accounts");
 			io.logInfo("  find <id>                     - Find account by ID");
-			io.logInfo("  create <name> <categoryId>    - Create new account");
-			io.logInfo("  update <id> <name> <categoryId> - Update account");
+			io.logInfo(
+				"  create <name> <categoryId> <position>    - Create new account",
+			);
+			io.logInfo(
+				"  update <id> <name> <categoryId> <position> - Update account",
+			);
 			io.logInfo("  delete <id>                   - Remove account");
 			return;
 	}

@@ -5,6 +5,7 @@ export type Account = {
 	id: number;
 	categoryId: number;
 	name: string;
+	position: number;
 	createdAt: number;
 	updatedAt: number;
 };
@@ -23,6 +24,7 @@ export type AccountBalance = {
 	accountName: string;
 	categoryId: number;
 	categoryName: string;
+	position: number;
 	balance: number; // in cents
 };
 
@@ -31,6 +33,7 @@ export const accountDecoder: Decoder<Account> = Decoder.object({
 	id: Decoder.number,
 	categoryId: Decoder.number,
 	name: Decoder.string,
+	position: Decoder.number,
 	createdAt: Decoder.number,
 	updatedAt: Decoder.number,
 });
@@ -43,6 +46,7 @@ export const accountBalanceDecoder: Decoder<AccountBalance> = Decoder.object({
 	accountName: Decoder.string,
 	categoryId: Decoder.number,
 	categoryName: Decoder.string,
+	position: Decoder.number,
 	balance: Decoder.number,
 });
 

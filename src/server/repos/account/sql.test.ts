@@ -38,6 +38,7 @@ describe("AccountRepoSql", () => {
 				id: 1,
 				name: "Checking account",
 				categoryId: 2, // Assets
+				position: 0,
 			});
 			expect(first.createdAt).toBeTypeOf("number");
 			expect(first.updatedAt).toBeTypeOf("number");
@@ -72,7 +73,11 @@ describe("AccountRepoSql", () => {
 
 	describe("create", () => {
 		it("creates and returns new account with generated id", () => {
-			const account = repo.create({ name: "New Account", categoryId: 2 });
+			const account = repo.create({
+				name: "New Account",
+				categoryId: 2,
+				position: 13,
+			});
 
 			expect(account).toMatchObject({
 				id: 14, // After 13 seeded accounts
@@ -84,7 +89,11 @@ describe("AccountRepoSql", () => {
 		});
 
 		it("persists the account", () => {
-			const created = repo.create({ name: "Persisted", categoryId: 3 });
+			const created = repo.create({
+				name: "Persisted",
+				categoryId: 3,
+				position: 14,
+			});
 			const found = repo.findById(created.id);
 
 			expect(found.tag).toBe("Just");
@@ -93,7 +102,11 @@ describe("AccountRepoSql", () => {
 
 	describe("update", () => {
 		it("updates account and returns affectedRows: 1", () => {
-			const result = repo.update(2, { name: "Updated Name", categoryId: 3 });
+			const result = repo.update(2, {
+				name: "Updated Name",
+				categoryId: 3,
+				position: 12,
+			});
 
 			expect(result).toEqual({ affectedRows: 1 });
 
@@ -111,7 +124,11 @@ describe("AccountRepoSql", () => {
 		});
 
 		it("returns affectedRows: 0 when not found", () => {
-			const result = repo.update(999, { name: "X", categoryId: 1 });
+			const result = repo.update(999, {
+				name: "X",
+				categoryId: 1,
+				position: 99,
+			});
 			expect(result).toEqual({ affectedRows: 0 });
 		});
 	});
@@ -120,7 +137,11 @@ describe("AccountRepoSql", () => {
 		it("deletes account and returns affectedRows: 1", () => {
 			// Create a new account specifically for deletion test
 			// (existing accounts may have transactions referencing them)
-			const created = repo.create({ name: "To Delete", categoryId: 1 });
+			const created = repo.create({
+				name: "To Delete",
+				categoryId: 1,
+				position: 15,
+			});
 
 			const result = repo.delete(created.id);
 
@@ -155,8 +176,8 @@ describe("AccountRepoSql", () => {
 
 			const before = repo.listAll().length;
 			const created = repo.createMany([
-				{ name: "Account A", categoryId: 1 },
-				{ name: "Account B", categoryId: 2 },
+				{ name: "Account A", categoryId: 1, position: 16 },
+				{ name: "Account B", categoryId: 2, position: 17 },
 			]);
 
 			expect(created.length).toBe(2);

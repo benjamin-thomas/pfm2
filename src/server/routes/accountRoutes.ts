@@ -10,9 +10,10 @@ import type { AccountQuery } from "../cqs/account/queries";
 const newAccountDecoder = Decoder.object({
 	name: Decoder.string,
 	categoryId: Decoder.number,
+	position: Decoder.number,
 });
 
-type NewAccountInput = { name: string; categoryId: number };
+type NewAccountInput = { name: string; categoryId: number; position: number };
 
 export const registerAccountRoutes = (
 	router: Router,

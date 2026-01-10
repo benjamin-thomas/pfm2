@@ -16,9 +16,11 @@ const init = (db: Database): AccountRepo => {
 			SELECT account_id AS id
 			     , category_id AS categoryId
 			     , name
+			     , position
 			     , created_at AS createdAt
 			     , updated_at AS updatedAt
 			FROM accounts
+			ORDER BY position ASC
 		`;
 		return accountsDecoder.guard(db.prepare(query).all());
 	};
@@ -28,6 +30,7 @@ const init = (db: Database): AccountRepo => {
 			SELECT account_id AS id
 			     , category_id AS categoryId
 			     , name
+			     , position
 			     , created_at AS createdAt
 			     , updated_at AS updatedAt
 			FROM accounts
@@ -39,16 +42,17 @@ const init = (db: Database): AccountRepo => {
 
 	const create = (account: NewAccount): Account => {
 		const query = `
-			INSERT INTO accounts (category_id, name)
-			VALUES (?, ?)
+			INSERT INTO accounts (category_id, name, position)
+			VALUES (?, ?, ?)
 			RETURNING account_id AS id
 			        , category_id AS categoryId
 			        , name
+			        , position
 			        , created_at AS createdAt
 			        , updated_at AS updatedAt
 		`;
 		return accountDecoder.guard(
-			db.prepare(query).get(account.categoryId, account.name),
+			db.prepare(query).get(account.categoryId, account.name, account.position),
 		);
 	};
 
@@ -57,9 +61,12 @@ const init = (db: Database): AccountRepo => {
 			UPDATE accounts
 			   SET category_id = ?
 			     , name = ?
+			     , position = ?
 			WHERE account_id = ?
 		`;
-		const result = db.prepare(query).run(account.categoryId, account.name, id);
+		const result = db
+			.prepare(query)
+			.run(account.categoryId, account.name, account.position, id);
 		return { affectedRows: result.changes };
 	};
 
@@ -78,17 +85,18 @@ const init = (db: Database): AccountRepo => {
 	const createMany = (accounts: NewAccount[]): Account[] => {
 		if (accounts.length === 0) return [];
 
-		const placeholders = accounts.map(() => "(?, ?)").join(", ");
+		const placeholders = accounts.map(() => "(?, ?, ?)").join(", ");
 		const query = `
-			INSERT INTO accounts (category_id, name)
+			INSERT INTO accounts (category_id, name, position)
 			VALUES ${placeholders}
 			RETURNING account_id AS id
 			        , category_id AS categoryId
 			        , name
+			        , position
 			        , created_at AS createdAt
 			        , updated_at AS updatedAt
 		`;
-		const params = accounts.flatMap((a) => [a.categoryId, a.name]);
+		const params = accounts.flatMap((a) => [a.categoryId, a.name, a.position]);
 		return accountsDecoder.guard(db.prepare(query).all(...params));
 	};
 

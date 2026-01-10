@@ -69,6 +69,7 @@ CREATE TABLE accounts
     ( account_id  INTEGER PRIMARY KEY
     , category_id INTEGER NOT NULL REFERENCES categories(category_id)
     , name        TEXT    NOT NULL UNIQUE CHECK (TRIM(name) <> '')
+    , position    INTEGER NOT NULL UNIQUE
     , created_at  INTEGER NOT NULL DEFAULT (strftime('%s', current_timestamp))
     , updated_at  INTEGER NOT NULL DEFAULT (strftime('%s', current_timestamp))
     )

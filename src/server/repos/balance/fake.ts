@@ -54,10 +54,12 @@ const init = (
 						accountName: account.name,
 						categoryId: account.categoryId,
 						categoryName: categoryMap.get(account.categoryId) || "Unknown",
+						position: account.position,
 						balance: balances.added - balances.removed,
 					};
 				})
-				.filter((ab) => ab.balance !== 0); // Only show accounts with non-zero balances
+				.filter((ab) => ab.balance !== 0)
+				.sort((a, b) => a.position - b.position);
 		},
 	};
 };
