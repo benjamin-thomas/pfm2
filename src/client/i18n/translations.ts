@@ -234,7 +234,7 @@ export const translations: Record<Locale, Translations> = {
 	},
 	fr: {
 		// App title and general
-		appTitle: "PFM2 - Démo de Gestionnaire de Finances Personnelles",
+		appTitle: "PFM2 - Démo d'un Gestionnaire de Finances Personnelles",
 		loadingAccounts: "Chargement des comptes...",
 		loadingFinancialData: "Chargement des données financières...",
 		errorLoadingAccounts: "Erreur lors du chargement des comptes :",
@@ -283,7 +283,7 @@ export const translations: Record<Locale, Translations> = {
 
 		// Balance cards
 		balances: "Soldes",
-		scrollToCycle: "Défiler pour naviguer",
+		scrollToCycle: "Utilisez la molette pour naviguer",
 		selectedClickToView: (accountName) =>
 			`Sélectionné : ${accountName} (cliquer pour voir)`,
 

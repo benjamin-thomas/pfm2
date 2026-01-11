@@ -66,7 +66,7 @@ export const BalanceChart = ({
 	accountName,
 	onPointClick,
 }: BalanceChartProps) => {
-	const { t, fMoney, fDate, fNumber } = useTranslation();
+	const { t, tAccount, fMoney, fDate, fNumber } = useTranslation();
 
 	// Don't render if no data
 	if (!ledgerEntries.length) return null;
@@ -100,7 +100,7 @@ export const BalanceChart = ({
 	return (
 		<div className="balance-chart-section">
 			<h3 className="balance-chart-title">
-				{t.balanceHistoryFor(accountName)}
+				{t.balanceHistoryFor(tAccount(accountName))}
 			</h3>
 			<div className="balance-chart-container">
 				<ResponsiveContainer width="100%" height={220}>
