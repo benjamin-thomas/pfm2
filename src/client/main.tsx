@@ -24,6 +24,13 @@ const ensureBackendAwake = async (apiBaseUrl: string) => {
 		const contentType = res.headers.get("content-type");
 		if (!contentType?.includes("application/json")) {
 			window.location.href = href;
+			return;
+		}
+
+		if (params.has("_attempt")) {
+			const url = new URL(window.location.href);
+			url.searchParams.delete("_attempt");
+			window.history.replaceState(null, "", url.toString());
 		}
 	} catch {
 		window.location.href = href;
