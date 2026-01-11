@@ -11,6 +11,13 @@ const localeCode: Record<Locale, string> = {
 // Format money with locale-aware decimal separator
 export const formatMoney = (locale: Locale, cents: number): string => {
 	const decimal = cents / 100;
+	if (locale === "en") {
+		const formatted = new Intl.NumberFormat(localeCode[locale], {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2,
+		}).format(decimal);
+		return `${formatted}\u00a0€`;
+	}
 	return new Intl.NumberFormat(localeCode[locale], {
 		style: "currency",
 		currency: "EUR",
